@@ -2,18 +2,37 @@ import '@/app/globals.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
+import Script from 'next/script';
 import { Bot } from 'lucide-react';
 
 export const metadata = {
   title: 'LowStudy.com - Law Learning Platform for Indian Students & Aspirants',
   description: 'AI-powered learning platform for Indian law students with notes, quizzes, mock tests, bare acts (BNS/BNSS/BSA), case law summaries, and AI doubt solving.',
   keywords: 'LowStudy, Indian Law, LLB notes, BNS 2023, BNSS 2023, BSA 2023, CLAT, AIBE, Judiciary, Law AI Tutor',
+  verification: {
+    google: 'oWQ09SAzdvNqLHxPmmVg6g_ZQzamWoXwT8_xPjP9pS0',
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
       <body className="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-43PH8P7J75"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-43PH8P7J75');
+          `}
+        </Script>
+
         <Navbar />
         <main className="flex-1">
           {children}
