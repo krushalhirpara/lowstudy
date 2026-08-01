@@ -62,12 +62,12 @@ export default function HomePage() {
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight font-serif-title text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400 leading-tight select-none">
+            <h1 className="fluid-h1 font-extrabold tracking-tight font-serif-title text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400 leading-tight select-none">
               Master Indian Law with <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200 drop-shadow-[0_0_30px_rgba(245,158,11,0.35)] font-black">AI Precision</span>
             </h1>
 
             {/* Sanskrit legal slogans in Devnagari calligraphic font */}
-            <div className="py-2 inline-block font-devanagari-calligraphy text-2xl sm:text-3xl text-amber-500 tracking-widest drop-shadow-[0_0_15px_rgba(245,158,11,0.25)]">
+            <div className="py-2 inline-block font-devanagari-calligraphy fluid-slogan text-amber-500 tracking-widest drop-shadow-[0_0_15px_rgba(245,158,11,0.25)]">
               सत्यमेव जयते • यतो धर्मस्ततो जयः
             </div>
 
@@ -97,22 +97,22 @@ export default function HomePage() {
             </div>
 
             {/* Key Ticker Metrics */}
-            <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto border-t border-slate-800/80">
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <p className="text-2xl font-bold text-amber-400 font-serif-title">15+</p>
-                <p className="text-xs text-slate-400">Core Legal Subjects</p>
+            <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto border-t border-slate-800/80">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                <p className="text-xl sm:text-2xl font-bold text-amber-400 font-serif-title">15+</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">Core Legal Subjects</p>
               </div>
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <p className="text-2xl font-bold text-emerald-400 font-serif-title">358</p>
-                <p className="text-xs text-slate-400">BNS 2023 Sections</p>
+              <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                <p className="text-xl sm:text-2xl font-bold text-emerald-400 font-serif-title">358</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">BNS 2023 Sections</p>
               </div>
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <p className="text-2xl font-bold text-blue-400 font-serif-title">500+</p>
-                <p className="text-xs text-slate-400">Landmark Judgments</p>
+              <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                <p className="text-xl sm:text-2xl font-bold text-blue-400 font-serif-title">500+</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">Landmark Judgments</p>
               </div>
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <p className="text-2xl font-bold text-purple-400 font-serif-title">24/7</p>
-                <p className="text-xs text-slate-400">AI Legal Doubt Tutor</p>
+              <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                <p className="text-xl sm:text-2xl font-bold text-purple-400 font-serif-title">24/7</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">AI Legal Doubt Tutor</p>
               </div>
             </div>
 
@@ -186,20 +186,22 @@ export default function HomePage() {
           </div>
 
           {/* Category Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  selectedCategory === cat 
-                    ? 'bg-amber-500 text-slate-950 font-bold shadow' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="w-full overflow-x-auto scrollbar-none pb-1.5 sm:pb-0 sm:overflow-visible flex">
+            <div className="flex sm:flex-wrap items-center gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800 w-max sm:w-auto min-w-full sm:min-w-0">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                    selectedCategory === cat 
+                      ? 'bg-amber-500 text-slate-950 font-bold shadow' 
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

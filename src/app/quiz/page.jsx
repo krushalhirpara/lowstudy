@@ -75,9 +75,9 @@ export default function QuizPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       
       {/* Quiz Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">
               +{quiz.xpReward} XP REWARD
             </span>
@@ -86,14 +86,14 @@ export default function QuizPage() {
           <h1 className="text-xl sm:text-2xl font-bold font-serif-title text-white">{quiz.title}</h1>
         </div>
 
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-950 border border-slate-800 text-amber-400 font-mono text-sm font-bold">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-950 border border-slate-800 text-amber-400 font-mono text-sm font-bold self-start sm:self-auto">
           <Clock className="w-4 h-4 text-amber-400" />
           <span>{formatTime(timeLeft)}</span>
         </div>
       </div>
 
       {!isCompleted ? (
-        <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 space-y-6 shadow-2xl">
+        <div className="p-5 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 space-y-6 shadow-2xl">
           
           {/* Progress bar */}
           <div className="space-y-2">
@@ -135,20 +135,20 @@ export default function QuizPage() {
                 <button
                   key={idx}
                   onClick={() => handleOptionSelect(idx)}
-                  className={`w-full text-left p-4 rounded-2xl border text-xs sm:text-sm transition-all flex items-center justify-between ${optStyle}`}
+                  className={`w-full text-left p-3.5 sm:p-4 rounded-2xl border text-xs sm:text-sm transition-all flex items-start justify-between gap-3 btn-mobile-touch ${optStyle}`}
                 >
-                  <span className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center font-mono text-xs text-slate-400">
+                  <span className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center font-mono text-xs text-slate-400 shrink-0 mt-0.5 font-bold">
                       {String.fromCharCode(65 + idx)}
                     </span>
-                    <span>{opt}</span>
+                    <span className="leading-relaxed">{opt}</span>
                   </span>
 
                   {isAnswered && idx === currentQ.correct && (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                   )}
                   {isAnswered && selectedOption === idx && idx !== currentQ.correct && (
-                    <XCircle className="w-5 h-5 text-red-400 shrink-0" />
+                    <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                   )}
                 </button>
               );

@@ -132,12 +132,12 @@ The **Golden Triangle** consists of three vital Articles in Part III:
       </div>
 
       {/* Prompt Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none flex-nowrap">
         {promptPills.map((pill, idx) => (
           <button
             key={idx}
             onClick={() => handleSend(pill)}
-            className="px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs whitespace-nowrap transition-all flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs whitespace-nowrap transition-all flex items-center gap-1.5 btn-mobile-touch shrink-0"
           >
             <Lightbulb className="w-3 h-3 text-amber-400" />
             <span>{pill}</span>
@@ -206,7 +206,7 @@ The **Golden Triangle** consists of three vital Articles in Part III:
         <button 
           type="submit"
           disabled={!inputQuery.trim()}
-          className="px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
+          className="px-5 sm:px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all shrink-0 btn-mobile-touch"
         >
           <span>Ask</span>
           <Send className="w-4 h-4" />

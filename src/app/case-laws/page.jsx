@@ -55,19 +55,19 @@ export default function CaseLawsPage() {
         {filtered.map((item) => (
           <div 
             key={item.id}
-            className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-amber-500/40 transition-all space-y-5 shadow-xl flex flex-col justify-between"
+            className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-amber-500/40 transition-all space-y-5 shadow-xl flex flex-col justify-between"
           >
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <span className="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono font-bold">
                   {item.subject}
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">
+                <span className="text-[11px] text-slate-400 font-mono text-right truncate">
                   {item.bench}
                 </span>
               </div>
 
-              <h2 className="text-xl font-bold text-white font-serif-title leading-snug">
+              <h2 className="text-lg sm:text-xl font-bold text-white font-serif-title leading-snug">
                 {item.title}
               </h2>
               <p className="text-xs text-amber-400 font-mono">{item.citation}</p>
@@ -91,11 +91,11 @@ export default function CaseLawsPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+            <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
               <span className="text-[10px] text-slate-500 font-mono">{item.importance}</span>
               <Link 
                 href={`/ai-tutor?prompt=${encodeURIComponent(`Explain the full facts and ratio of ${item.title}`)}`}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-xs font-bold flex items-center gap-1.5"
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-xs font-bold flex items-center justify-center gap-1.5 btn-mobile-touch"
               >
                 <Bot className="w-3.5 h-3.5" />
                 Ask AI Brief

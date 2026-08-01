@@ -49,20 +49,22 @@ export default function SubjectsPage() {
         </div>
 
         {/* Category Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                categoryFilter === cat
-                  ? 'bg-amber-500 text-slate-950 font-bold'
-                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+        <div className="w-full sm:w-auto overflow-x-auto scrollbar-none pb-1.5 sm:pb-0 flex">
+          <div className="flex sm:flex-wrap items-center gap-1.5 w-max sm:w-auto min-w-full sm:min-w-0">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                  categoryFilter === cat
+                    ? 'bg-amber-500 text-slate-950 font-bold'
+                    : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

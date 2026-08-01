@@ -48,10 +48,10 @@ export default function BareActsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto scrollbar-none flex-nowrap">
         <button 
           onClick={() => setActiveTab('bns-ipc')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-mobile-touch flex items-center shrink-0 ${
             activeTab === 'bns-ipc' 
               ? 'bg-amber-500 text-slate-950 shadow-lg' 
               : 'bg-slate-900 text-slate-400 hover:text-white'
@@ -62,7 +62,7 @@ export default function BareActsPage() {
 
         <button 
           onClick={() => setActiveTab('bns-full')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-mobile-touch flex items-center shrink-0 ${
             activeTab === 'bns-full' 
               ? 'bg-amber-500 text-slate-950 shadow-lg' 
               : 'bg-slate-900 text-slate-400 hover:text-white'
@@ -73,7 +73,7 @@ export default function BareActsPage() {
 
         <button 
           onClick={() => setActiveTab('bnss-full')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-mobile-touch flex items-center shrink-0 ${
             activeTab === 'bnss-full' 
               ? 'bg-amber-500 text-slate-950 shadow-lg' 
               : 'bg-slate-900 text-slate-400 hover:text-white'
@@ -84,7 +84,7 @@ export default function BareActsPage() {
 
         <button 
           onClick={() => setActiveTab('bsa-full')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-mobile-touch flex items-center shrink-0 ${
             activeTab === 'bsa-full' 
               ? 'bg-amber-500 text-slate-950 shadow-lg' 
               : 'bg-slate-900 text-slate-400 hover:text-white'
@@ -106,9 +106,10 @@ export default function BareActsPage() {
         />
       </div>
 
-      {/* Mapping Table */}
+      {/* Mapping Table / Card View Container */}
       <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
+        {/* Desktop View (Standard Table) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 uppercase font-mono tracking-wider">
@@ -159,6 +160,61 @@ export default function BareActsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View (Card List) */}
+        <div className="block md:hidden divide-y divide-slate-800/80">
+          {filteredMap.map((item, idx) => (
+            <div key={idx} className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-red-400 line-through decoration-red-500 font-mono">
+                    {item.ipc}
+                  </span>
+                  <span className="text-slate-500 text-[10px]">→</span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-400 font-mono">
+                    {item.bns}
+                  </span>
+                </div>
+                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                  {item.status}
+                </span>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-slate-200">{item.ipcTitle}</h4>
+                {item.bnsTitle && <p className="text-[10px] text-slate-400 mt-0.5">{item.bnsTitle}</p>}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button 
+                  onClick={() => handleCopy(`${item.ipc} -> ${item.bns}: ${item.ipcTitle}`, idx)}
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center btn-mobile-touch gap-1"
+                  title="Copy Mapping"
+                >
+                  {copiedIndex === idx ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-400" />
+                      <span className="text-[10px] font-bold text-emerald-400 font-mono">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span className="text-[10px] font-mono">Copy</span>
+                    </>
+                  )}
+                </button>
+                <Link 
+                  href={`/ai-tutor?prompt=${encodeURIComponent(`Explain ${item.bns} (${item.ipcTitle}) with case laws`)}`}
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 flex items-center justify-center btn-mobile-touch gap-1"
+                  title="Ask AI"
+                >
+                  <Bot className="w-3 h-3 text-emerald-400" />
+                  <span className="text-[10px] font-mono">Ask AI</span>
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

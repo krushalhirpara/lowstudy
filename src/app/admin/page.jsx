@@ -81,7 +81,7 @@ export default function AdminPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       
       {/* Admin Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs font-mono font-bold">
@@ -91,7 +91,7 @@ export default function AdminPage() {
           <h1 className="text-2xl font-bold font-serif-title text-white">LowStudy.com Platform Admin</h1>
         </div>
 
-        <button className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg">
+        <button className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg btn-mobile-touch shrink-0">
           <Plus className="w-4 h-4" />
           <span>Publish New Subject Note</span>
         </button>
@@ -167,14 +167,15 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* User Management Table */}
-      <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+      {/* User Management Table / Card View Container */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-white font-serif-title">Registered Students & Advocates</h3>
           <span className="text-xs text-slate-400 font-mono">Showing recent 4</span>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop View (Standard Table) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 uppercase font-mono">
@@ -203,6 +204,27 @@ export default function AdminPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View (Card List) */}
+        <div className="block md:hidden space-y-3">
+          {mockUsers.map((user, idx) => (
+            <div key={idx} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 shadow-md">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-xs">{user.name}</span>
+                <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                  user.status === 'Pro Plan' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-400'
+                }`}>
+                  {user.status}
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-300 space-y-1">
+                <p><span className="text-slate-500 font-semibold">Email:</span> <span className="font-mono">{user.email}</span></p>
+                <p><span className="text-slate-500 font-semibold">Target / Role:</span> {user.role}</p>
+                <p><span className="text-slate-500 font-semibold">Joined:</span> <span className="font-mono">{user.joined}</span></p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

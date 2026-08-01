@@ -32,7 +32,7 @@ export default function SubjectDetailPage({ params }) {
       </Link>
 
       {/* Subject Header */}
-      <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+      <div className="p-5 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -43,14 +43,14 @@ export default function SubjectDetailPage({ params }) {
                 {subject.category}
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold font-serif-title text-white">{subject.title}</h1>
+            <h1 className="fluid-h2 font-bold font-serif-title text-white">{subject.title}</h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-3xl leading-relaxed">{subject.description}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             <Link 
               href="/ai-tutor"
-              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
             >
               <Bot className="w-4 h-4" />
               Ask AI about {subject.shortCode}
@@ -63,7 +63,7 @@ export default function SubjectDetailPage({ params }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Left: Chapters Sidebar */}
-        <div className="space-y-4">
+        <div className="hidden lg:block space-y-4">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 font-mono">
             Chapters & Modules ({subject.chapters?.length || 0})
           </h3>
@@ -88,6 +88,26 @@ export default function SubjectDetailPage({ params }) {
 
         {/* Right: Notes Reader */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Mobile Chapter Selector */}
+          <div className="lg:hidden space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
+              Chapters & Modules ({subject.chapters?.length || 0})
+            </label>
+            <select
+              value={activeChapter?.id || ''}
+              onChange={(e) => {
+                const selected = subject.chapters?.find(c => c.id === e.target.value);
+                if (selected) setActiveChapter(selected);
+              }}
+              className="w-full bg-slate-900 border border-slate-850 text-slate-200 text-xs font-semibold p-3.5 rounded-xl focus:outline-none focus:border-amber-500"
+            >
+              {subject.chapters?.map((chap, idx) => (
+                <option key={chap.id} value={chap.id} className="bg-slate-950 text-slate-200">
+                  {idx + 1}. {chap.title}
+                </option>
+              ))}
+            </select>
+          </div>
           {activeChapter ? (
             <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 space-y-6 shadow-xl">
               

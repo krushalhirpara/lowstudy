@@ -189,44 +189,56 @@ export default function Navbar() {
 
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-slate-950 border-b border-slate-800 px-4 pt-3 pb-6 space-y-3 animate-fade-in">
+        <div className="lg:hidden bg-slate-950/95 backdrop-blur-lg border-b border-slate-800 px-4 pt-3 pb-6 space-y-4 animate-fade-in">
           {/* Search bar inside drawer */}
           <div className="relative">
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text"
               placeholder="Search Act, Section..."
-              className="w-full bg-slate-900 text-slate-200 text-xs pl-9 pr-4 py-2 rounded-lg border border-slate-850"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-900 text-slate-200 text-xs pl-9 pr-4 py-2.5 rounded-lg border border-slate-800 focus:outline-none focus:border-amber-500/60"
             />
           </div>
-
+ 
           {/* Links Grid */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {[...coreLinks, ...userLinks].map((link) => {
               const Icon = link.icon;
+              const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-850 text-xs font-semibold text-slate-200 hover:bg-amber-500/10 hover:text-amber-300 transition-all"
+                  className={`flex items-center gap-2.5 p-3 rounded-lg border text-xs font-semibold transition-all btn-mobile-touch ${
+                    isActive 
+                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' 
+                      : 'bg-slate-900/60 border-slate-850 text-slate-200 hover:bg-amber-500/10 hover:text-amber-300'
+                  }`}
                 >
-                  <Icon className="w-4 h-4 text-amber-400" />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
                   <span>{link.name}</span>
+                  {link.badge && (
+                    <span className="text-[8px] px-1 py-0.2 ml-auto rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold tracking-wider">
+                      {link.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
           </div>
-
+ 
           {/* Role Indicator / Switch Trigger */}
-          <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/40 border border-slate-850 text-xs text-slate-400 font-medium">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-slate-900/40 border border-slate-850 text-xs text-slate-400 font-medium">
             <button 
               onClick={handleRoleToggle}
-              className="text-amber-400 font-bold hover:underline"
+              className="text-amber-400 font-bold hover:underline text-left btn-mobile-touch flex items-center"
             >
               Switch Role ({role === 'student' ? 'Admin' : 'Student'})
             </button>
-            <span>Target: {USER_STUDENT_PROFILE.targetExam}</span>
+            <span className="sm:text-right">Target: {USER_STUDENT_PROFILE.targetExam}</span>
           </div>
         </div>
       )}
