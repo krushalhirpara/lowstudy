@@ -163,10 +163,10 @@ export default function HomePage() {
       </section>
 
       {/* UNIVERSITY & SEMESTER SYLLABUS INDEX SELECTOR */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pt-4">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pt-4 font-anek">
         <div className="text-center space-y-1">
-          <span className="text-[10px] font-black uppercase tracking-wider text-amber-500 font-mono">Select Your Curriculum Mappings</span>
-          <h2 className="text-xl sm:text-2xl font-bold font-serif-title text-white">Choose University & Semester</h2>
+          <span className="text-[10px] font-medium uppercase tracking-wider text-amber-500 font-mono">Select Your Curriculum Mappings</span>
+          <h2 className="text-xl sm:text-2xl font-bold text-white">Choose University & Semester</h2>
         </div>
 
         {/* University Selector Cards */}
@@ -188,7 +188,7 @@ export default function HomePage() {
                 }`}
               >
                 <span className="text-2xl group-hover:scale-110 transition-transform">{u.logo}</span>
-                <span className="text-xs font-bold font-serif-title">{u.name}</span>
+                <span className="text-xs font-semibold">{u.name}</span>
                 <span className="text-[9px] font-semibold text-slate-500 font-mono uppercase">{u.code}</span>
               </button>
             );
@@ -198,7 +198,7 @@ export default function HomePage() {
         {/* Dynamic Semester Selector Row */}
         {universityId && (
           <div className="space-y-3 max-w-2xl mx-auto text-center pt-2 animate-fade-in">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500 font-mono">Select Current Semester</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-500 font-mono">Select Current Semester</span>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {semesters.map(s => {
                 const isSelected = semesterId === s.id;
@@ -211,7 +211,7 @@ export default function HomePage() {
                       setIsOnboarded(true);
                       window.location.reload();
                     }}
-                    className={`p-3 rounded-xl border text-center text-xs font-bold transition-all btn-mobile-touch ${
+                    className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all btn-mobile-touch ${
                       isSelected
                         ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold'
                         : 'bg-slate-900 border-slate-850 text-slate-400 hover:border-slate-750 hover:text-white'
