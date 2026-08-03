@@ -113,30 +113,6 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* University & Semester Selector (Desktop) */}
-          <div className="hidden md:flex items-center gap-2 border-l border-slate-800/80 pl-4 py-1">
-            <select
-              value={selectedUni}
-              onChange={handleUniChange}
-              className="bg-slate-950 border border-slate-850 text-slate-300 text-[11px] font-bold px-2 py-1.5 rounded-lg focus:outline-none focus:border-amber-500/60"
-            >
-              <option value="">Select University</option>
-              {universities.map(u => (
-                <option key={u.id} value={u.id}>{u.code}</option>
-              ))}
-            </select>
-            <select
-              value={selectedSem}
-              onChange={handleSemChange}
-              className="bg-slate-950 border border-slate-850 text-slate-300 text-[11px] font-bold px-2 py-1.5 rounded-lg focus:outline-none focus:border-amber-500/60"
-            >
-              <option value="">Select Semester</option>
-              {semesters.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </div>
-
           {/* Desktop Navigation Links */}
           <div className="hidden lg:flex items-center gap-1 xl:gap-2">
             {coreLinks.map((link) => {
@@ -243,36 +219,6 @@ export default function Navbar() {
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-slate-950/95 backdrop-blur-lg border-b border-slate-800 px-4 pt-3 pb-6 space-y-4 animate-fade-in">
-          {/* Mobile University & Semester Selector */}
-          <div className="grid grid-cols-2 gap-2 pb-2">
-            <div className="flex flex-col gap-1">
-              <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">University</span>
-              <select
-                value={selectedUni}
-                onChange={handleUniChange}
-                className="w-full bg-slate-900 border border-slate-800 text-slate-300 text-xs p-2.5 rounded-lg focus:outline-none focus:border-amber-500"
-              >
-                <option value="">Select University</option>
-                {universities.map(u => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Semester</span>
-              <select
-                value={selectedSem}
-                onChange={handleSemChange}
-                className="w-full bg-slate-900 border border-slate-800 text-slate-300 text-xs p-2.5 rounded-lg focus:outline-none focus:border-amber-500"
-              >
-                <option value="">Select Semester</option>
-                {semesters.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
           {/* Search bar inside drawer */}
           <div className="relative">
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
