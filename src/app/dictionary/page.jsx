@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layers, Search, BookOpen, Sparkles, Bot } from 'lucide-react';
 import { LEGAL_DICTIONARY } from '@/data/legalData';
+import { MockDB } from '@/data/db';
 import Link from 'next/link';
 
 export default function DictionaryPage() {
   const [search, setSearch] = useState('');
+  const [dictionaryList, setDictionaryList] = useState([]);
+  const [mounted, setMounted] = useState(false);
 
-  const filtered = LEGAL_DICTIONARY.filter(item => 
+  useEffect(() => {
+    setMounted(true);
+    MockDB.init();
+    setDictionaryList(MockDB.state.dictionary || LEGAL_DICTIONARY);
+  }, []);
+
+  const filtered = dictionaryList.filter(item => 
     item.term.toLowerCase().includes(search.toLowerCase()) || 
     item.phrase.toLowerCase().includes(search.toLowerCase()) ||
     item.definition.toLowerCase().includes(search.toLowerCase())

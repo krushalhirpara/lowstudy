@@ -1,22 +1,43 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BookOpen, Search, Filter, Layers, ArrowRight, Bookmark } from 'lucide-react';
-import { SUBJECTS_DATA } from '@/data/legalData';
+import { MockDB } from '@/data/db';
 
 export default function SubjectsPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  
+  const [subjects, setSubjects] = useState([]);
+  const [activeUni, setActiveUni] = useState(null);
+  const [activeSem, setActiveSem] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    MockDB.init();
+    setActiveUni(MockDB.getSelectedUni());
+    setActiveSem(MockDB.getSelectedSem());
+    setSubjects(MockDB.getSubjects());
+  }, []);
 
   const categories = ['All', 'Core Law', 'Criminal Law', 'Civil Law', 'Corporate Law', 'Personal Law', 'Specialized Law', 'Commercial Law'];
 
-  const filtered = SUBJECTS_DATA.filter(item => {
+  const filtered = subjects.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase()) || 
                           item.description.toLowerCase().includes(search.toLowerCase());
     const matchesCat = categoryFilter === 'All' || item.category === categoryFilter;
     return matchesSearch && matchesCat;
   });
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-xs text-slate-500 font-mono">
+        Loading subjects...
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -25,9 +46,11 @@ export default function SubjectsPage() {
       <div className="space-y-3">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
           <BookOpen className="w-3.5 h-3.5" />
-          <span>Curriculum Hub</span>
+          <span>Syllabus Explorer</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold font-serif-title text-white">15 Core Legal Subjects</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold font-serif-title text-white">
+          {activeUni ? activeUni.code : "University"} - {activeSem ? activeSem.name : "Core Subjects"}
+        </h1>
         <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
           Comprehensive structured notes, section breakdowns, landmark cases, and revision flashcards for Indian legal education.
         </p>

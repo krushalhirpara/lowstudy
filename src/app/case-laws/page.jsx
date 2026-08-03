@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   BookMarked, 
@@ -13,11 +13,20 @@ import {
   FileText 
 } from 'lucide-react';
 import { LANDMARK_CASES } from '@/data/legalData';
+import { MockDB } from '@/data/db';
 
 export default function CaseLawsPage() {
   const [search, setSearch] = useState('');
+  const [casesList, setCasesList] = useState([]);
+  const [mounted, setMounted] = useState(false);
 
-  const filtered = LANDMARK_CASES.filter(c => 
+  useEffect(() => {
+    setMounted(true);
+    MockDB.init();
+    setCasesList(MockDB.state.caseLaws || []);
+  }, []);
+
+  const filtered = casesList.filter(c => 
     c.title.toLowerCase().includes(search.toLowerCase()) || 
     c.keyPrinciple.toLowerCase().includes(search.toLowerCase()) ||
     c.subject.toLowerCase().includes(search.toLowerCase())

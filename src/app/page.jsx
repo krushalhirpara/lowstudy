@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Scale, 
@@ -23,14 +23,44 @@ import {
   Check
 } from 'lucide-react';
 import { SUBJECTS_DATA, IPC_VS_BNS_MAP, LANDMARK_CASES } from '@/data/legalData';
+import { MockDB } from '@/data/db';
 
 export default function HomePage() {
+  const [universityId, setUniversityId] = useState('');
+  const [semesterId, setSemesterId] = useState('');
+  const [isOnboarded, setIsOnboarded] = useState(false);
+  const [universities, setUniversities] = useState([]);
+  const [semesters, setSemesters] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [mounted, setMounted] = useState(false);
+  
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchBns, setSearchBns] = useState('');
 
+  useEffect(() => {
+    setMounted(true);
+    MockDB.init();
+    setUniversities(MockDB.getUniversities());
+    setSemesters(MockDB.getSemesters());
+
+    const uni = MockDB.getSelectedUni();
+    const sem = MockDB.getSelectedSem();
+    if (uni && sem) {
+      setUniversityId(uni.id);
+      setSemesterId(sem.id);
+      setIsOnboarded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOnboarded) {
+      setSubjects(MockDB.getSubjects(universityId, semesterId));
+    }
+  }, [isOnboarded, universityId, semesterId]);
+
   const categories = ['All', 'Core Law', 'Criminal Law', 'Civil Law', 'Corporate Law', 'Specialized Law'];
 
-  const filteredSubjects = SUBJECTS_DATA.filter(subject => {
+  const filteredSubjects = subjects.filter(subject => {
     if (selectedCategory === 'All') return true;
     return subject.category.toLowerCase().includes(selectedCategory.toLowerCase());
   });
@@ -40,6 +70,114 @@ export default function HomePage() {
     item.bns.toLowerCase().includes(searchBns.toLowerCase()) ||
     item.ipcTitle.toLowerCase().includes(searchBns.toLowerCase())
   );
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-xs text-slate-500 font-mono">
+        Setting up learning workspace...
+      </div>
+    );
+  }
+
+  if (!isOnboarded) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Decorative glows */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-10 w-[400px] h-[250px] bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none" />
+
+        <div className="max-w-4xl w-full space-y-8 relative z-10 text-center">
+          <div className="space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-600 p-0.5 shadow-lg flex items-center justify-center">
+              <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                <Scale className="w-8 h-8 text-amber-400" />
+              </div>
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-serif-title">
+              Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200">LowStudy.com</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
+              India's premier AI-powered law practice and learning platform. Select your university and semester to build your personalized legal roadmap.
+            </p>
+          </div>
+
+          {/* Steps */}
+          <div className="space-y-6 max-w-xl mx-auto">
+            {/* Step 1: Select University */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono">
+                1. Select Your Law University
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {universities.map(u => {
+                  const isSelected = universityId === u.id;
+                  return (
+                    <button
+                      key={u.id}
+                      onClick={() => setUniversityId(u.id)}
+                      className={`p-5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-2 group hover:scale-102 ${
+                        isSelected
+                          ? 'bg-amber-500/10 border-amber-500 text-amber-400 shadow-lg shadow-amber-500/10'
+                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                      }`}
+                    >
+                      <span className="text-2xl group-hover:scale-110 transition-transform">{u.logo}</span>
+                      <span className="text-xs font-bold font-serif-title">{u.name}</span>
+                      <span className="text-[9px] font-semibold text-slate-500 font-mono uppercase">{u.code}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step 2: Select Semester */}
+            {universityId && (
+              <div className="space-y-3 animate-fade-in">
+                <label className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono">
+                  2. Select Your Current Semester
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {semesters.map(s => {
+                    const isSelected = semesterId === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => setSemesterId(s.id)}
+                        className={`p-3.5 rounded-xl border text-center text-xs font-bold transition-all ${
+                          isSelected
+                            ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 shadow'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-white'
+                        }`}
+                      >
+                        Sem {s.num}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Complete button */}
+            {universityId && semesterId && (
+              <div className="pt-4 animate-fade-in">
+                <button
+                  onClick={() => {
+                    MockDB.setSelectedUniAndSem(universityId, semesterId);
+                    setIsOnboarded(true);
+                    window.location.reload();
+                  }}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transform hover:-translate-y-0.5 transition-all"
+                >
+                  <span>Build My Legal Syllabus</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-16 pb-20">
