@@ -45,8 +45,10 @@ export default function HomePage() {
 
     const uni = MockDB.getSelectedUni();
     const sem = MockDB.getSelectedSem();
-    if (uni && sem) {
+    if (uni) {
       setUniversityId(uni.id);
+    }
+    if (sem) {
       setSemesterId(sem.id);
       setIsOnboarded(true);
     }
