@@ -165,10 +165,23 @@ class MockDBClass {
 
     try {
       const data = localStorage.getItem("lowstudy_db");
+      const seed = this.getSeedData();
       if (data) {
-        this.state = JSON.parse(data);
+        const parsed = JSON.parse(data);
+        if (!parsed.version || parsed.version < seed.version || !parsed.subjects || parsed.subjects.length !== seed.subjects.length) {
+          this.state = {
+            ...seed,
+            profile: parsed.profile ? { ...seed.profile, ...parsed.profile } : seed.profile,
+            selectedUniId: parsed.selectedUniId !== undefined ? parsed.selectedUniId : seed.selectedUniId,
+            selectedSemId: parsed.selectedSemId !== undefined ? parsed.selectedSemId : seed.selectedSemId,
+            selectedSyllabusVersion: parsed.selectedSyllabusVersion || seed.selectedSyllabusVersion
+          };
+          this.save();
+        } else {
+          this.state = parsed;
+        }
       } else {
-        this.state = this.getSeedData();
+        this.state = seed;
         this.save();
       }
       this.isLoaded = true;
@@ -180,6 +193,7 @@ class MockDBClass {
   getSeedData() {
     const extracted = getExtractedSeedData();
     return {
+      version: 3,
       universities: UNIVERSITIES,
       courses: BASE_COURSES,
       semesters: SEMESTERS,

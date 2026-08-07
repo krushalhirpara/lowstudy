@@ -11,6 +11,10 @@ export default function SubjectsPage() {
   const [syllabusVersion, setSyllabusVersion] = useState('new');
   
   const [subjects, setSubjects] = useState([]);
+  const [universities, setUniversities] = useState([]);
+  const [semesters, setSemesters] = useState([]);
+  const [selectedUniId, setSelectedUniId] = useState('');
+  const [selectedSemId, setSelectedSemId] = useState('');
   const [activeUni, setActiveUni] = useState(null);
   const [activeSem, setActiveSem] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -18,10 +22,16 @@ export default function SubjectsPage() {
   useEffect(() => {
     setMounted(true);
     MockDB.init();
+    setUniversities(MockDB.getUniversities());
+    setSemesters(MockDB.getSemesters());
+
     const uni = MockDB.getSelectedUni();
     const sem = MockDB.getSelectedSem();
     setActiveUni(uni);
     setActiveSem(sem);
+    setSelectedUniId(uni ? uni.id : '');
+    setSelectedSemId(sem ? sem.id : '');
+
     const ver = MockDB.getSelectedSyllabusVersion();
     setSyllabusVersion(ver);
     setSubjects(MockDB.getSubjects(uni ? uni.id : null, sem ? sem.id : null, ver));
@@ -30,9 +40,23 @@ export default function SubjectsPage() {
   const handleVersionChange = (version) => {
     setSyllabusVersion(version);
     MockDB.setSelectedSyllabusVersion(version);
-    const uni = MockDB.getSelectedUni();
-    const sem = MockDB.getSelectedSem();
-    setSubjects(MockDB.getSubjects(uni ? uni.id : null, sem ? sem.id : null, version));
+    setSubjects(MockDB.getSubjects(selectedUniId ? selectedUniId : null, selectedSemId ? selectedSemId : null, version));
+  };
+
+  const handleUniChange = (uniId) => {
+    setSelectedUniId(uniId);
+    MockDB.setSelectedUniAndSem(uniId, selectedSemId);
+    const uni = MockDB.getUniversities().find(u => u.id === uniId) || null;
+    setActiveUni(uni);
+    setSubjects(MockDB.getSubjects(uniId ? uniId : null, selectedSemId ? selectedSemId : null, syllabusVersion));
+  };
+
+  const handleSemChange = (semId) => {
+    setSelectedSemId(semId);
+    MockDB.setSelectedUniAndSem(selectedUniId, semId);
+    const sem = MockDB.getSemesters().find(s => s.id === semId) || null;
+    setActiveSem(sem);
+    setSubjects(MockDB.getSubjects(selectedUniId ? selectedUniId : null, semId ? semId : null, syllabusVersion));
   };
 
   const categories = ['All', 'Core Law', 'Criminal Law', 'Civil Law', 'Corporate Law', 'Personal Law', 'Specialized Law', 'Commercial Law'];
@@ -126,18 +150,45 @@ export default function SubjectsPage() {
       </div>
 
       {/* Filter & Search Controls */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-slate-900/80 p-4 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-slate-900/80 p-4 rounded-2xl border border-slate-800 shadow-xl w-full">
         
-        {/* Search Input */}
-        <div className="w-full lg:w-96 relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input 
-            type="text"
-            placeholder="Search keyword in subject, unit, topic, or notes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-950 text-xs text-white pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-500 transition-colors"
-          />
+        {/* Left Side: Search Bar & Selectors */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+          {/* Search Input */}
+          <div className="w-full sm:w-72 relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text"
+              placeholder="Search keyword in subject, unit, topic, or notes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-950 text-xs text-white pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-500 transition-colors"
+            />
+          </div>
+
+          {/* University Dropdown */}
+          <select
+            value={selectedUniId}
+            onChange={(e) => handleUniChange(e.target.value)}
+            className="bg-slate-950 text-xs text-slate-350 px-3 py-2.5 rounded-xl border border-slate-750 focus:outline-none focus:border-amber-500 transition-colors w-full sm:w-48 cursor-pointer"
+          >
+            <option value="">All Universities</option>
+            {universities.map(u => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
+          </select>
+
+          {/* Semester Dropdown */}
+          <select
+            value={selectedSemId}
+            onChange={(e) => handleSemChange(e.target.value)}
+            className="bg-slate-950 text-xs text-slate-350 px-3 py-2.5 rounded-xl border border-slate-750 focus:outline-none focus:border-amber-500 transition-colors w-full sm:w-40 cursor-pointer"
+          >
+            <option value="">All Semesters</option>
+            {semesters.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
         </div>
 
         {/* Category Pills */}

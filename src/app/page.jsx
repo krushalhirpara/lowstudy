@@ -64,7 +64,7 @@ export default function HomePage() {
     }
   }, [isOnboarded, universityId, semesterId, syllabusVersion]);
 
-  const categories = ['All', 'Core Law', 'Criminal Law', 'Civil Law', 'Corporate Law', 'Specialized Law'];
+  const categories = ['All', 'Core Law', 'Criminal Law', 'Civil Law', 'Corporate Law', 'Personal Law', 'Specialized Law', 'Commercial Law'];
 
   const filteredSubjects = subjects.filter(subject => {
     if (selectedCategory === 'All') return true;

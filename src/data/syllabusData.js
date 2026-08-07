@@ -17,207 +17,7 @@ export const SEMESTERS = [
   { id: "sem6", name: "Semester 6", num: 6 }
 ];
 
-// Configuration maps to generate proper subjects for each university, semester, and syllabus type
-const SYLLABUS_CONFIGS = {
-  gu: {
-    new: {
-      sem1: [
-        { title: "Constitutional Law - I", code: "CONST-1", category: "Core Law", credits: 4 },
-        { title: "Law of Contract - I", code: "CONTRACT-1", category: "Civil Law", credits: 4 },
-        { title: "Law of Torts & Consumer Protection", code: "TORTS", category: "Civil Law", credits: 4 },
-        { title: "Bharatiya Nyaya Sanhita (BNS, 2023)", code: "BNS", category: "Criminal Law", credits: 4 }
-      ],
-      sem2: [
-        { title: "Constitutional Law - II", code: "CONST-2", category: "Core Law", credits: 4 },
-        { title: "Law of Contract - II (Special Contracts)", code: "CONTRACT-2", category: "Civil Law", credits: 4 },
-        { title: "Bharatiya Nagarik Suraksha Sanhita (BNSS)", code: "BNSS", category: "Criminal Procedure", credits: 4 },
-        { title: "Bharatiya Sakshya Adhiniyam (BSA, 2023)", code: "BSA", category: "Evidence Law", credits: 4 }
-      ],
-      sem3: [
-        { title: "Family Law - I (Hindu Law)", code: "FAMILY-1", category: "Personal Law", credits: 4 },
-        { title: "Environmental Law & NGT Act", code: "ENV", category: "Public Law", credits: 4 },
-        { title: "Property Law (TPA)", code: "TPA", category: "Civil Law", credits: 4 }
-      ],
-      sem4: [
-        { title: "Family Law - II (Muslim Law & Succession)", code: "FAMILY-2", category: "Personal Law", credits: 4 },
-        { title: "Jurisprudence (Legal Theory)", code: "JURIS", category: "Core Law", credits: 4 },
-        { title: "Administrative Law", code: "ADMIN", category: "Public Law", credits: 4 }
-      ],
-      sem5: [
-        { title: "Code of Civil Procedure (CPC, 1908)", code: "CPC", category: "Civil Procedure", credits: 4 },
-        { title: "Companies Act, 2013", code: "COMPANY", category: "Corporate Law", credits: 4 },
-        { title: "Public International Law", code: "PIL", category: "Public Law", credits: 4 }
-      ],
-      sem6: [
-        { title: "Taxation Laws (Direct & GST)", code: "TAX", category: "Commercial Law", credits: 4 },
-        { title: "Arbitration & Conciliation Act", code: "ADR", category: "Commercial Law", credits: 4 },
-        { title: "Cyber Law & IT Act, 2000", code: "CYBER", category: "Specialized Law", credits: 4 }
-      ]
-    },
-    old: {
-      sem1: [
-        { title: "Constitutional Law - I", code: "CONST-1", category: "Core Law", credits: 4 },
-        { title: "Law of Contract - I", code: "CONTRACT-1", category: "Civil Law", credits: 4 },
-        { title: "Law of Torts & Consumer Protection", code: "TORTS", category: "Civil Law", credits: 4 },
-        { title: "Indian Penal Code (IPC, 1860)", code: "IPC", category: "Criminal Law", credits: 4 }
-      ],
-      sem2: [
-        { title: "Constitutional Law - II", code: "CONST-2", category: "Core Law", credits: 4 },
-        { title: "Law of Contract - II (Special Contracts)", code: "CONTRACT-2", category: "Civil Law", credits: 4 },
-        { title: "Code of Criminal Procedure (CrPC, 1973)", code: "CrPC", category: "Criminal Procedure", credits: 4 },
-        { title: "Indian Evidence Act, 1872", code: "IEA", category: "Evidence Law", credits: 4 }
-      ],
-      sem3: [
-        { title: "Family Law - I (Hindu Law)", code: "FAMILY-1", category: "Personal Law", credits: 4 },
-        { title: "Environmental Law & NGT Act", code: "ENV", category: "Public Law", credits: 4 }
-      ],
-      sem4: [
-        { title: "Family Law - II (Muslim Law)", code: "FAMILY-2", category: "Personal Law", credits: 4 },
-        { title: "Jurisprudence", code: "JURIS", category: "Core Law", credits: 4 }
-      ],
-      sem5: [
-        { title: "Code of Civil Procedure", code: "CPC", category: "Civil Procedure", credits: 4 },
-        { title: "Company Law", code: "COMPANY", category: "Corporate Law", credits: 4 }
-      ],
-      sem6: [
-        { title: "Taxation Laws", code: "TAX", category: "Commercial Law", credits: 4 },
-        { title: "Arbitration & Conciliation Act", code: "ADR", category: "Commercial Law", credits: 4 }
-      ]
-    }
-  },
-  su: {
-    new: {
-      sem1: [
-        { title: "Constitutional Law - I", code: "CONST-1", category: "Core Law", credits: 5 },
-        { title: "Law of Contract - I", code: "CONTRACT-1", category: "Civil Law", credits: 5 },
-        { title: "Law of Torts & CPA", code: "TORTS", category: "Civil Law", credits: 5 },
-        { title: "Bharatiya Nyaya Sanhita (BNS, 2023)", code: "BNS", category: "Criminal Law", credits: 5 }
-      ],
-      sem2: [
-        { title: "Constitutional Law - II", code: "CONST-2", category: "Core Law", credits: 5 },
-        { title: "Law of Contract - II (Special Contracts)", code: "CONTRACT-2", category: "Civil Law", credits: 5 },
-        { title: "Bharatiya Nagarik Suraksha Sanhita (BNSS)", code: "BNSS", category: "Criminal Procedure", credits: 5 },
-        { title: "Bharatiya Sakshya Adhiniyam (BSA)", code: "BSA", category: "Evidence Law", credits: 5 }
-      ],
-      sem3: [
-        { title: "Family Law - I (Hindu Law)", code: "FAMILY-1", category: "Personal Law", credits: 5 },
-        { title: "Labour & Industrial Law - I", code: "LABOUR-1", category: "Corporate Law", credits: 5 },
-        { title: "Property Law (TPA)", code: "TPA", category: "Civil Law", credits: 5 }
-      ],
-      sem4: [
-        { title: "Family Law - II (Muslim Law)", code: "FAMILY-2", category: "Personal Law", credits: 5 },
-        { title: "Jurisprudence", code: "JURIS", category: "Core Law", credits: 5 },
-        { title: "Administrative Law", code: "ADMIN", category: "Public Law", credits: 5 }
-      ],
-      sem5: [
-        { title: "Code of Civil Procedure", code: "CPC", category: "Civil Procedure", credits: 5 },
-        { title: "Companies Act, 2013", code: "COMPANY", category: "Corporate Law", credits: 5 },
-        { title: "Public International Law", code: "PIL", category: "Public Law", credits: 5 }
-      ],
-      sem6: [
-        { title: "Taxation Laws", code: "TAX", category: "Commercial Law", credits: 5 },
-        { title: "Arbitration & ADR", code: "ADR", category: "Commercial Law", credits: 5 },
-        { title: "Cyber Law & IT Act", code: "CYBER", category: "Specialized Law", credits: 5 }
-      ]
-    },
-    old: {
-      sem1: [
-        { title: "Constitutional Law - I", code: "CONST-1", category: "Core Law", credits: 5 },
-        { title: "Law of Contract - I", code: "CONTRACT-1", category: "Civil Law", credits: 5 },
-        { title: "Law of Torts & CPA", code: "TORTS", category: "Civil Law", credits: 5 },
-        { title: "Indian Penal Code (IPC)", code: "IPC", category: "Criminal Law", credits: 5 }
-      ],
-      sem2: [
-        { title: "Constitutional Law - II", code: "CONST-2", category: "Core Law", credits: 5 },
-        { title: "Law of Contract - II", code: "CONTRACT-2", category: "Civil Law", credits: 5 },
-        { title: "Code of Criminal Procedure (CrPC)", code: "CrPC", category: "Criminal Procedure", credits: 5 },
-        { title: "Indian Evidence Act, 1872", code: "IEA", category: "Evidence Law", credits: 5 }
-      ],
-      sem3: [
-        { title: "Family Law - I (Hindu Law)", code: "FAMILY-1", category: "Personal Law", credits: 5 },
-        { title: "Labour & Industrial Law - I", code: "LABOUR-1", category: "Corporate Law", credits: 5 }
-      ],
-      sem4: [
-        { title: "Family Law - II (Muslim Law)", code: "FAMILY-2", category: "Personal Law", credits: 5 },
-        { title: "Jurisprudence", code: "JURIS", category: "Core Law", credits: 5 }
-      ],
-      sem5: [
-        { title: "Code of Civil Procedure", code: "CPC", category: "Civil Procedure", credits: 5 },
-        { title: "Company Law", code: "COMPANY", category: "Corporate Law", credits: 5 }
-      ],
-      sem6: [
-        { title: "Taxation Laws", code: "TAX", category: "Commercial Law", credits: 5 },
-        { title: "Arbitration & ADR", code: "ADR", category: "Commercial Law", credits: 5 }
-      ]
-    }
-  },
-  vnsgu: {
-    new: {
-      sem1: [
-        { title: "Constitutional Law - I", code: "CONST-1", category: "Core Law", credits: 6 },
-        { title: "Law of Contract - I", code: "CONTRACT-1", category: "Civil Law", credits: 6 },
-        { title: "Law of Torts & Consumer Protection", code: "TORTS", category: "Civil Law", credits: 6 },
-        { title: "Bharatiya Nyaya Sanhita (BNS)", code: "BNS", category: "Criminal Law", credits: 6 }
-      ],
-      sem2: [
-        { title: "Constitutional Law - II", code: "CONST-2", category: "Core Law", credits: 6 },
-        { title: "Law of Contract - II (Special Contracts)", code: "CONTRACT-2", category: "Civil Law", credits: 6 },
-        { title: "Bharatiya Nagarik Suraksha Sanhita (BNSS)", code: "BNSS", category: "Criminal Procedure", credits: 6 },
-        { title: "Bharatiya Sakshya Adhiniyam (BSA)", code: "BSA", category: "Evidence Law", credits: 6 }
-      ],
-      sem3: [
-        { title: "Family Law - I (Hindu Law)", code: "FAMILY-1", category: "Personal Law", credits: 6 },
-        { title: "Environmental Law & NGT Act", code: "ENV", category: "Public Law", credits: 6 },
-        { title: "Labour & Industrial Law - I", code: "LABOUR-1", category: "Corporate Law", credits: 6 }
-      ],
-      sem4: [
-        { title: "Family Law - II (Muslim Law)", code: "FAMILY-2", category: "Personal Law", credits: 6 },
-        { title: "Jurisprudence (Legal Theory)", code: "JURIS", category: "Core Law", credits: 6 },
-        { title: "Administrative Law", code: "ADMIN", category: "Public Law", credits: 6 }
-      ],
-      sem5: [
-        { title: "Code of Civil Procedure", code: "CPC", category: "Civil Procedure", credits: 6 },
-        { title: "Companies Act, 2013", code: "COMPANY", category: "Corporate Law", credits: 6 },
-        { title: "Public International Law", code: "PIL", category: "Public Law", credits: 6 }
-      ],
-      sem6: [
-        { title: "Taxation Laws", code: "TAX", category: "Commercial Law", credits: 6 },
-        { title: "Arbitration & ADR Mechanisms", code: "ADR", category: "Commercial Law", credits: 6 },
-        { title: "Cyber Law & IT Act", code: "CYBER", category: "Specialized Law", credits: 6 }
-      ]
-    },
-    old: {
-      sem1: [
-        { title: "Constitutional Law - I", code: "CONST-1", category: "Core Law", credits: 6 },
-        { title: "Law of Contract - I", code: "CONTRACT-1", category: "Civil Law", credits: 6 },
-        { title: "Law of Torts & Consumer Protection", code: "TORTS", category: "Civil Law", credits: 6 },
-        { title: "Indian Penal Code (IPC)", code: "IPC", category: "Criminal Law", credits: 6 }
-      ],
-      sem2: [
-        { title: "Constitutional Law - II", code: "CONST-2", category: "Core Law", credits: 6 },
-        { title: "Law of Contract - II", code: "CONTRACT-2", category: "Civil Law", credits: 6 },
-        { title: "Code of Criminal Procedure (CrPC)", code: "CrPC", category: "Criminal Procedure", credits: 6 },
-        { title: "Indian Evidence Act, 1872", code: "IEA", category: "Evidence Law", credits: 6 }
-      ],
-      sem3: [
-        { title: "Family Law - I (Hindu Law)", code: "FAMILY-1", category: "Personal Law", credits: 6 },
-        { title: "Environmental Law", code: "ENV", category: "Public Law", credits: 6 }
-      ],
-      sem4: [
-        { title: "Family Law - II (Muslim Law)", code: "FAMILY-2", category: "Personal Law", credits: 6 },
-        { title: "Jurisprudence", code: "JURIS", category: "Core Law", credits: 6 }
-      ],
-      sem5: [
-        { title: "Code of Civil Procedure", code: "CPC", category: "Civil Procedure", credits: 6 },
-        { title: "Company Law", code: "COMPANY", category: "Corporate Law", credits: 6 }
-      ],
-      sem6: [
-        { title: "Taxation Laws", code: "TAX", category: "Commercial Law", credits: 6 },
-        { title: "Arbitration & ADR", code: "ADR", category: "Commercial Law", credits: 6 }
-      ]
-    }
-  }
-};
+import subjectsStructure from './subjectsStructure.json';
 
 // Generates realistic mock content for any given subject based on its metadata.
 // This allows full syllabus details for every single university/semester/version.
@@ -338,7 +138,7 @@ function generateSyllabusForSubject(uniId, semId, version, subjectMeta) {
         ]
       }
     ];
-  } else if (lowercaseTitle.includes("bns") || lowercaseTitle.includes("penal") || lowercaseTitle.includes("crimes") || lowercaseTitle.includes("ipc")) {
+  } else if (lowercaseTitle.includes("bns") || lowercaseTitle.includes("penal") || lowercaseTitle.includes("crimes") || lowercaseTitle.includes("ipc") || lowercaseTitle.includes("nagarik") || lowercaseTitle.includes("suraksha") || lowercaseTitle.includes("crpc") || lowercaseTitle.includes("sakshya") || lowercaseTitle.includes("adhiniyam") || lowercaseTitle.includes("evidence") || lowercaseTitle.includes("iea")) {
     unitTemplates = [
       {
         title: "General Principles & Mental Elements",
@@ -560,7 +360,12 @@ function getSubjectColor(code) {
     IPR: "from-fuchsia-600 to-purple-950",
     TAX: "from-yellow-600 to-amber-950",
     ADR: "from-indigo-600 to-blue-900",
-    CYBER: "from-teal-600 to-emerald-950"
+    CYBER: "from-teal-600 to-emerald-950",
+    LABOUR: "from-orange-600 to-amber-900",
+    JURIS: "from-indigo-700 to-slate-900",
+    ADMIN: "from-violet-750 to-indigo-950",
+    PIL: "from-cyan-700 to-blue-900",
+    IOS: "from-stone-600 to-slate-800"
   };
   return map[code.split("-")[0]] || "from-slate-700 to-slate-900";
 }
@@ -568,22 +373,19 @@ function getSubjectColor(code) {
 // Generate the global, complete dataset
 const generatedSyllabusList = [];
 
-for (const uni of UNIVERSITIES) {
-  const uniId = uni.id;
-  const config = SYLLABUS_CONFIGS[uniId];
-  if (!config) continue;
-
-  for (const version of ["new", "old"]) {
-    const verConfig = config[version];
-    if (!verConfig) continue;
-
-    for (const sem of SEMESTERS) {
-      const semId = sem.id;
-      const subjectsMeta = verConfig[semId] || [];
-
-      for (const subjMeta of subjectsMeta) {
-        const fullSubject = generateSyllabusForSubject(uniId, semId, version, subjMeta);
-        generatedSyllabusList.push(fullSubject);
+for (const uniId of Object.keys(subjectsStructure)) {
+  const uniConfig = subjectsStructure[uniId];
+  for (const semId of Object.keys(uniConfig)) {
+    const semConfig = uniConfig[semId];
+    for (const version of Object.keys(semConfig)) {
+      const verConfig = semConfig[version];
+      for (const category of Object.keys(verConfig)) {
+        const subjectsList = verConfig[category];
+        for (const subjMeta of subjectsList) {
+          const fullMeta = { ...subjMeta, category };
+          const fullSubject = generateSyllabusForSubject(uniId, semId, version, fullMeta);
+          generatedSyllabusList.push(fullSubject);
+        }
       }
     }
   }
