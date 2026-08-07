@@ -28,6 +28,7 @@ import { MockDB } from '@/data/db';
 export default function HomePage() {
   const [universityId, setUniversityId] = useState('');
   const [semesterId, setSemesterId] = useState('');
+  const [syllabusVersion, setSyllabusVersion] = useState('new');
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [universities, setUniversities] = useState([]);
   const [semesters, setSemesters] = useState([]);
@@ -42,6 +43,7 @@ export default function HomePage() {
     MockDB.init();
     setUniversities(MockDB.getUniversities());
     setSemesters(MockDB.getSemesters());
+    setSyllabusVersion(MockDB.getSelectedSyllabusVersion());
 
     const uni = MockDB.getSelectedUni();
     const sem = MockDB.getSelectedSem();
@@ -56,11 +58,11 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isOnboarded) {
-      setSubjects(MockDB.getSubjects(universityId, semesterId));
+      setSubjects(MockDB.getSubjects(universityId, semesterId, syllabusVersion));
     } else {
-      setSubjects(MockDB.getSubjects(null, null));
+      setSubjects(MockDB.getSubjects(null, null, syllabusVersion));
     }
-  }, [isOnboarded, universityId, semesterId]);
+  }, [isOnboarded, universityId, semesterId, syllabusVersion]);
 
   const categories = ['All', 'Core Law', 'Criminal Law', 'Civil Law', 'Corporate Law', 'Specialized Law'];
 
@@ -285,15 +287,45 @@ export default function HomePage() {
 
       {/* 15 SUBJECTS DIRECTORY GRID */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold font-serif-title text-white">15 Core Legal Subjects</h2>
-            <p className="text-xs sm:text-sm text-slate-400">Complete syllabus coverage for LLB semester exams and competitive law entrances.</p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-bold font-serif-title text-white">Syllabus Explorer</h2>
+            <p className="text-xs sm:text-sm text-slate-400">Complete curriculum mapping for LLB semester exams and competitive law entrances.</p>
+            
+            {/* Syllabus Version Toggle */}
+            <div className="inline-flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800/80">
+              <button
+                onClick={() => {
+                  setSyllabusVersion('new');
+                  MockDB.setSelectedSyllabusVersion('new');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  syllabusVersion === 'new'
+                    ? 'bg-amber-500 text-slate-950 shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                New Syllabus (BNS 2023)
+              </button>
+              <button
+                onClick={() => {
+                  setSyllabusVersion('old');
+                  MockDB.setSelectedSyllabusVersion('old');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  syllabusVersion === 'old'
+                    ? 'bg-amber-500 text-slate-950 shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Old Syllabus (IPC 1860)
+              </button>
+            </div>
           </div>
 
           {/* Category Tabs */}
-          <div className="w-full overflow-x-auto scrollbar-none pb-1.5 sm:pb-0 sm:overflow-visible flex">
-            <div className="flex sm:flex-wrap items-center gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800 w-max sm:w-auto min-w-full sm:min-w-0">
+          <div className="w-full md:w-auto overflow-x-auto scrollbar-none pb-1.5 md:pb-0 flex shrink-0">
+            <div className="flex items-center gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800 w-max">
               {categories.map((cat) => (
                 <button
                   key={cat}
@@ -313,48 +345,55 @@ export default function HomePage() {
 
         {/* Grid of Subject Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredSubjects.map((subj) => (
-            <Link 
-              key={subj.id} 
-              href={`/subjects/${subj.id}`}
-              className="group p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 hover:border-amber-500/50 hover:bg-slate-900 transition-all flex flex-col justify-between space-y-4 shadow-lg hover:shadow-amber-500/5"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider font-mono bg-slate-800 text-amber-400 border border-slate-700">
-                    {subj.shortCode}
-                  </span>
-                  {subj.popular && (
-                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-semibold">
-                      Popular
+          {filteredSubjects.map((subj) => {
+            const uniNames = { gu: "Gujarat Uni", su: "Saurashtra Uni", vnsgu: "VNSGU" };
+            return (
+              <Link 
+                key={subj.id} 
+                href={`/subjects/${subj.id}`}
+                className="group p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 hover:border-amber-500/50 hover:bg-slate-900 transition-all flex flex-col justify-between space-y-5 shadow-lg hover:shadow-amber-500/5"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider font-mono bg-slate-800 text-amber-400 border border-slate-700">
+                      {subj.shortCode}
                     </span>
-                  )}
+                    <div className="flex gap-1.5 items-center">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                        subj.syllabusVersion === 'new' 
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      }`}>
+                        {subj.syllabusVersion === 'new' ? 'New Syllabus' : 'Old Syllabus'}
+                      </span>
+                      {subj.credits && (
+                        <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-semibold tracking-wide">
+                          {subj.credits} Credits
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-bold text-white font-serif-title group-hover:text-amber-400 transition-colors leading-snug">
+                      {subj.title}
+                    </h3>
+                    <div className="flex flex-col gap-1.5 mt-2 text-[10.5px] text-slate-400">
+                      <span className="text-slate-300 font-semibold">{subj.category}</span>
+                      <span className="font-mono text-[9.5px] uppercase tracking-wider text-slate-450">
+                        {uniNames[subj.universityId] || subj.universityId.toUpperCase()} • {subj.semesterId === 'sem1' ? 'Sem 1' : subj.semesterId === 'sem2' ? 'Sem 2' : subj.semesterId === 'sem3' ? 'Sem 3' : subj.semesterId === 'sem4' ? 'Sem 4' : subj.semesterId === 'sem5' ? 'Sem 5' : 'Sem 6'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-bold text-white font-serif-title group-hover:text-amber-400 transition-colors">
-                    {subj.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 line-clamp-2 mt-1 leading-relaxed">
-                    {subj.description}
-                  </p>
+                <div className="pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 font-medium flex items-center justify-between group-hover:text-white transition-colors">
+                  <span>View Full Syllabus & Notes</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-800/80 space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                  <span>{subj.modulesCount} Modules</span>
-                  <span>{subj.casesCount} Cases</span>
-                </div>
-                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-gradient-to-r from-amber-500 to-emerald-500 h-full rounded-full" 
-                    style={{ width: `${subj.progress}%` }}
-                  />
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </section>
 
