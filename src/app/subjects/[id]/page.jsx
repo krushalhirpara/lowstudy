@@ -275,7 +275,28 @@ export default function SubjectDetailPage({ params }) {
           {/* Topics items list */}
           <div className="space-y-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">Topics in Unit {activeUnit?.unitNumber}</span>
-            <div className="space-y-1.5 flex flex-col">
+            
+            {/* Mobile View dropdown (visible on screen sizes < lg) */}
+            <div className="block lg:hidden">
+              <select
+                value={activeTopic?.id || ''}
+                onChange={(e) => {
+                  const topic = topics.find(t => t.id === e.target.value);
+                  if (topic) handleTopicSelect(topic);
+                }}
+                className="w-full bg-slate-900 border border-slate-850 text-slate-200 text-xs font-bold p-3.5 rounded-xl focus:outline-none focus:border-amber-500"
+              >
+                {topics.map(t => (
+                  <option key={t.id} value={t.id}>{t.title}</option>
+                ))}
+                {topics.length === 0 && (
+                  <option value="">No topics listed under this unit</option>
+                )}
+              </select>
+            </div>
+
+            {/* Desktop View vertical button list (visible on screen sizes >= lg) */}
+            <div className="hidden lg:flex flex-col space-y-1.5">
               {topics.map((t) => {
                 const isActive = activeTopic?.id === t.id;
                 return (
