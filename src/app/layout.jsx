@@ -20,7 +20,7 @@ export default function RootLayout({ children }) {
       <body className="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
         {/* Google Analytics */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-43PH8P7J75"
+          src="https://www.googletagmanager.com/gtag/js?id=G-37P31VWPP7"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
 
-            gtag('config', 'G-43PH8P7J75');
+            gtag('config', 'G-37P31VWPP7');
           `}
         </Script>
 
