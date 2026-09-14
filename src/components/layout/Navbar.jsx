@@ -7,23 +7,19 @@ import {
   Scale, 
   BookOpen, 
   FileText, 
-  Bot, 
   Award, 
   Search, 
-  Flame, 
   Layers, 
   Menu, 
   X, 
   User, 
   ShieldCheck,
   BookMarked,
-  Sparkles,
-  Lock,
   Building2,
   ChevronRight,
-  GraduationCap
+  GraduationCap,
+  Sparkles
 } from 'lucide-react';
-import { USER_STUDENT_PROFILE } from '@/data/legalData';
 import { MockDB } from '@/data/db';
 import SyllabusSelectorModal from '@/components/syllabus/SyllabusSelectorModal';
 
@@ -36,7 +32,6 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   
   const [selectedUni, setSelectedUni] = useState(null);
-  const [selectedCollege, setSelectedCollege] = useState(null);
   const [selectedSem, setSelectedSem] = useState(null);
 
   useEffect(() => {
@@ -44,7 +39,6 @@ export default function Navbar() {
     MockDB.init();
     
     setSelectedUni(MockDB.getSelectedUni());
-    setSelectedCollege(MockDB.getSelectedCollege());
     setSelectedSem(MockDB.getSelectedSem());
 
     try {
@@ -62,7 +56,7 @@ export default function Navbar() {
     window.location.reload();
   };
 
-  // Primary learning links
+  // Core navigation items
   const coreLinks = [
     { name: 'Subjects', href: '/subjects', icon: BookOpen },
     { name: 'Bare Acts', href: '/bare-acts', icon: FileText, badge: 'BNS 2023' },
@@ -72,7 +66,7 @@ export default function Navbar() {
     { name: 'Colleges', href: '/gujarat-law-colleges', icon: Building2 },
   ];
 
-  // Secondary account/admin links (segregated based on role)
+  // Secondary account / admin links
   const userLinks = mounted ? [
     { name: 'Dashboard', href: '/dashboard', icon: User, show: role === 'student' },
     { name: 'Admin Panel', href: '/admin', icon: ShieldCheck, show: role === 'admin' },
@@ -80,215 +74,217 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-lg border-b border-slate-800/60 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-3">
+      <header className="sticky top-0 z-40 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 shadow-lg font-poppins">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-[70px] gap-2 lg:gap-4">
             
-            {/* Logo Section */}
-            <Link href="/" className="flex items-center gap-2 shrink-0 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-emerald-600 to-blue-600 p-0.5 shadow-lg group-hover:scale-105 transition-transform duration-200">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                  <Scale className="w-4.5 h-4.5 text-amber-400 group-hover:rotate-12 transition-transform duration-200" />
+            {/* 1. Brand Logo & GJ Law Badge */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <Link href="/" className="flex items-center gap-2 group shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-emerald-600 to-blue-600 p-0.5 shadow-md group-hover:scale-105 transition-transform duration-200">
+                  <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                    <Scale className="w-4.5 h-4.5 text-amber-400 group-hover:rotate-12 transition-transform duration-200" />
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold font-serif-title tracking-tight text-white flex items-center gap-0.5">
-                  Low<span className="text-amber-400">Study</span>
-                  <span className="text-[9px] font-sans px-1 py-0.2 ml-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">GJ Law</span>
-                </span>
-                <span className="text-[9px] text-slate-400 font-devanagari-serif tracking-wider font-semibold">
-                  Gujarat Law Intelligence
-                </span>
-              </div>
-            </Link>
+                <div className="flex flex-col">
+                  <span className="text-lg font-extrabold tracking-tight text-white flex items-center leading-none">
+                    Low<span className="text-amber-400">Study</span>
+                    <span className="text-[9px] font-sans px-1.5 py-0.5 ml-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">
+                      GJ Law
+                    </span>
+                  </span>
+                  <span className="text-[9.5px] text-slate-400 font-semibold tracking-wider pt-0.5 font-gujarati">
+                    ગુજરાત Law Education
+                  </span>
+                </div>
+              </Link>
+            </div>
 
-            {/* Gujarat Syllabus Badge Button */}
+            {/* 2. University / Semester Selector Trigger */}
             <button
               onClick={() => setIsModalOpen(true)}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-amber-500/30 text-xs font-semibold text-amber-400 hover:border-amber-500 hover:bg-slate-850 transition-all btn-mobile-touch shrink-0"
-              title="Click to change your active Gujarat University / College syllabus"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-amber-500/30 text-xs font-semibold text-amber-400 hover:border-amber-500 hover:bg-slate-850 transition-all shrink-0"
+              title="Click to change active Gujarat University or Semester syllabus"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="truncate max-w-[150px]">
-                {selectedUni ? selectedUni.code : 'Gujarat Uni'} • {selectedSem ? `Sem ${selectedSem.num}` : 'Sem 1'}
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="truncate max-w-[140px] xl:max-w-[170px]">
+                {selectedUni ? selectedUni.code : 'GU Law'} • {selectedSem ? `Sem ${selectedSem.num}` : 'Sem 1'}
               </span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold font-mono">CHANGE</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold uppercase font-mono">
+                Change
+              </span>
             </button>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-1 xl:gap-2">
-            {coreLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all relative ${
-                    isActive 
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' 
-                      : link.highlight
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
+            {/* 3. Core Desktop Navigation Links */}
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+              {coreLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={`px-2.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all relative ${
+                      isActive 
+                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' 
                         : 'text-slate-300 hover:text-white hover:bg-slate-900'
-                  }`}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${link.highlight ? 'text-emerald-400 animate-pulse' : 'text-slate-400'}`} />
-                  <span>{link.name}</span>
-                  {link.badge && (
-                    <span className="text-[8px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold tracking-wider font-sans">
-                      {link.badge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
+                    <span>{link.name}</span>
+                    {link.badge && (
+                      <span className="text-[8px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold uppercase tracking-wider font-mono">
+                        {link.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
 
-          {/* Search bar & Secondary Links (Desktop) */}
-          <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
-            {/* Elegant Search Input */}
-            <div className="relative w-40 xl:w-44 focus-within:w-48 xl:focus-within:w-56 transition-all duration-300">
-              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            {/* 4. Right Controls: Search, Role Switcher & User Account */}
+            <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
+              {/* Responsive Search Input */}
+              <div className="relative w-36 xl:w-44 focus-within:w-48 xl:focus-within:w-56 transition-all duration-300">
+                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input 
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-slate-900/80 text-slate-200 text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-800 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-all placeholder:text-slate-500"
+                />
+              </div>
+
+              {/* Role Switcher Badge */}
+              <button 
+                onClick={handleRoleToggle}
+                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase border tracking-wider transition-all flex items-center gap-1.5 ${
+                  role === 'admin'
+                    ? 'bg-purple-500/10 border-purple-500/30 text-purple-300'
+                    : 'bg-emerald-500/15 border-emerald-500/20 text-emerald-400'
+                }`}
+                title="Click to switch role between Student and Admin"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${role === 'admin' ? 'bg-purple-400 animate-ping' : 'bg-emerald-400'}`} />
+                <span>Role: {role}</span>
+              </button>
+
+              {/* User Account Links */}
+              {userLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={`p-2 rounded-lg transition-all border ${
+                      isActive 
+                        ? 'bg-slate-900 border-amber-500/30 text-amber-400' 
+                        : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900'
+                    }`}
+                    title={link.name}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* 5. Mobile & Tablet Trigger Buttons */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <button 
+                onClick={handleRoleToggle}
+                className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase border ${
+                  role === 'admin' ? 'bg-purple-500/20 border-purple-500/30 text-purple-300' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                }`}
+              >
+                {role}
+              </button>
+
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors"
+                aria-label="Toggle Navigation Menu"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        {/* 6. Mobile & Tablet Drawer Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden bg-slate-950/98 backdrop-blur-xl border-b border-slate-800 px-4 pt-3 pb-6 space-y-4 animate-fade-in shadow-2xl">
+            {/* Search Input inside drawer */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
                 type="text"
-                placeholder="Search..."
+                placeholder="Search Subjects, BNS Sections, Case Laws..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900/60 text-slate-200 text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-800 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-all placeholder:text-slate-500"
+                className="w-full bg-slate-900 text-slate-200 text-xs pl-9 pr-4 py-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
-            {/* Role Switcher Widget */}
-            <button 
-              onClick={handleRoleToggle}
-              className={`px-2.5 py-1.5 rounded-lg text-[10px] font-extrabold uppercase border tracking-wider transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 ${
-                role === 'admin'
-                  ? 'bg-purple-500/10 border-purple-500/30 text-purple-300'
-                  : 'bg-emerald-500/15 border-emerald-500/20 text-emerald-400'
-              }`}
-              title="Click to toggle user role"
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${role === 'admin' ? 'bg-purple-400 animate-ping' : 'bg-emerald-400'}`} />
-              <span>Role: {role}</span>
-            </button>
+            {/* Mobile Navigation Links Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[...coreLinks, ...userLinks].map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 p-3 rounded-xl border text-xs font-semibold transition-all min-h-[44px] ${
+                      isActive 
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-bold' 
+                        : 'bg-slate-900/60 border-slate-850 text-slate-200 hover:bg-amber-500/10 hover:text-amber-300'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
+                    <span>{link.name}</span>
+                    {link.badge && (
+                      <span className="text-[8px] px-1.5 py-0.2 ml-auto rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold font-mono">
+                        {link.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
 
-            {/* User Links */}
-            {userLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`p-1.5 rounded-lg transition-all border ${
-                    isActive 
-                      ? 'bg-slate-900 border-amber-500/30 text-amber-400' 
-                      : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900'
-                  }`}
-                  title={link.name}
-                >
-                  <Icon className="w-4 h-4" />
-                </Link>
-              );
-            })}
-
-
+            {/* Mobile Context Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300">
+              <button 
+                onClick={handleRoleToggle}
+                className="text-amber-400 font-bold hover:underline text-left min-h-[40px] flex items-center"
+              >
+                Switch Role ({role === 'student' ? 'Admin' : 'Student'})
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsModalOpen(true);
+                }}
+                className="text-emerald-400 font-bold hover:underline text-left sm:text-right min-h-[40px] flex items-center"
+              >
+                Syllabus: {selectedUni ? selectedUni.code : 'GU Law'} • {selectedSem ? `Sem ${selectedSem.num}` : 'Sem 1'} (Change)
+              </button>
+            </div>
           </div>
+        )}
+      </header>
 
-          {/* Mobile menu trigger */}
-          <div className="flex items-center gap-2 lg:hidden">
-            {/* Mobile Role Switcher */}
-            <button 
-              onClick={handleRoleToggle}
-              className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase border ${
-                role === 'admin' ? 'bg-purple-500/20 border-purple-500/30 text-purple-300' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-              }`}
-            >
-              {role}
-            </button>
-
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900"
-            >
-              {mobileMenuOpen ? <X className="w-5.5 h-5.5" /> : <Menu className="w-5.5 h-5.5" />}
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Mobile Drawer Navigation */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-slate-950/95 backdrop-blur-lg border-b border-slate-800 px-4 pt-3 pb-6 space-y-4 animate-fade-in">
-          {/* Search bar inside drawer */}
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text"
-              placeholder="Search Act, Section..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-900 text-slate-200 text-xs pl-9 pr-4 py-2.5 rounded-lg border border-slate-800 focus:outline-none focus:border-amber-500/60"
-            />
-          </div>
- 
-          {/* Links Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {[...coreLinks, ...userLinks].map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2.5 p-3 rounded-lg border text-xs font-semibold transition-all btn-mobile-touch ${
-                    isActive 
-                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' 
-                      : 'bg-slate-900/60 border-slate-850 text-slate-200 hover:bg-amber-500/10 hover:text-amber-300'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
-                  <span>{link.name}</span>
-                  {link.badge && (
-                    <span className="text-[8px] px-1 py-0.2 ml-auto rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold tracking-wider">
-                      {link.badge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
- 
-          {/* Role Indicator / Switch Trigger */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-slate-900/40 border border-slate-850 text-xs text-slate-400 font-medium">
-            <button 
-              onClick={handleRoleToggle}
-              className="text-amber-400 font-bold hover:underline text-left btn-mobile-touch flex items-center"
-            >
-              Switch Role ({role === 'student' ? 'Admin' : 'Student'})
-            </button>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsModalOpen(true);
-              }}
-              className="text-emerald-400 font-bold hover:underline text-left sm:text-right"
-            >
-              Syllabus: {selectedUni ? selectedUni.code : 'GU'} • {selectedSem ? `Sem ${selectedSem.num}` : 'Sem 1'} (Change)
-            </button>
-          </div>
-        </div>
-      )}
-    </nav>
-
-    {/* Syllabus Onboarding & Selection Modal */}
-    <SyllabusSelectorModal
-      isOpen={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      onSelectComplete={() => window.location.reload()}
-    />
-  </>
-);
+      {/* Syllabus Selector Modal */}
+      <SyllabusSelectorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSelectComplete={() => window.location.reload()}
+      />
+    </>
+  );
 }

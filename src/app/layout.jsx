@@ -4,6 +4,21 @@ import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
 import Script from 'next/script';
 import { Bot } from 'lucide-react';
+import { Poppins, Hind_Vadodara } from 'next/font/google';
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-poppins',
+  display: 'swap',
+});
+
+const hindVadodara = Hind_Vadodara({
+  subsets: ['latin', 'gujarati'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-hind-vadodara',
+  display: 'swap',
+});
 
 export const metadata = {
   metadataBase: new URL('https://lowstudy.com'),
@@ -50,8 +65,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+    <html lang="en" className={`${poppins.variable} ${hindVadodara.variable} dark`}>
+      <body className={`${poppins.className} bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased`}>
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-37P31VWPP7"

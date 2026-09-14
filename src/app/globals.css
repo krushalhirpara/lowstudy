@@ -27,12 +27,21 @@
 body {
   background-color: var(--bg-primary);
   color: var(--text-main);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-poppins), 'Hind Vadodara', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow-x: hidden;
 }
 
-h1, h2, h3, .font-serif-title {
-  font-family: 'Cinzel', 'Merriweather', Georgia, serif;
+h1, h2, h3, h4, h5, h6, .font-serif-title {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+}
+
+.font-poppins {
+  font-family: var(--font-poppins), sans-serif;
+}
+
+.font-gujarati, .font-devanagari-calligraphy, .font-devanagari-serif {
+  font-family: var(--font-hind-vadodara), 'Hind Vadodara', sans-serif;
 }
 
 /* Custom Scrollbar */
