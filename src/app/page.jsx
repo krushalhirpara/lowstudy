@@ -93,40 +93,40 @@ export default function HomePage() {
       <JsonLd data={getOrganizationJsonLd()} />
       
       {/* HERO SECTION */}
-      <section className="relative pt-8 sm:pt-10 pb-16 overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 border-b border-slate-800">
+      <section className="relative pt-2 sm:pt-6 pb-12 sm:pb-16 overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 border-b border-slate-800">
         
         {/* Decorative Background Elements */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-1/3 right-10 w-[400px] h-[250px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[600px] h-[200px] sm:h-[350px] bg-amber-500/10 rounded-full blur-[90px] sm:blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/3 right-4 sm:right-10 w-[250px] sm:w-[400px] h-[150px] sm:h-[250px] bg-emerald-500/10 rounded-full blur-[80px] sm:blur-[100px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center space-y-6 max-w-3xl mx-auto">
+          <div className="text-center space-y-4 sm:space-y-6 max-w-3xl mx-auto">
             
             {/* Top Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-amber-400 text-xs font-semibold shadow-inner">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-              <span>Gujarat Law Education & Automated Syllabus Intelligence</span>
-              <span className="px-1.5 py-0.2 bg-amber-500/20 rounded text-[10px] uppercase tracking-wider font-bold">2026-27 Edition</span>
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-amber-400 text-[10px] sm:text-xs font-semibold shadow-inner max-w-full">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin shrink-0" />
+              <span className="truncate">Gujarat Law Education & Automated Syllabus Intelligence</span>
+              <span className="px-1.5 py-0.2 bg-amber-500/20 rounded text-[9px] sm:text-[10px] uppercase tracking-wider font-bold shrink-0">2026-27</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="fluid-h1 font-extrabold tracking-tight font-serif-title text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400 leading-tight select-none">
+            <h1 className="fluid-h1 font-extrabold tracking-tight font-serif-title text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400 leading-tight select-none px-1">
               Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200 drop-shadow-[0_0_30px_rgba(245,158,11,0.35)] font-black">Gujarat University Law Syllabus</span> with AI Precision
             </h1>
 
             {/* Sanskrit legal slogans in Devnagari calligraphic font */}
-            <div className="py-2 inline-block font-devanagari-calligraphy fluid-slogan text-amber-500 tracking-widest drop-shadow-[0_0_15px_rgba(245,158,11,0.25)]">
+            <div className="py-1 sm:py-2 inline-block font-devanagari-calligraphy text-amber-500 text-sm sm:text-xl tracking-widest drop-shadow-[0_0_15px_rgba(245,158,11,0.25)]">
               સત્યમેવ જયતે • યતો ધર્મસ્તતો જયઃ
             </div>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-lg text-slate-300 font-sans leading-relaxed">
+            <p className="text-xs sm:text-base text-slate-300 font-sans leading-relaxed px-1">
               Select your exact Gujarat University or College, Academic Year, and Semester to study notes, BNS Bare Acts, landmark cases, and MCQs strictly matched to your official syllabus.
             </p>
 
             {/* Active Institution Badge */}
-            <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30 max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
-              <div className="text-left space-y-0.5">
+            <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-900/90 border border-amber-500/30 max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+              <div className="text-center sm:text-left space-y-0.5">
                 <span className="text-[10px] uppercase font-mono font-bold text-amber-400">Current Selected Syllabus</span>
                 <p className="text-xs font-bold text-white">
                   {universities.find(u => u.id === universityId)?.name || "Gujarat University"} • {semesterId ? `Semester ${semesterId.replace('sem', '')}` : 'Semester 1'}
@@ -136,7 +136,7 @@ export default function HomePage() {
 
               <Link
                 href="/subjects"
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow shrink-0"
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow shrink-0 w-full sm:w-auto text-center"
               >
                 Change Gujarat Syllabus
               </Link>
