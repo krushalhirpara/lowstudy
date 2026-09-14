@@ -74,7 +74,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 shadow-lg font-poppins">
+      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md font-poppins">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-[70px] gap-2 lg:gap-4">
             
@@ -100,20 +100,7 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* 2. University / Semester Selector Trigger */}
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-amber-500/30 text-xs font-semibold text-amber-400 hover:border-amber-500 hover:bg-slate-850 transition-all shrink-0"
-              title="Click to change active Gujarat University or Semester syllabus"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-              <span className="truncate max-w-[140px] xl:max-w-[170px]">
-                {selectedUni ? selectedUni.code : 'GU Law'} • {selectedSem ? `Sem ${selectedSem.num}` : 'Sem 1'}
-              </span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold uppercase font-mono">
-                Change
-              </span>
-            </button>
+
 
             {/* 3. Core Desktop Navigation Links */}
             <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
