@@ -6,9 +6,43 @@ import Script from 'next/script';
 import { Bot } from 'lucide-react';
 
 export const metadata = {
-  title: 'LowStudy.com - Law Learning Platform for Indian Students & Aspirants',
-  description: 'AI-powered learning platform for Indian law students with notes, quizzes, mock tests, bare acts (BNS/BNSS/BSA), case law summaries, and AI doubt solving.',
-  keywords: 'LowStudy, Indian Law, LLB notes, BNS 2023, BNSS 2023, BSA 2023, CLAT, AIBE, Judiciary, Law AI Tutor',
+  metadataBase: new URL('https://lowstudy.com'),
+  title: {
+    default: 'LowStudy — Law Education & Gujarat University Syllabus Intelligence System',
+    template: '%s | LowStudy',
+  },
+  description: 'Gujarat-focused legal education platform for law students. Study Gujarat University, Saurashtra University, VNSGU LL.B. & LL.M. syllabus, notes, BNS vs IPC, case laws, MCQs, and Ask NyayaAI.',
+  keywords: [
+    'LowStudy',
+    'Gujarat University LLB syllabus',
+    'Saurashtra University law notes',
+    'VNSGU LLB syllabus',
+    'BNS vs IPC',
+    'BNSS vs CrPC',
+    'BSA vs Indian Evidence Act',
+    'Gujarat Law Colleges',
+    'LL.B. notes Gujarat',
+    'Ask NyayaAI',
+  ],
+  authors: [{ name: 'LowStudy Team', url: 'https://lowstudy.com' }],
+  creator: 'LowStudy',
+  publisher: 'LowStudy',
+  alternates: {
+    canonical: './',
+  },
+  openGraph: {
+    title: 'LowStudy — Gujarat Law Education & Exam Preparation Platform',
+    description: 'Gujarat-focused legal education platform for law students. Official syllabus notes, BNS vs IPC revisions, case laws, MCQs, and Ask NyayaAI.',
+    url: 'https://lowstudy.com',
+    siteName: 'LowStudy',
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LowStudy — Gujarat Law Education Platform',
+    description: 'Study Gujarat University, Saurashtra University, VNSGU LL.B. syllabus, notes, BNS vs IPC, case laws, and MCQs.',
+  },
   verification: {
     google: 'oWQ09SAzdvNqLHxPmmVg6g_ZQzamWoXwT8_xPjP9pS0',
   },

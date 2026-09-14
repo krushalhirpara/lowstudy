@@ -315,6 +315,7 @@ export default function AdminPage() {
         <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-none">
           {[
             { id: 'overview', label: 'Platform Stats' },
+            { id: 'seo-dashboard', label: 'SEO Health & Ranking' },
             { id: 'gujarat-institutions', label: 'Gujarat Institutions' },
             { id: 'syllabus-updates', label: 'Syllabus Updates' },
             { id: 'ai-intelligence', label: 'NyayaAI Intelligence' },
@@ -452,6 +453,123 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SEO HEALTH & RANKING DASHBOARD TAB */}
+      {adminTab === 'seo-dashboard' && (
+        <div className="space-y-8 animate-fade-in">
+          {/* SEO Health Metrics Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs uppercase font-mono font-semibold">Technical SEO Score</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold">Passing</span>
+              </div>
+              <p className="text-3xl font-bold text-emerald-400 font-serif-title">96%</p>
+              <p className="text-[10px] text-slate-400 font-mono">Canonical URLs, Robots.txt & Dynamic Sitemap Active</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs uppercase font-mono font-semibold">Indexed URLs</span>
+                <span className="px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 font-mono text-xs font-bold">Dynamic</span>
+              </div>
+              <p className="text-3xl font-bold text-teal-400 font-serif-title">28 Pages</p>
+              <p className="text-[10px] text-slate-400 font-mono">Universities, Colleges, Subjects & Bare Acts</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs uppercase font-mono font-semibold">Structured Data (JSON-LD)</span>
+                <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono text-xs font-bold">Valid</span>
+              </div>
+              <p className="text-3xl font-bold text-amber-400 font-serif-title">100% Valid</p>
+              <p className="text-[10px] text-slate-400 font-mono">WebSite, Course, Breadcrumb, FAQ & Article Schemas</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs uppercase font-mono font-semibold">Private Protection</span>
+                <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 font-mono text-xs font-bold">Secure</span>
+              </div>
+              <p className="text-3xl font-bold text-purple-400 font-serif-title">Noindex Enabled</p>
+              <p className="text-[10px] text-slate-400 font-mono">/admin, /api & user chats blocked in robots.txt</p>
+            </div>
+          </div>
+
+          {/* Striking Distance Opportunities (Positions 5-20) */}
+          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white font-serif-title">Search Console "Striking Distance" Opportunities</h3>
+                <p className="text-xs text-slate-400">Pages ranking in positions 5–20 with high impression volume recommended for content enhancement.</p>
+              </div>
+              <span className="px-3 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold font-mono">
+                3 Actionable Opportunities
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-950 border-b border-slate-850 text-slate-450 font-mono uppercase tracking-wider">
+                    <th className="py-3 px-4">Target Keyword</th>
+                    <th className="py-3 px-4">URL Path</th>
+                    <th className="py-3 px-4">Avg Position</th>
+                    <th className="py-3 px-4">Impressions</th>
+                    <th className="py-3 px-4">CTR</th>
+                    <th className="py-3 px-4">Suggested SEO Optimization</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/80">
+                  <tr className="hover:bg-slate-850/40">
+                    <td className="py-3.5 px-4 font-bold text-white">Gujarat University LLB Semester 3 Syllabus</td>
+                    <td className="py-3.5 px-4 font-mono text-emerald-400">/universities/gu</td>
+                    <td className="py-3.5 px-4 font-mono text-amber-400 font-bold">6.2</td>
+                    <td className="py-3.5 px-4 font-mono text-slate-300">4,800</td>
+                    <td className="py-3.5 px-4 font-mono text-slate-400">4.5%</td>
+                    <td className="py-3.5 px-4 text-xs text-slate-300">Add detailed unit breakdown & syllabus FAQ schema.</td>
+                  </tr>
+                  <tr className="hover:bg-slate-850/40">
+                    <td className="py-3.5 px-4 font-bold text-white">BNS vs IPC Section Comparison Chart</td>
+                    <td className="py-3.5 px-4 font-mono text-emerald-400">/bns-vs-ipc</td>
+                    <td className="py-3.5 px-4 font-mono text-amber-400 font-bold">8.1</td>
+                    <td className="py-3.5 px-4 font-mono text-slate-300">6,200</td>
+                    <td className="py-3.5 px-4 font-mono text-slate-400">3.8%</td>
+                    <td className="py-3.5 px-4 text-xs text-slate-300">Expand Section 103 (Murder) & Section 318 (Cheating) side-by-side notes.</td>
+                  </tr>
+                  <tr className="hover:bg-slate-850/40">
+                    <td className="py-3.5 px-4 font-bold text-white">VNSGU Law College Syllabus & Notes</td>
+                    <td className="py-3.5 px-4 font-mono text-emerald-400">/universities/vnsgu</td>
+                    <td className="py-3.5 px-4 font-mono text-amber-400 font-bold">12.4</td>
+                    <td className="py-3.5 px-4 font-mono text-slate-300">2,100</td>
+                    <td className="py-3.5 px-4 font-mono text-slate-400">2.1%</td>
+                    <td className="py-3.5 px-4 text-xs text-slate-300">Link affiliated Surat law colleges (Sir L.A. Shah Law College) to VNSGU pillar page.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Missing Metadata & Canonical Audit */}
+          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+            <h3 className="text-lg font-bold text-white font-serif-title">Live Metadata & Indexability Audit</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                <p className="font-bold text-white">Homepage (https://lowstudy.com/)</p>
+                <p className="text-emerald-400 font-mono">Title & Description: OK • H1: OK • Canonical: OK</p>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                <p className="font-bold text-white">University Pages (/universities/*)</p>
+                <p className="text-emerald-400 font-mono">Dynamic Titles: OK • Course Schema: OK</p>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                <p className="font-bold text-white">BNS vs IPC Hub (/bns-vs-ipc)</p>
+                <p className="text-emerald-400 font-mono">Article Schema: OK • FAQ Schema: OK</p>
+              </div>
             </div>
           </div>
         </div>

@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { SUBJECTS_DATA, IPC_VS_BNS_MAP, LANDMARK_CASES } from '@/data/legalData';
 import { MockDB } from '@/data/db';
+import JsonLd from '@/components/seo/JsonLd';
+import { getWebSiteJsonLd, getOrganizationJsonLd } from '@/utils/seo';
 
 export default function HomePage() {
   const [universityId, setUniversityId] = useState('');
@@ -87,6 +89,8 @@ export default function HomePage() {
 
   return (
     <div className="space-y-16 pb-20">
+      <JsonLd data={getWebSiteJsonLd()} />
+      <JsonLd data={getOrganizationJsonLd()} />
       
       {/* HERO SECTION */}
       <section className="relative pt-12 pb-20 overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border-b border-slate-800">
