@@ -18,53 +18,40 @@ import {
   ShieldCheck,
   BookMarked,
   Sparkles,
-  Lock
+  Lock,
+  Building2,
+  ChevronRight,
+  GraduationCap
 } from 'lucide-react';
 import { USER_STUDENT_PROFILE } from '@/data/legalData';
 import { MockDB } from '@/data/db';
+import SyllabusSelectorModal from '@/components/syllabus/SyllabusSelectorModal';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [role, setRole] = useState('student');
   const [mounted, setMounted] = useState(false);
   
-  const [universities, setUniversities] = useState([]);
-  const [semesters, setSemesters] = useState([]);
-  const [selectedUni, setSelectedUni] = useState('');
-  const [selectedSem, setSelectedSem] = useState('');
+  const [selectedUni, setSelectedUni] = useState(null);
+  const [selectedCollege, setSelectedCollege] = useState(null);
+  const [selectedSem, setSelectedSem] = useState(null);
 
   useEffect(() => {
     setMounted(true);
     MockDB.init();
-    setUniversities(MockDB.getUniversities());
-    setSemesters(MockDB.getSemesters());
     
-    const uni = MockDB.getSelectedUni();
-    const sem = MockDB.getSelectedSem();
-    if (uni) setSelectedUni(uni.id);
-    if (sem) setSelectedSem(sem.id);
+    setSelectedUni(MockDB.getSelectedUni());
+    setSelectedCollege(MockDB.getSelectedCollege());
+    setSelectedSem(MockDB.getSelectedSem());
 
     try {
       const savedRole = localStorage.getItem('userRole') || 'student';
       setRole(savedRole);
     } catch (e) {}
   }, []);
-
-  const handleUniChange = (e) => {
-    const val = e.target.value;
-    setSelectedUni(val);
-    MockDB.setSelectedUniAndSem(val, selectedSem);
-    window.location.reload();
-  };
-
-  const handleSemChange = (e) => {
-    const val = e.target.value;
-    setSelectedSem(val);
-    MockDB.setSelectedUniAndSem(selectedUni, val);
-    window.location.reload();
-  };
 
   const handleRoleToggle = () => {
     const nextRole = role === 'student' ? 'admin' : 'student';
@@ -82,6 +69,7 @@ export default function Navbar() {
     { name: 'Case Laws', href: '/case-laws', icon: BookMarked },
     { name: 'Mock Quiz', href: '/quiz', icon: Award },
     { name: 'Dictionary', href: '/dictionary', icon: Layers },
+    { name: 'Colleges', href: '/gujarat-law-colleges', icon: Building2 },
   ];
 
   // Secondary account/admin links (segregated based on role)
@@ -91,27 +79,41 @@ export default function Navbar() {
   ].filter(l => l.show) : [];
 
   return (
-    <nav className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-lg border-b border-slate-800/60 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
-          
-          {/* Logo Section */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-emerald-600 to-blue-600 p-0.5 shadow-lg group-hover:scale-105 transition-transform duration-200">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Scale className="w-4.5 h-4.5 text-amber-400 group-hover:rotate-12 transition-transform duration-200" />
+    <>
+      <nav className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-lg border-b border-slate-800/60 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-3">
+            
+            {/* Logo Section */}
+            <Link href="/" className="flex items-center gap-2 shrink-0 group">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-emerald-600 to-blue-600 p-0.5 shadow-lg group-hover:scale-105 transition-transform duration-200">
+                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                  <Scale className="w-4.5 h-4.5 text-amber-400 group-hover:rotate-12 transition-transform duration-200" />
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-bold font-serif-title tracking-tight text-white flex items-center gap-0.5">
-                Low<span className="text-amber-400">Study</span>
-                <span className="text-[9px] font-sans px-1 py-0.2 ml-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">.com</span>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold font-serif-title tracking-tight text-white flex items-center gap-0.5">
+                  Low<span className="text-amber-400">Study</span>
+                  <span className="text-[9px] font-sans px-1 py-0.2 ml-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">GJ Law</span>
+                </span>
+                <span className="text-[9px] text-slate-400 font-devanagari-serif tracking-wider font-semibold">
+                  Gujarat Law Intelligence
+                </span>
+              </div>
+            </Link>
+
+            {/* Gujarat Syllabus Badge Button */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-amber-500/30 text-xs font-semibold text-amber-400 hover:border-amber-500 hover:bg-slate-850 transition-all btn-mobile-touch shrink-0"
+              title="Click to change your active Gujarat University / College syllabus"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="truncate max-w-[150px]">
+                {selectedUni ? selectedUni.code : 'Gujarat Uni'} • {selectedSem ? `Sem ${selectedSem.num}` : 'Sem 1'}
               </span>
-              <span className="text-[10px] text-slate-400 font-devanagari-serif tracking-wider font-semibold">
-                धर्मो रक्षति रक्षितः
-              </span>
-            </div>
-          </Link>
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold font-mono">CHANGE</span>
+            </button>
 
           {/* Desktop Navigation Links */}
           <div className="hidden lg:flex items-center gap-1 xl:gap-2">
@@ -267,10 +269,26 @@ export default function Navbar() {
             >
               Switch Role ({role === 'student' ? 'Admin' : 'Student'})
             </button>
-            <span className="sm:text-right">Target: {USER_STUDENT_PROFILE.targetExam}</span>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setIsModalOpen(true);
+              }}
+              className="text-emerald-400 font-bold hover:underline text-left sm:text-right"
+            >
+              Syllabus: {selectedUni ? selectedUni.code : 'GU'} • {selectedSem ? `Sem ${selectedSem.num}` : 'Sem 1'} (Change)
+            </button>
           </div>
         </div>
       )}
     </nav>
-  );
+
+    {/* Syllabus Onboarding & Selection Modal */}
+    <SyllabusSelectorModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      onSelectComplete={() => window.location.reload()}
+    />
+  </>
+);
 }

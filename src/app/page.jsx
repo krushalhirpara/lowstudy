@@ -101,24 +101,42 @@ export default function HomePage() {
             {/* Top Pill */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-amber-400 text-xs font-semibold shadow-inner">
               <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-              <span>Next-Gen Legal Learning Engine for India</span>
-              <span className="px-1.5 py-0.2 bg-amber-500/20 rounded text-[10px] uppercase tracking-wider font-bold">2026 Edition</span>
+              <span>Gujarat Law Education & Automated Syllabus Intelligence</span>
+              <span className="px-1.5 py-0.2 bg-amber-500/20 rounded text-[10px] uppercase tracking-wider font-bold">2026-27 Edition</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="fluid-h1 font-extrabold tracking-tight font-serif-title text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400 leading-tight select-none">
-              Master Indian Law with <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200 drop-shadow-[0_0_30px_rgba(245,158,11,0.35)] font-black">AI Precision</span>
+              Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200 drop-shadow-[0_0_30px_rgba(245,158,11,0.35)] font-black">Gujarat University Law Syllabus</span> with AI Precision
             </h1>
 
             {/* Sanskrit legal slogans in Devnagari calligraphic font */}
             <div className="py-2 inline-block font-devanagari-calligraphy fluid-slogan text-amber-500 tracking-widest drop-shadow-[0_0_15px_rgba(245,158,11,0.25)]">
-              सत्यमेव जयते • यतो धर्मस्ततो जयः
+              સત્યમેવ જયતે • યતો ધર્મસ્તતો જયઃ
             </div>
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-slate-300 font-sans leading-relaxed">
-              Structured Subject Notes, Bare Acts (BNS, BNSS, BSA), Landmark Judgments, Daily Quizzes, and <span className="text-emerald-400 font-semibold">NyayaAI 24/7 Legal Doubt Solving</span> for LLB, CLAT, AIBE & Judiciary.
+              Select your exact Gujarat University or College, Academic Year, and Semester to study notes, BNS Bare Acts, landmark cases, and MCQs strictly matched to your official syllabus.
             </p>
+
+            {/* Active Institution Badge */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30 max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+              <div className="text-left space-y-0.5">
+                <span className="text-[10px] uppercase font-mono font-bold text-amber-400">Current Selected Syllabus</span>
+                <p className="text-xs font-bold text-white">
+                  {universities.find(u => u.id === universityId)?.name || "Gujarat University"} • {semesterId ? `Semester ${semesterId.replace('sem', '')}` : 'Semester 1'}
+                </p>
+                <p className="text-[10px] text-slate-400 font-mono">Academic Year 2026-27 • Verified Official Source</p>
+              </div>
+
+              <Link
+                href="/subjects"
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow shrink-0"
+              >
+                Change Gujarat Syllabus
+              </Link>
+            </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
@@ -127,36 +145,35 @@ export default function HomePage() {
                 className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
               >
                 <BookOpen className="w-4 h-4" />
-                Explore 15 Subjects
+                Explore Gujarat Subjects
               </Link>
 
               <Link 
-                href="/ai-tutor" 
-                className="px-6 py-3.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-sm flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
+                href="/gujarat-law-colleges" 
+                className="px-6 py-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-sm flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
               >
-                <Bot className="w-4 h-4 text-emerald-400" />
-                Ask NyayaAI Tutor
-                <ArrowRight className="w-4 h-4" />
+                <GraduationCap className="w-4 h-4 text-amber-400" />
+                Gujarat Law Colleges Directory
               </Link>
             </div>
 
             {/* Key Ticker Metrics */}
             <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto border-t border-slate-800/80">
               <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <p className="text-xl sm:text-2xl font-bold text-amber-400 font-serif-title">15+</p>
-                <p className="text-[10px] sm:text-xs text-slate-400">Core Legal Subjects</p>
+                <p className="text-xl sm:text-2xl font-bold text-amber-400 font-serif-title">12+</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">Gujarat Universities</p>
               </div>
               <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <p className="text-xl sm:text-2xl font-bold text-emerald-400 font-serif-title">358</p>
-                <p className="text-[10px] sm:text-xs text-slate-400">BNS 2023 Sections</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-400 font-serif-title">30+</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">Affiliated Law Colleges</p>
               </div>
               <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <p className="text-xl sm:text-2xl font-bold text-blue-400 font-serif-title">500+</p>
-                <p className="text-[10px] sm:text-xs text-slate-400">Landmark Judgments</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-400 font-serif-title">100%</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">Official Syllabus Matched</p>
               </div>
               <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800">
                 <p className="text-xl sm:text-2xl font-bold text-purple-400 font-serif-title">24/7</p>
-                <p className="text-[10px] sm:text-xs text-slate-400">AI Legal Doubt Tutor</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">Gujarat NyayaAI Assistant</p>
               </div>
             </div>
 

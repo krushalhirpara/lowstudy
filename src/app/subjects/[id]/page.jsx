@@ -283,9 +283,15 @@ export default function SubjectDetailPage({ params }) {
               )}
             </div>
             <h1 className="text-2xl sm:text-4xl font-bold font-serif-title text-white leading-tight">{subject.title}</h1>
-            <p className="text-[10px] sm:text-xs text-slate-400 uppercase font-mono tracking-wider font-semibold">
-              {uniNames[subject.universityId] || subject.universityId.toUpperCase()} • {subject.semesterId === 'sem1' ? 'Semester 1' : subject.semesterId === 'sem2' ? 'Semester 2' : subject.semesterId === 'sem3' ? 'Semester 3' : subject.semesterId === 'sem4' ? 'Semester 4' : subject.semesterId === 'sem5' ? 'Semester 5' : 'Semester 6'}
-            </p>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 font-mono pt-1">
+              <span>{uniNames[subject.universityId] || subject.universityId.toUpperCase()}</span>
+              <span>•</span>
+              <span>{subject.semesterId === 'sem1' ? 'Semester 1' : subject.semesterId === 'sem2' ? 'Semester 2' : subject.semesterId === 'sem3' ? 'Semester 3' : subject.semesterId === 'sem4' ? 'Semester 4' : subject.semesterId === 'sem5' ? 'Semester 5' : 'Semester 6'}</span>
+              <span>•</span>
+              <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                <Check className="w-3.5 h-3.5" /> Verified Official Syllabus (2026-27)
+              </span>
+            </div>
           </div>
 
           <button 

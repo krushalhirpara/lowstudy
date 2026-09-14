@@ -314,10 +314,11 @@ export default function AdminPage() {
         {/* Tab Selector Buttons */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-none">
           {[
-            { id: 'overview', label: 'Platform Stats & Ads' },
+            { id: 'overview', label: 'Platform Stats' },
+            { id: 'gujarat-institutions', label: 'Gujarat Institutions' },
+            { id: 'syllabus-updates', label: 'Syllabus Update Center' },
             { id: 'subject-crud', label: 'Syllabus Builder' },
-            { id: 'mcq-crud', label: 'MCQs & Acts' },
-            { id: 'case-crud', label: 'Judgments Builder' }
+            { id: 'mcq-crud', label: 'MCQs & Acts' }
           ].map(t => (
             <button
               key={t.id}
@@ -455,7 +456,138 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* 2. SYLLABUS BUILDER CRUD TAB */}
+      {/* 2. GUJARAT INSTITUTIONS MANAGER TAB */}
+      {adminTab === 'gujarat-institutions' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white font-serif-title">Gujarat Universities & Law Colleges Registry</h3>
+                <p className="text-xs text-slate-400">Manage official sources, verification status, and affiliation mappings.</p>
+              </div>
+              <span className="px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold font-mono">
+                {MockDB.getUniversities().length} Universities • {MockDB.getColleges().length} Colleges
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-950 border-b border-slate-850 text-slate-450 font-mono uppercase tracking-wider">
+                    <th className="py-3 px-4">Institution Name</th>
+                    <th className="py-3 px-4">City / District</th>
+                    <th className="py-3 px-4">Type</th>
+                    <th className="py-3 px-4">Official Syllabus Source</th>
+                    <th className="py-3 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/80">
+                  {MockDB.getUniversities().map(u => (
+                    <tr key={u.id} className="hover:bg-slate-850/40">
+                      <td className="py-3.5 px-4">
+                        <p className="font-bold text-white flex items-center gap-1.5">
+                          <span>{u.logo}</span>
+                          <span>{u.name}</span>
+                        </p>
+                        <p className="text-[10px] text-slate-500 font-mono uppercase">{u.code}</p>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-300 font-medium">{u.city}, {u.district}</td>
+                      <td className="py-3.5 px-4 text-slate-400">{u.type}</td>
+                      <td className="py-3.5 px-4 font-mono text-[11px]">
+                        <a href={u.officialSyllabusSource} target="_blank" rel="noreferrer" className="text-amber-400 hover:underline truncate max-w-[200px] block">
+                          {u.officialSyllabusSource}
+                        </a>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                          {u.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. SYLLABUS UPDATE CENTER TAB */}
+      {adminTab === 'syllabus-updates' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white font-serif-title">Automated Syllabus Intelligence — Pending Updates</h3>
+                <p className="text-xs text-slate-400">Review detected changes from official Gujarat University portals before publishing.</p>
+              </div>
+              <span className="px-3 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold font-mono">
+                {MockDB.getPendingUpdates().filter(u => u.status === 'PENDING_REVIEW').length} Pending Reviews
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              {MockDB.getPendingUpdates().map(upd => (
+                <div key={upd.id} className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-amber-400 font-serif-title">{upd.sourceTitle}</span>
+                    <span className={`px-2.5 py-0.5 rounded font-mono font-bold text-[10px] ${
+                      upd.status === 'APPROVED_PUBLISHED' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                    }`}>
+                      {upd.status}
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-slate-400 font-mono flex items-center gap-3">
+                    <span>Source: {upd.sourceUrl}</span>
+                    <span>•</span>
+                    <span>Detected: {upd.detectedDate}</span>
+                  </div>
+
+                  {/* Diff View */}
+                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">Detected Change Differences (Diff View):</p>
+                    {upd.changes.map((c, idx) => (
+                      <div key={idx} className="grid grid-cols-3 gap-2 text-xs font-mono">
+                        <span className="text-slate-400 font-semibold">{c.field}</span>
+                        <span className="text-red-400 line-through">Old: {c.oldVal}</span>
+                        <span className="text-emerald-400 font-bold">New: {c.newVal}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {upd.status === 'PENDING_REVIEW' && (
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        onClick={() => {
+                          MockDB.approvePendingUpdate(upd.id);
+                          triggerAlert("Syllabus update approved and published!");
+                          setAdminTab('syllabus-updates');
+                        }}
+                        className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs shadow hover:bg-emerald-600"
+                      >
+                        Approve & Publish Update
+                      </button>
+                      <button
+                        onClick={() => {
+                          MockDB.rejectPendingUpdate(upd.id);
+                          triggerAlert("Syllabus update rejected.");
+                          setAdminTab('syllabus-updates');
+                        }}
+                        className="px-4 py-2 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-xs"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. SYLLABUS BUILDER CRUD TAB */}
       {adminTab === 'subject-crud' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in">
           

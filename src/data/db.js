@@ -2,9 +2,27 @@
 // Persists schema states to localStorage. Future-ready architecture.
 
 import { ALL_SYLLABUS_SUBJECTS, UNIVERSITIES, SEMESTERS } from '@/data/syllabusData';
+import { GUJARAT_COLLEGES, LAW_PROGRAMS, ACADEMIC_YEARS } from '@/data/gujaratData';
 
-const BASE_COURSES = [
-  { id: "llb", name: "Bachelor of Laws (LLB)", durationYears: 3 }
+const BASE_COURSES = LAW_PROGRAMS;
+
+const BASE_PENDING_UPDATES = [
+  {
+    id: "upd-gu-2026-01",
+    universityId: "gu",
+    collegeId: "all",
+    programId: "llb-3yr",
+    academicYear: "2026-27",
+    sourceUrl: "https://www.gujaratuniversity.ac.in/syllabus",
+    sourceTitle: "Gujarat University LL.B. Revised Criminal Law (BNS 2023) Gazette Notification",
+    detectedDate: "2026-09-10",
+    status: "PENDING_REVIEW",
+    changes: [
+      { field: "Subject Code", oldVal: "IPC-101", newVal: "BNS-101" },
+      { field: "Marks Scheme", oldVal: "70 External + 30 Internal", newVal: "70 External + 30 Internal (Community Service Project)" },
+      { field: "Unit 3 Topic", oldVal: "IPC Sec 420 Cheating", newVal: "BNS Sec 318 Digital Cheating & Fraud" }
+    ]
+  }
 ];
 
 const BASE_MOCK_TESTS = [
@@ -17,10 +35,10 @@ const BASE_MOCK_TESTS = [
     timeLimit: 15,
     totalQuestions: 4,
     questions: [
-      { question: "The Preamble was amended by which constitutional amendment?", options: ["42nd Amendment", "44th Amendment", "24th Amendment", "86th Amendment"], correctIndex: 0, explanation: "The 42nd Amendment Act of 1976 added the words Secular, Socialist, and Integrity." },
-      { question: "Writ of Habeas Corpus is filed for what reason?", options: ["To prevent unlawful detention", "To direct performance of public duty", "To quash judicial orders", "To check eligibility for public office"], correctIndex: 0, explanation: "Habeas Corpus literally means 'produce the body' and safeguards personal liberty against unlawful detention." },
-      { question: "Under Article 12, 'State' includes which of the following?", options: ["Government and Parliament of India", "Government and Legislature of States", "All local or other authorities within India", "All of the above"], correctIndex: 3, explanation: "Article 12 defines State broadly to include Government, Parliament, legislatures, and all local/other authorities." },
-      { question: "Which article is referred to as the heart and soul of the Constitution by Dr. B.R. Ambedkar?", options: ["Article 19", "Article 21", "Article 32", "Article 14"], correctIndex: 2, explanation: "Dr. B.R. Ambedkar called Article 32 (Right to Constitutional Remedies) the heart and soul of the Constitution." }
+      { question: "The Preamble was amended by which constitutional amendment?", options: ["42nd Amendment", "44th Amendment", "24th Amendment", "86th Amendment"], correctIndex: 0, explanation: "The 42nd Amendment Act of 1976 added the words Secular, Socialist, and Integrity.", status: "VERIFIED" },
+      { question: "Writ of Habeas Corpus is filed for what reason?", options: ["To prevent unlawful detention", "To direct performance of public duty", "To quash judicial orders", "To check eligibility for public office"], correctIndex: 0, explanation: "Habeas Corpus literally means 'produce the body' and safeguards personal liberty against unlawful detention.", status: "VERIFIED" },
+      { question: "Under Article 12, 'State' includes which of the following?", options: ["Government and Parliament of India", "Government and Legislature of States", "All local or other authorities within India", "All of the above"], correctIndex: 3, explanation: "Article 12 defines State broadly to include Government, Parliament, legislatures, and all local/other authorities.", status: "VERIFIED" },
+      { question: "Which article is referred to as the heart and soul of the Constitution by Dr. B.R. Ambedkar?", options: ["Article 19", "Article 21", "Article 32", "Article 14"], correctIndex: 2, explanation: "Dr. B.R. Ambedkar called Article 32 (Right to Constitutional Remedies) the heart and soul of the Constitution.", status: "VERIFIED" }
     ],
     negativeMarking: true
   }
@@ -36,7 +54,12 @@ const BASE_LEADERBOARD = [
 const DEFAULT_PROFILE = {
   name: "Arjun Sharma",
   role: "LLB Student",
-  targetExam: "Judiciary Services & AIBE XIX",
+  targetExam: "Gujarat Judiciary & AIBE XIX",
+  universityId: "gu",
+  collegeId: "col-la-shah",
+  programId: "llb-3yr",
+  academicYear: "2026-27",
+  semesterId: "sem1",
   streakDays: 7,
   xp: 1450,
   coins: 320,
@@ -193,10 +216,14 @@ class MockDBClass {
   getSeedData() {
     const extracted = getExtractedSeedData();
     return {
-      version: 3,
+      version: 4,
       universities: UNIVERSITIES,
+      colleges: GUJARAT_COLLEGES,
+      programs: LAW_PROGRAMS,
+      academicYears: ACADEMIC_YEARS,
       courses: BASE_COURSES,
       semesters: SEMESTERS,
+      pendingUpdates: BASE_PENDING_UPDATES,
       subjects: extracted.subjects,
       units: extracted.units,
       topics: extracted.topics,
@@ -210,8 +237,11 @@ class MockDBClass {
       profile: DEFAULT_PROFILE,
       adsEnabled: true,
       seoTitleTemplate: "%s | LowStudy Law Learning Platform",
-      selectedUniId: "",
-      selectedSemId: "",
+      selectedUniId: "gu",
+      selectedCollegeId: "col-la-shah",
+      selectedProgramId: "llb-3yr",
+      selectedAcademicYear: "2026-27",
+      selectedSemId: "sem1",
       selectedSyllabusVersion: "new"
     };
   }
@@ -227,7 +257,29 @@ class MockDBClass {
 
   getUniversities() {
     this.init();
-    return this.state.universities || [];
+    return this.state.universities || UNIVERSITIES;
+  }
+
+  getColleges() {
+    this.init();
+    return this.state.colleges || GUJARAT_COLLEGES;
+  }
+
+  getCollegesByUniversity(uniId) {
+    this.init();
+    const cols = this.getColleges();
+    if (!uniId || uniId === 'all') return cols;
+    return cols.filter(c => c.universityId === uniId);
+  }
+
+  getPrograms() {
+    this.init();
+    return this.state.programs || LAW_PROGRAMS;
+  }
+
+  getAcademicYears() {
+    this.init();
+    return this.state.academicYears || ACADEMIC_YEARS;
   }
 
   getSemesters() {
@@ -235,14 +287,43 @@ class MockDBClass {
     return this.state.semesters || [];
   }
 
+  getPendingUpdates() {
+    this.init();
+    return this.state.pendingUpdates || BASE_PENDING_UPDATES;
+  }
+
   getSelectedUni() {
     this.init();
-    return this.state.universities?.find(u => u.id === this.state.selectedUniId) || null;
+    return this.getUniversities().find(u => u.id === this.state.selectedUniId) || null;
+  }
+
+  getSelectedCollege() {
+    this.init();
+    return this.getColleges().find(c => c.id === this.state.selectedCollegeId) || null;
   }
 
   getSelectedSem() {
     this.init();
     return this.state.semesters?.find(s => s.id === this.state.selectedSemId) || null;
+  }
+
+  setSelectedSyllabusFull({ uniId, collegeId, programId, year, semId, version }) {
+    this.init();
+    if (uniId) this.state.selectedUniId = uniId;
+    if (collegeId) this.state.selectedCollegeId = collegeId;
+    if (programId) this.state.selectedProgramId = programId;
+    if (year) this.state.selectedAcademicYear = year;
+    if (semId) this.state.selectedSemId = semId;
+    if (version) this.state.selectedSyllabusVersion = version;
+
+    if (this.state.profile) {
+      this.state.profile.universityId = this.state.selectedUniId;
+      this.state.profile.collegeId = this.state.selectedCollegeId;
+      this.state.profile.programId = this.state.selectedProgramId;
+      this.state.profile.academicYear = this.state.selectedAcademicYear;
+      this.state.profile.semesterId = this.state.selectedSemId;
+    }
+    this.save();
   }
 
   setSelectedUniAndSem(uniId, semId) {
@@ -373,6 +454,43 @@ class MockDBClass {
     this.save();
   }
 
+  // --- INSTITUTION & SYLLABUS UPDATE MANAGEMENT ---
+
+  addUniversity(uni) {
+    this.init();
+    if (!this.state.universities) this.state.universities = [];
+    this.state.universities.push(uni);
+    this.save();
+  }
+
+  addCollege(col) {
+    this.init();
+    if (!this.state.colleges) this.state.colleges = [];
+    this.state.colleges.push(col);
+    this.save();
+  }
+
+  approvePendingUpdate(id) {
+    this.init();
+    if (!this.state.pendingUpdates) return;
+    const item = this.state.pendingUpdates.find(u => u.id === id);
+    if (item) {
+      item.status = "APPROVED_PUBLISHED";
+      item.publishedAt = new Date().toISOString();
+      this.save();
+    }
+  }
+
+  rejectPendingUpdate(id) {
+    this.init();
+    if (!this.state.pendingUpdates) return;
+    const item = this.state.pendingUpdates.find(u => u.id === id);
+    if (item) {
+      item.status = "REJECTED";
+      this.save();
+    }
+  }
+
   // --- ADMIN CRUD APIS ---
 
   addSubject(subj) {
@@ -425,3 +543,4 @@ class MockDBClass {
 }
 
 export const MockDB = new MockDBClass();
+

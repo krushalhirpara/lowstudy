@@ -205,8 +205,17 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-800 text-[10px] text-slate-500 leading-normal">
-            Strong and weak topics are computed automatically based on your mock MCQ answer accuracies.
+          <div className="pt-3 border-t border-slate-800 space-y-2">
+            <Link
+              href="/quiz"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 font-bold text-xs shadow flex items-center justify-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Practice Weak Topics Now
+            </Link>
+            <p className="text-[10px] text-slate-500 leading-normal text-center">
+              Strong and weak topics are computed automatically based on your MCQ answer accuracies.
+            </p>
           </div>
         </div>
 

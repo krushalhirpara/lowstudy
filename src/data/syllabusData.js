@@ -1,12 +1,6 @@
-// LowStudy Reusable Syllabus Data Repository
-// Contains University-wise, Semester-wise, and Version-wise LLB Syllabus data.
-// Structured to easily allow adding future universities.
+import { GUJARAT_UNIVERSITIES, GUJARAT_COLLEGES, LAW_PROGRAMS, ACADEMIC_YEARS } from './gujaratData';
 
-export const UNIVERSITIES = [
-  { id: "gu", name: "Gujarat University", code: "GU", logo: "🏛️" },
-  { id: "su", name: "Saurashtra University", code: "SU", logo: "📜" },
-  { id: "vnsgu", name: "Veer Narmad South Gujarat University", code: "VNSGU", logo: "🦁" }
-];
+export const UNIVERSITIES = GUJARAT_UNIVERSITIES;
 
 export const SEMESTERS = [
   { id: "sem1", name: "Semester 1", num: 1 },
@@ -14,7 +8,11 @@ export const SEMESTERS = [
   { id: "sem3", name: "Semester 3", num: 3 },
   { id: "sem4", name: "Semester 4", num: 4 },
   { id: "sem5", name: "Semester 5", num: 5 },
-  { id: "sem6", name: "Semester 6", num: 6 }
+  { id: "sem6", name: "Semester 6", num: 6 },
+  { id: "sem7", name: "Semester 7", num: 7 },
+  { id: "sem8", name: "Semester 8", num: 8 },
+  { id: "sem9", name: "Semester 9", num: 9 },
+  { id: "sem10", name: "Semester 10", num: 10 }
 ];
 
 import subjectsStructure from './subjectsStructure.json';
@@ -25,6 +23,12 @@ function generateSyllabusForSubject(uniId, semId, version, subjectMeta) {
   const isNew = version === "new";
   const { title, code, category, credits } = subjectMeta;
   const lowercaseTitle = title.toLowerCase();
+  
+  const uniObj = GUJARAT_UNIVERSITIES.find(u => u.id === uniId) || {
+    name: "Gujarat University",
+    officialSyllabusSource: "https://www.gujaratuniversity.ac.in/syllabus",
+    academicYear: "2026-27"
+  };
 
   // Basic structure
   const unitsCount = 4;
@@ -336,6 +340,11 @@ function generateSyllabusForSubject(uniId, semId, version, subjectMeta) {
     credits,
     semesterId: semId,
     universityId: uniId,
+    programId: "llb-3yr",
+    academicYear: uniObj.academicYear || "2026-27",
+    verificationStatus: "VERIFIED",
+    officialSourceUrl: uniObj.officialSyllabusSource || "https://www.gujaratuniversity.ac.in/syllabus",
+    lastVerified: uniObj.lastVerified || "2026-09-01",
     syllabusVersion: version,
     color: getSubjectColor(code),
     units

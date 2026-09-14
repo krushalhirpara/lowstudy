@@ -13,20 +13,31 @@ import {
   Flame, 
   BrainCircuit,
   FileText,
-  Lightbulb
+  Lightbulb,
+  Building2
 } from 'lucide-react';
+import { MockDB } from '@/data/db';
 
 export default function AiTutorPage({ searchParams }) {
+  const [selectedUni, setSelectedUni] = useState(null);
+  const [selectedSem, setSelectedSem] = useState(null);
+
   const [messages, setMessages] = useState([
     {
       sender: 'ai',
-      text: "Namaste! I am NyayaAI, your 24/7 Indian Law Tutor. How can I assist your study today? You can ask me to explain statutory sections (e.g. BNS 103), summarize landmark judgments, generate revision flashcards, or simplify complex legal doctrines.",
+      text: "Namaste! I am NyayaAI, your Gujarat Law & Syllabus Intelligence Assistant. How can I assist your study today? Ask me any doubt on your official Gujarat University curriculum, BNS 2023 sections, landmark case ratios, or exam questions.",
       timestamp: 'Just now'
     }
   ]);
   const [inputQuery, setInputQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState(null);
+
+  useEffect(() => {
+    MockDB.init();
+    setSelectedUni(MockDB.getSelectedUni());
+    setSelectedSem(MockDB.getSelectedSem());
+  }, []);
 
   const promptPills = [
     "Explain BNS Section 103 (Murder) vs Old IPC 302",

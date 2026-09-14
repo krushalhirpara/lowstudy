@@ -26,6 +26,8 @@ export default function QuizPage() {
   const [availableTests, setAvailableTests] = useState([]);
   const [activeTest, setActiveTest] = useState(null);
   const [testState, setTestState] = useState('idle'); // idle, running, review
+  const [selectedUni, setSelectedUni] = useState(null);
+  const [selectedSem, setSelectedSem] = useState(null);
   
   // Test running state
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -43,7 +45,16 @@ export default function QuizPage() {
   useEffect(() => {
     setMounted(true);
     MockDB.init();
-    setAvailableTests(MockDB.getMockTests());
+    setSelectedUni(MockDB.getSelectedUni());
+    setSelectedSem(MockDB.getSelectedSem());
+
+    const tests = MockDB.getMockTests();
+    // Filter tests that only contain valid (non-OUTDATED) questions
+    const validTests = tests.map(t => ({
+      ...t,
+      questions: t.questions.filter(q => q.status !== 'OUTDATED')
+    }));
+    setAvailableTests(validTests);
   }, []);
 
   // Timer countdown hook

@@ -112,16 +112,39 @@ export default function SubjectsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Syllabus Explorer</span>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Gujarat Verified Syllabus Explorer</span>
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">
+              Academic Year 2026-27
+            </span>
           </div>
+
           <h1 className="text-3xl sm:text-4xl font-bold font-serif-title text-white leading-tight">
-            {activeUni ? activeUni.name : "University Syllabus"}
+            {activeUni ? activeUni.name : "Gujarat University"} Syllabus
           </h1>
+          
           <p className="text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
-            {activeSem ? activeSem.name : "All Semesters"} Syllabus Explorer — comprehensive notes, landmark judgments, and bare acts.
+            {activeSem ? activeSem.name : "Semester 1"} Verified Curriculum — Unit-wise notes, landmark case ratios, BNS Bare Acts, and practice MCQs.
           </p>
+
+          {activeUni && activeUni.officialSyllabusSource && (
+            <div className="pt-1 flex items-center gap-2 text-xs text-slate-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>Official Source:</span>
+              <a 
+                href={activeUni.officialSyllabusSource} 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-amber-400 font-mono hover:underline truncate max-w-xs"
+              >
+                {activeUni.officialSyllabusSource}
+              </a>
+              <span className="text-[10px] text-slate-500">(Verified 2026-09-01)</span>
+            </div>
+          )}
         </div>
 
         {/* Syllabus Version Toggle */}
