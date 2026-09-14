@@ -316,7 +316,8 @@ export default function AdminPage() {
           {[
             { id: 'overview', label: 'Platform Stats' },
             { id: 'gujarat-institutions', label: 'Gujarat Institutions' },
-            { id: 'syllabus-updates', label: 'Syllabus Update Center' },
+            { id: 'syllabus-updates', label: 'Syllabus Updates' },
+            { id: 'ai-intelligence', label: 'NyayaAI Intelligence' },
             { id: 'subject-crud', label: 'Syllabus Builder' },
             { id: 'mcq-crud', label: 'MCQs & Acts' }
           ].map(t => (
@@ -587,7 +588,68 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* 4. SYLLABUS BUILDER CRUD TAB */}
+      {/* 4. NYAYAAI INTELLIGENCE & ERROR REPORTS TAB */}
+      {adminTab === 'ai-intelligence' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* AI Metrics Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+              <span className="text-[10px] uppercase font-mono font-bold text-slate-500">Total AI Doubts Solved</span>
+              <p className="text-2xl font-bold text-white font-serif-title">4,890</p>
+              <p className="text-[11px] text-emerald-400">96.4% Accuracy Rating</p>
+            </div>
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+              <span className="text-[10px] uppercase font-mono font-bold text-slate-500">Quiz Trigger Rate</span>
+              <p className="text-2xl font-bold text-amber-400 font-serif-title">78.2%</p>
+              <p className="text-[11px] text-slate-400">3,820 Personalized Quizzes</p>
+            </div>
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+              <span className="text-[10px] uppercase font-mono font-bold text-slate-500">RAG Sources Cited</span>
+              <p className="text-2xl font-bold text-blue-400 font-serif-title">100%</p>
+              <p className="text-[11px] text-slate-400">India Code + Supreme Court</p>
+            </div>
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+              <span className="text-[10px] uppercase font-mono font-bold text-slate-500">Error Reports Flagged</span>
+              <p className="text-2xl font-bold text-purple-400 font-serif-title">2</p>
+              <p className="text-[11px] text-purple-400">Requires Admin Review</p>
+            </div>
+          </div>
+
+          {/* User Error Reports Table */}
+          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+            <h3 className="text-lg font-bold text-white font-serif-title">Recent User Error Reports & Audits</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-950 border-b border-slate-850 text-slate-450 font-mono uppercase tracking-wider">
+                    <th className="py-3 px-4">Query / Subject</th>
+                    <th className="py-3 px-4">Reported Category</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/80">
+                  <tr className="hover:bg-slate-850/40">
+                    <td className="py-3.5 px-4">
+                      <p className="font-bold text-white">"Difference between IPC 302 and BNS 103"</p>
+                      <p className="text-[10px] text-slate-400 font-mono">Student: GU LL.B. Sem 3</p>
+                    </td>
+                    <td className="py-3.5 px-4 text-amber-400 font-semibold">Explanation Unclear</td>
+                    <td className="py-3.5 px-4"><span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-bold">PENDING</span></td>
+                    <td className="py-3.5 px-4">
+                      <button onClick={() => triggerAlert("Report resolved and verified!")} className="px-3 py-1 rounded bg-emerald-500 text-slate-950 font-bold text-[11px]">
+                        Mark Resolved
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. SYLLABUS BUILDER CRUD TAB */}
       {adminTab === 'subject-crud' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in">
           
