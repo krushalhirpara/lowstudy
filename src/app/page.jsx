@@ -93,7 +93,7 @@ export default function HomePage() {
       <JsonLd data={getOrganizationJsonLd()} />
       
       {/* HERO SECTION */}
-      <section className="relative pt-12 pb-20 overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border-b border-slate-800">
+      <section className="relative pt-6 sm:pt-8 pb-16 overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border-b border-slate-800">
         
         {/* Decorative Background Elements */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
