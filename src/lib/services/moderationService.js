@@ -280,7 +280,11 @@ export async function recordContentReview(id, { reviewerId, reviewStatus, remark
  * Promotes an approved and verified AI Content item into the live catalog.
  */
 export async function promoteToOfficialCatalog(id, { actorId, targetTopicId, targetSubjectId } = {}) {
-  const content = await prisma.aiContent.findUnique({ where: { id } });
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    throw new Error('Valid content ID is required.');
+  }
+
+  const content = await prisma.aiContent.findUnique({ where: { id: id.trim() } });
   if (!content) {
     throw new Error(`AI Content with id ${id} not found.`);
   }
