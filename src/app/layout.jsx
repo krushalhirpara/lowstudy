@@ -61,12 +61,23 @@ export const metadata = {
   verification: {
     google: 'oWQ09SAzdvNqLHxPmmVg6g_ZQzamWoXwT8_xPjP9pS0',
   },
+  other: {
+    'google-adsense-account': 'ca-pub-4372092895969608',
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${poppins.variable} ${hindVadodara.variable} dark`}>
       <body className={`${poppins.className} bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased`}>
+        {/* Google AdSense */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4372092895969608"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-37P31VWPP7"

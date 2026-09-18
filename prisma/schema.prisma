@@ -1,0 +1,683 @@
+// LowStudy Scalable Relational Database Schema
+// Multi-University, Multi-Course, Multi-Semester Law Learning Architecture
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Users & Authentication
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String?
+  fullName       String?
+  role           String    @default("STUDENT") // STUDENT, ADMIN, FACULTY, REVIEWER
+  universityId   String?
+  collegeId      String?
+  courseId       String?
+  semesterId     String?
+  xp             Int       @default(0)
+  streakDays     Int       @default(0)
+  coins          Int       @default(0)
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  university     University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  course         Course?     @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  semester       Semester?   @relation(fields: [semesterId], references: [id], onDelete: SetNull)
+  
+  testAttempts   TestAttempt[]
+  bookmarks      Bookmark[]
+  wrongAnswers   WrongAnswer[]
+  studyProgress  StudyProgress[]
+  revisionItems  RevisionItem[]
+  studyPlans     StudyPlan[]
+  subjectProgress StudentSubjectProgress[]
+  verifiedNotes  Note[]      @relation("NoteVerifier")
+  verifiedAnswers QuestionAnswer[] @relation("AnswerVerifier")
+  aiVerifications AiContent[] @relation("AiVerifier")
+  reviewsGiven   ContentReview[]
+
+  @@index([email])
+  @@index([role])
+  @@index([universityId])
+}
+
+// 2. Universities (Institutions)
+model University {
+  id                     String    @id
+  name                   String
+  code                   String    @unique
+  city                   String
+  district               String?
+  state                  String    @default("Gujarat")
+  type                   String    @default("State Public University")
+  established            Int?
+  logo                   String?
+  officialWebsite        String?
+  officialSyllabusSource String?
+  status                 String    @default("VERIFIED") // VERIFIED, PENDING_REVIEW
+  academicYear           String    @default("2026-27")
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  courses                Course[]
+  subjects               Subject[]
+  previousPapers         PreviousPaper[]
+  mockTests              MockTest[]
+  users                  User[]
+
+  @@index([code])
+  @@index([state])
+  @@index([city])
+}
+
+// 3. Courses / Degree Programs (e.g. 3-Yr LLB, 5-Yr BA LLB, LLM)
+model Course {
+  id             String    @id
+  universityId   String
+  name           String
+  code           String
+  totalSemesters Int       @default(6)
+  description    String?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  university     University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  semesters      Semester[]
+  subjects       Subject[]
+  previousPapers PreviousPaper[]
+  mockTests      MockTest[]
+  users          User[]
+
+  @@unique([universityId, code])
+  @@index([universityId])
+}
+
+// 4. Semesters (Semester 1 to Semester 10)
+model Semester {
+  id             String    @id
+  courseId       String
+  semesterNumber Int
+  title          String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  course         Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subjects       Subject[]
+  previousPapers PreviousPaper[]
+  mockTests      MockTest[]
+  users          User[]
+
+  @@unique([courseId, semesterNumber])
+  @@index([courseId])
+  @@index([semesterNumber])
+}
+
+// 5. Subjects
+model Subject {
+  id              String    @id
+  universityId    String
+  courseId        String
+  semesterId      String
+  title           String
+  shortCode       String
+  category        String    @default("Core Law") // Core Law, Criminal Law, Civil Law, Corporate Law, etc.
+  credits         Int       @default(4)
+  syllabusVersion String    @default("new") // "new" (BNS 2023) / "old" (IPC 1860)
+  color           String    @default("from-blue-600 to-indigo-900")
+  description     String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  university      University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  course          Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  semester        Semester   @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  
+  units           Unit[]
+  mcqs            Mcq[]
+  previousPapers  PreviousPaper[]
+  mockTests       MockTest[]
+  subjectProgress StudentSubjectProgress[]
+
+  @@unique([semesterId, shortCode, syllabusVersion])
+  @@index([universityId])
+  @@index([semesterId])
+  @@index([category])
+  @@index([syllabusVersion])
+}
+
+// 6. Units (Modules within a subject)
+model Unit {
+  id          String    @id
+  subjectId   String
+  unitNumber  Int
+  title       String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topics      Topic[]
+
+  @@unique([subjectId, unitNumber])
+  @@index([subjectId])
+}
+
+// 7. Topics (Study topics within units)
+model Topic {
+  id            String    @id
+  unitId        String
+  topicNumber   Int       @default(1)
+  title         String
+  description   String?
+  language      String    @default("EN") // EN, GU, HI
+  status        String    @default("PUBLISHED") // DRAFT, REVIEW, PUBLISHED
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  unit          Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  subTopics     SubTopic[]
+  notes         Note[]
+  legalSections LegalSection[]
+  caseLaws      CaseLaw[]
+  questions     Question[]
+  mcqs          Mcq[]
+  studyProgress StudyProgress[]
+
+  @@unique([unitId, title])
+  @@index([unitId])
+  @@index([status])
+}
+
+// 8. Sub Topics (Granular sub-sections)
+model SubTopic {
+  id         String   @id @default(cuid())
+  topicId    String
+  orderIndex Int      @default(1)
+  title      String
+  content    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  topic      Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId])
+}
+
+// 9. Notes (Simple & Detailed Exam Notes)
+model Note {
+  id            String    @id
+  topicId       String
+  language      String    @default("EN") // EN, GU, HI
+  simpleNotes   String
+  detailedNotes String
+  keyPoints     String?   // JSON string of key points
+  mnemonics     String?   // JSON string of memory aids
+  status        String    @default("PUBLISHED") // DRAFT, REVIEW, PUBLISHED
+  verifiedById  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  topic         Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  verifiedBy    User?     @relation("NoteVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+
+  @@index([topicId])
+  @@index([language])
+  @@index([status])
+}
+
+// 10. Legal Sections (Bare Acts: BNS, BNSS, BSA, IPC, CrPC, IEA, Constitution)
+model LegalSection {
+  id                String    @id
+  topicId           String?
+  actName           String    // BNS 2023, BNSS 2023, BSA 2023, IPC 1860, Constitution of India, etc.
+  sectionNumber     String
+  title             String
+  titleGu           String?
+  content           String
+  contentGu         String?
+  oldLawSection     String?   // e.g. "IPC Section 302"
+  oldLawAct         String?   // e.g. "IPC 1860"
+  punishment        String?
+  punishmentGu      String?
+  bailableStatus    String?   // Bailable, Non-Bailable
+  cognizableStatus  String?   // Cognizable, Non-Cognizable
+  compoundableStatus String?  // Compoundable, Non-Compoundable
+  status            String    @default("PUBLISHED") // DRAFT, REVIEW, PUBLISHED
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  topic             Topic?    @relation(fields: [topicId], references: [id], onDelete: SetNull)
+
+  @@unique([actName, sectionNumber])
+  @@index([actName])
+  @@index([sectionNumber])
+  @@index([topicId])
+  @@index([status])
+}
+
+// 11. Case Laws (Landmark Judicial Precedents)
+model CaseLaw {
+  id               String    @id
+  topicId          String?
+  title            String
+  citation         String?
+  year             Int?
+  court            String    @default("Supreme Court of India")
+  bench            String?
+  subjectName      String?
+  keyPrinciple     String
+  keyPrincipleGu   String?
+  facts            String?
+  issues           String?
+  argumentsText    String?
+  judgment         String?
+  ratioDecidendi   String
+  ratioDecidendiGu String?
+  importance       String    @default("LANDMARK") // LANDMARK, IMPORTANT, REFERENCE
+  status           String    @default("PUBLISHED") // DRAFT, REVIEW, PUBLISHED
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  topic            Topic?    @relation(fields: [topicId], references: [id], onDelete: SetNull)
+
+  @@index([topicId])
+  @@index([title])
+  @@index([importance])
+  @@index([status])
+}
+
+// 12. Questions (Descriptive / Subjective / Problem-based Questions)
+model Question {
+  id                  String    @id @default(cuid())
+  topicId             String
+  questionText        String
+  questionTextGu      String?
+  marks               Int       @default(10)
+  difficulty          String    @default("MEDIUM") // EASY, MEDIUM, HARD
+  preparationPriority String    @default("HIGH")   // HIGH, MEDIUM, LOW
+  pyqFrequency        Int       @default(1)
+  questionType        String    @default("DESCRIPTIVE") // DESCRIPTIVE, SHORT, CASE_PROBLEM, ESSAY
+  status              String    @default("PUBLISHED") // DRAFT, REVIEW, PUBLISHED
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  topic               Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  answers             QuestionAnswer[]
+  paperQuestions      PreviousPaperQuestion[]
+
+  @@index([topicId])
+  @@index([difficulty])
+  @@index([preparationPriority])
+  @@index([status])
+}
+
+// 13. Question Answers (Model Answer Structure & Citations)
+model QuestionAnswer {
+  id                String    @id @default(cuid())
+  questionId        String
+  language          String    @default("EN") // EN, GU
+  answerText        String
+  keyPoints         String?   // JSON string
+  judicialCitations String?   // JSON string
+  modelStructure    String?   // JSON string
+  isVerified        Boolean   @default(true)
+  verifiedById      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  question          Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  verifiedBy        User?     @relation("AnswerVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+
+  @@index([questionId])
+  @@index([language])
+}
+
+// 14. MCQs (Multiple Choice Questions)
+model Mcq {
+  id                  String    @id @default(cuid())
+  topicId             String?
+  subjectId           String?
+  questionText        String
+  questionTextGu      String?
+  difficulty          String    @default("MEDIUM") // EASY, MEDIUM, HARD
+  preparationPriority String    @default("HIGH")   // HIGH, MEDIUM, LOW
+  explanation         String
+  explanationGu       String?
+  status              String    @default("PUBLISHED") // DRAFT, REVIEW, PUBLISHED
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  topic               Topic?    @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  subject             Subject?  @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  
+  options             McqOption[]
+  mockTestQuestions   MockTestQuestion[]
+  testAnswers         TestAnswer[]
+  wrongAnswers        WrongAnswer[]
+
+  @@index([topicId])
+  @@index([subjectId])
+  @@index([difficulty])
+  @@index([status])
+}
+
+// 15. MCQ Options
+model McqOption {
+  id           String   @id @default(cuid())
+  mcqId        String
+  optionKey    String   // A, B, C, D
+  optionText   String
+  optionTextGu String?
+  isCorrect    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  mcq          Mcq      @relation(fields: [mcqId], references: [id], onDelete: Cascade)
+
+  @@unique([mcqId, optionKey])
+  @@index([mcqId])
+}
+
+// 16. Previous Examination Papers
+model PreviousPaper {
+  id              String    @id
+  universityId    String
+  courseId        String
+  semesterId      String
+  subjectId       String
+  examYear        Int
+  examSession     String    @default("WINTER") // WINTER, SUMMER, REGULAR, REMEDIAL
+  totalMarks      Int       @default(70)
+  durationMinutes Int       @default(180)
+  paperCode       String?
+  fileUrl         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  university      University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  course          Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  semester        Semester   @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  subject         Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  paperQuestions  PreviousPaperQuestion[]
+
+  @@unique([subjectId, examYear, examSession])
+  @@index([universityId])
+  @@index([subjectId])
+  @@index([examYear])
+}
+
+// 17. Previous Paper Questions Junction
+model PreviousPaperQuestion {
+  id             String        @id @default(cuid())
+  paperId        String
+  questionId     String
+  sectionName    String        @default("Section A")
+  questionNumber String        @default("Q1")
+  marks          Int           @default(14)
+  isCompulsory   Boolean       @default(true)
+  examYear       Int?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  paper          PreviousPaper @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  question       Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([paperId])
+  @@index([questionId])
+  @@index([examYear])
+}
+
+// 18. Mock Tests
+model MockTest {
+  id                 String    @id
+  universityId       String?
+  courseId           String?
+  semesterId         String?
+  subjectId          String?
+  title              String
+  description        String?
+  durationMinutes    Int       @default(30)
+  totalMarks         Int       @default(30)
+  passingMarks       Int       @default(15)
+  hasNegativeMarking Boolean   @default(true)
+  negativeMarkValue  Float     @default(0.25)
+  isPublished        Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  university         University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  course             Course?     @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  semester           Semester?   @relation(fields: [semesterId], references: [id], onDelete: SetNull)
+  subject            Subject?    @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  
+  questions          MockTestQuestion[]
+  testAttempts       TestAttempt[]
+
+  @@index([subjectId])
+  @@index([universityId])
+}
+
+// 19. Mock Test Questions Junction
+model MockTestQuestion {
+  id         String   @id @default(cuid())
+  mockTestId String
+  mcqId      String
+  orderIndex Int      @default(1)
+  marks      Float    @default(1.0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  mockTest   MockTest @relation(fields: [mockTestId], references: [id], onDelete: Cascade)
+  mcq        Mcq      @relation(fields: [mcqId], references: [id], onDelete: Cascade)
+
+  @@unique([mockTestId, mcqId])
+  @@index([mockTestId])
+  @@index([mcqId])
+}
+
+// 20. Test Attempts (Student exam sessions)
+model TestAttempt {
+  id                String       @id @default(cuid())
+  userId            String
+  mockTestId        String
+  score             Float        @default(0)
+  totalQuestions    Int          @default(0)
+  correctCount      Int          @default(0)
+  incorrectCount    Int          @default(0)
+  skippedCount      Int          @default(0)
+  timeTakenSeconds  Int          @default(0)
+  completedAt       DateTime     @default(now())
+  createdAt         DateTime     @default(now())
+
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mockTest          MockTest     @relation(fields: [mockTestId], references: [id], onDelete: Cascade)
+  answers           TestAnswer[]
+
+  @@index([userId])
+  @@index([mockTestId])
+}
+
+// 21. Test Answers (Per-question test responses)
+model TestAnswer {
+  id                String      @id @default(cuid())
+  attemptId         String
+  mcqId             String
+  selectedOptionKey String?     // A, B, C, D
+  isCorrect         Boolean     @default(false)
+  timeSpentSeconds  Int         @default(0)
+  createdAt         DateTime    @default(now())
+
+  attempt           TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  mcq               Mcq         @relation(fields: [mcqId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+  @@index([mcqId])
+}
+
+// 22. Bookmarks (Saved materials)
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  entityType String   // NOTE, CASE_LAW, LEGAL_SECTION, QUESTION, MCQ
+  entityId   String
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityType, entityId])
+  @@index([userId])
+  @@index([entityType, entityId])
+}
+
+// 23. Wrong Answers (Mistake Notebook)
+model WrongAnswer {
+  id           String   @id @default(cuid())
+  userId       String
+  mcqId        String
+  mistakeCount Int      @default(1)
+  lastWrongAt  DateTime @default(now())
+  isResolved   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mcq          Mcq      @relation(fields: [mcqId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mcqId])
+  @@index([userId])
+  @@index([isResolved])
+}
+
+// 24. Study Progress (Topic-level completion)
+model StudyProgress {
+  id               String   @id @default(cuid())
+  userId           String
+  topicId          String
+  isCompleted      Boolean  @default(false)
+  timeSpentSeconds Int      @default(0)
+  confidenceLevel  String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  lastStudiedAt    DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic            Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@index([userId])
+  @@index([topicId])
+}
+
+// 25. Student Subject Progress (Subject Mastery Level)
+model StudentSubjectProgress {
+  id                   String   @id @default(cuid())
+  userId               String
+  subjectId            String
+  completionPercentage Float    @default(0.0)
+  totalTopics          Int      @default(0)
+  completedTopics      Int      @default(0)
+  averageQuizScore     Float    @default(0.0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject              Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subjectId])
+  @@index([userId])
+  @@index([subjectId])
+}
+
+// 26. Revision Items (Spaced Repetition Schedule - SM2)
+model RevisionItem {
+  id               String   @id @default(cuid())
+  userId           String
+  entityType       String   // TOPIC, CASE_LAW, LEGAL_SECTION, QUESTION
+  entityId         String
+  nextReviewAt     DateTime @default(now())
+  intervalDays     Int      @default(1)
+  repetitionNumber Int      @default(0)
+  easeFactor       Float    @default(2.5)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityType, entityId])
+  @@index([userId])
+  @@index([nextReviewAt])
+}
+
+// 27. Study Plans (AI-Generated & Personalized Schedules)
+model StudyPlan {
+  id             String    @id @default(cuid())
+  userId         String
+  title          String
+  targetExam     String
+  targetExamDate DateTime?
+  dailyHours     Float     @default(3.0)
+  planDataJson   String    // JSON string containing day-by-day plan structure
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+// 28. AI Content (NyayaAI drafts, generation logs, and Admin verification)
+// Workflow: AI_GENERATED -> DRAFT -> ADMIN_REVIEW -> VERIFIED -> PUBLISHED
+model AiContent {
+  id                 String    @id @default(cuid())
+  entityType         String    // NOTES, SUMMARY, EXPLANATION, MCQ, MODEL_ANSWER, STUDY_PLAN
+  prompt             String
+  generatedContent   String
+  language           String    @default("EN") // EN, GU, HI
+  modelName          String    @default("gemini-1.5-flash")
+  workflowStage      String    @default("AI_GENERATED") // AI_GENERATED, DRAFT, ADMIN_REVIEW, VERIFIED, PUBLISHED
+  verificationStatus String    @default("PENDING") // PENDING, VERIFIED, REJECTED, FLAGGED
+  status             String    @default("DRAFT") // DRAFT, REVIEW, PUBLISHED (Never automatically published!)
+  verifiedById       String?
+  verificationNotes  String?
+  verifiedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  verifiedBy         User?     @relation("AiVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+
+  @@index([entityType])
+  @@index([workflowStage])
+  @@index([verificationStatus])
+  @@index([status])
+  @@index([verifiedById])
+}
+
+// 29. Content Reviews (Faculty and Admin Audit Trail)
+model ContentReview {
+  id           String   @id @default(cuid())
+  entityType   String   // NOTE, MCQ, CASE_LAW, QUESTION_ANSWER, LEGAL_SECTION, AI_CONTENT
+  entityId     String
+  reviewerId   String
+  reviewStatus String   @default("APPROVED") // APPROVED, CHANGES_REQUESTED, REJECTED
+  remarks      String?
+  createdAt    DateTime @default(now())
+
+  reviewer     User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([reviewerId])
+  @@index([reviewStatus])
+}

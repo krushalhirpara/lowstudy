@@ -1,4 +1,4 @@
-import { GUJARAT_UNIVERSITIES, GUJARAT_COLLEGES, LAW_PROGRAMS, ACADEMIC_YEARS } from './gujaratData';
+import { GUJARAT_UNIVERSITIES, GUJARAT_COLLEGES, LAW_PROGRAMS, ACADEMIC_YEARS } from './gujaratData.js';
 
 export const UNIVERSITIES = GUJARAT_UNIVERSITIES;
 
@@ -15,7 +15,7 @@ export const SEMESTERS = [
   { id: "sem10", name: "Semester 10", num: 10 }
 ];
 
-import subjectsStructure from './subjectsStructure.json';
+import subjectsStructure from './subjectsStructure.json' with { type: 'json' };
 
 // Generates realistic mock content for any given subject based on its metadata.
 // This allows full syllabus details for every single university/semester/version.
