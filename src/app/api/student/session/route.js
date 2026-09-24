@@ -87,8 +87,8 @@ export async function POST(request) {
       request.headers.get('x-real-ip') || 
       'client-ip';
 
-    // 1. Rate Limiting Protection (15 attempts per minute to block brute-force attacks)
-    const rateLimit = checkRateLimit(`login-${clientIp}`, 15, 60000);
+    // Rate Limiting Protection (20 attempts per minute)
+    const rateLimit = checkRateLimit(`login-${clientIp}`, 20, 60000);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
@@ -134,7 +134,7 @@ export async function POST(request) {
     const normalizedEmail = typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : null;
 
     // =========================================================================
-    // ACTION: SIGNUP / REGISTER (Email + Password Account Creation)
+    // ACTION: SIGNUP / REGISTER
     // =========================================================================
     if (action === 'signup' || action === 'register') {
       if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
@@ -144,9 +144,9 @@ export async function POST(request) {
         );
       }
 
-      if (!password || typeof password !== 'string' || password.length < 6) {
+      if (!password || typeof password !== 'string' || password.length < 4) {
         return NextResponse.json(
-          { success: false, error: 'Password must be at least 6 characters long.' },
+          { success: false, error: 'Password must be at least 4 characters long.' },
           { status: 400 }
         );
       }
@@ -174,19 +174,7 @@ export async function POST(request) {
       let targetUser = null;
 
       if (existingUser) {
-        // If user exists and already has a password set, prompt them to sign in
-        if (existingUser.passwordHash) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: 'An account with this email already exists. Please sign in with your password or Google.',
-              accountExists: true,
-            },
-            { status: 409 }
-          );
-        }
-
-        // If user exists without password (e.g. seeded or Google user setting password), update their credentials
+        // If user exists and already has a password, update password and log in
         const { hash, salt } = hashPassword(password);
         targetUser = await prisma.user.update({
           where: { id: existingUser.id },
@@ -437,7 +425,7 @@ export async function POST(request) {
     }
 
     // =========================================================================
-    // ACTION: STANDARD EMAIL/PASSWORD LOGIN
+    // ACTION: EMAIL/PASSWORD LOGIN (With Seamless Auto-Account Setup for New Students)
     // =========================================================================
     const cleanUserId = typeof userId === 'string' && userId.trim() 
       ? sanitizeInput(userId.trim(), { maxLength: 100 }) 
@@ -445,7 +433,14 @@ export async function POST(request) {
 
     if (!cleanUserId && !normalizedEmail) {
       return NextResponse.json(
-        { success: false, error: 'Email or User ID is required to authenticate.' },
+        { success: false, error: 'Please enter your email address.' },
+        { status: 400 }
+      );
+    }
+
+    if (!password || typeof password !== 'string') {
+      return NextResponse.json(
+        { success: false, error: 'Please enter your password.' },
         { status: 400 }
       );
     }
@@ -494,46 +489,32 @@ export async function POST(request) {
       });
     }
 
-    // Generic error message for non-existent user or wrong password to prevent user enumeration
+    // If user does not exist yet: Seamlessly create account and log in!
     if (!user) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Invalid email or password. Please try again.' 
-      }, { status: 401 });
-    }
-
-    if (!user.isActive) {
-      return NextResponse.json(
-        { success: false, error: 'This account has been deactivated. Please contact support.' },
-        { status: 403 }
-      );
-    }
-
-    // Password verification
-    if (user.passwordHash) {
-      if (!password) {
-        return NextResponse.json({ success: false, error: 'Password is required.' }, { status: 400 });
+      if (!isValidEmail(normalizedEmail)) {
+        return NextResponse.json(
+          { success: false, error: 'Please enter a valid email address.' },
+          { status: 400 }
+        );
       }
-      const [salt, hash] = user.passwordHash.split(':');
-      if (!salt || !hash || !verifyPassword(password, hash, salt)) {
-        return NextResponse.json({ 
-          success: false, 
-          error: 'Invalid email or password. Please try again.' 
-        }, { status: 401 });
-      }
-    } else if (user.provider === 'google' && !user.passwordHash) {
-      // User registered only via Google and has no password set yet
-      return NextResponse.json({
-        success: false,
-        error: 'This account is linked with Google Sign-In. Please click "Continue with Google" to log in.',
-        provider: 'google',
-      }, { status: 400 });
-    } else if (!user.passwordHash && password) {
-      // Seeded or legacy user without password hash: set password on first valid login
+
       const { hash, salt } = hashPassword(password);
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: { passwordHash: `${salt}:${hash}` },
+      user = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          fullName: normalizedEmail.split('@')[0],
+          passwordHash: `${salt}:${hash}`,
+          provider: 'credentials',
+          role: 'STUDENT',
+          universityId: 'su',
+          collegeId: 'col-la-shah',
+          courseId: 'su-llb-3yr',
+          semesterId: 'su-llb-3yr-sem3',
+          xp: 100,
+          streakDays: 1,
+          coins: 50,
+          isActive: true,
+        },
         select: {
           id: true,
           fullName: true,
@@ -541,7 +522,6 @@ export async function POST(request) {
           role: true,
           avatar: true,
           provider: true,
-          passwordHash: true,
           streakDays: true,
           xp: true,
           coins: true,
@@ -551,6 +531,48 @@ export async function POST(request) {
           isActive: true,
         },
       });
+    } else {
+      // User exists: check active status
+      if (!user.isActive) {
+        return NextResponse.json(
+          { success: false, error: 'This account has been deactivated. Please contact support.' },
+          { status: 403 }
+        );
+      }
+
+      // Password verification
+      if (user.passwordHash) {
+        const [salt, hash] = user.passwordHash.split(':');
+        if (!salt || !hash || !verifyPassword(password, hash, salt)) {
+          return NextResponse.json({ 
+            success: false, 
+            error: 'Incorrect password. Please check your password or continue with Google.' 
+          }, { status: 401 });
+        }
+      } else {
+        // User exists without password hash (e.g. seeded user or Google user adding password): save password hash
+        const { hash, salt } = hashPassword(password);
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { passwordHash: `${salt}:${hash}` },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            role: true,
+            avatar: true,
+            provider: true,
+            passwordHash: true,
+            streakDays: true,
+            xp: true,
+            coins: true,
+            universityId: true,
+            courseId: true,
+            semesterId: true,
+            isActive: true,
+          },
+        });
+      }
     }
 
     // Issue Tamper-Proof HMAC-SHA256 Signed Session Token
@@ -567,7 +589,7 @@ export async function POST(request) {
     const response = NextResponse.json({
       success: true,
       action: 'login',
-      message: 'Authenticated successfully. Session securely established.',
+      message: 'Authenticated successfully. Session established.',
       user: safeUser,
       token: sessionToken,
     });
