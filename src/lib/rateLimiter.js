@@ -58,6 +58,8 @@ export function checkRateLimit(clientId = 'anonymous', maxRequests = 30, windowM
   };
 }
 
-export default {
+const rateLimiter = {
   checkRateLimit
 };
+
+export default rateLimiter;

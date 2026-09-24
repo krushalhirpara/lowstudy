@@ -24,13 +24,33 @@ import JsonLd from '@/components/seo/JsonLd';
 import { 
   getTopicData, 
   generateTopicSchema, 
+  SU_SEM3_SUBJECT_MAP,
+  slugify,
   SITE_URL 
 } from '@/lib/services/seoDataService';
 
 export const revalidate = 3600;
 
+export async function generateStaticParams() {
+  const params = [];
+  for (const subjectSlug of Object.keys(SU_SEM3_SUBJECT_MAP)) {
+    for (let u = 1; u <= 4; u++) {
+      params.push({
+        subject: subjectSlug,
+        topic: slugify(`Fundamental Concepts & Scope of Unit ${u}`),
+      });
+      params.push({
+        subject: subjectSlug,
+        topic: slugify(`Statutory Provisions & Judicial Precedents of Unit ${u}`),
+      });
+    }
+  }
+  return params;
+}
+
 export async function generateMetadata({ params }) {
-  const { subject: subjectParam, topic: topicParam } = await params;
+  const resolvedParams = params && typeof params.then === 'function' ? await params : params;
+  const { subject: subjectParam, topic: topicParam } = resolvedParams || {};
   const topic = await getTopicData(subjectParam, topicParam);
 
   if (!topic) {
@@ -40,7 +60,7 @@ export async function generateMetadata({ params }) {
   }
 
   const title = `${topic.title} — Notes, Sections & Case Laws | SU LL.B. Sem 3`;
-  const description = topic.metaDescription || `Comprehensive study notes, bare act sections, landmark cases, and model exam answers for ${topic.title} under ${topic.subject.title} at Saurashtra University LL.B.`;
+  const description = topic.metaDescription || `Comprehensive study notes, bare act sections, landmark cases, and model exam answers for ${topic.title} under ${topic.subject?.title || 'LL.B. Semester 3'} at Saurashtra University LL.B.`;
   const canonicalUrl = topic.canonicalUrl;
 
   return {
@@ -50,7 +70,7 @@ export async function generateMetadata({ params }) {
       `${topic.title} notes`,
       `${topic.title} Saurashtra University`,
       `${topic.title} LLB semester 3`,
-      `${topic.subject.title} notes`,
+      `${topic.subject?.title || 'Law'} notes`,
       `${topic.title} case laws`,
       `${topic.title} essential elements`,
       `${topic.title} exam questions`
@@ -76,7 +96,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function SaurashtraUniversityTopicPage({ params }) {
-  const { subject: subjectParam, topic: topicParam } = await params;
+  const resolvedParams = params && typeof params.then === 'function' ? await params : params;
+  const { subject: subjectParam, topic: topicParam } = resolvedParams || {};
   const topic = await getTopicData(subjectParam, topicParam);
 
   if (!topic) {

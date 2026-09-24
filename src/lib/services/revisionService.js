@@ -1059,7 +1059,7 @@ export async function submitRevisionReview({ userId = 'usr-student-01', revision
   };
 }
 
-export default {
+const revisionService = {
   calculateProgression,
   autoCollectRevisionAssets,
   getRevisionHubData,
@@ -1069,3 +1069,5 @@ export default {
   generateRevisionSession,
   submitRevisionReview
 };
+
+export default revisionService;

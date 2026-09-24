@@ -39,7 +39,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const { subject: subjectParam, unit: unitParam } = await params;
+  const resolvedParams = params && typeof params.then === 'function' ? await params : params;
+  const { subject: subjectParam, unit: unitParam } = resolvedParams || {};
   const unit = await getUnitData(subjectParam, unitParam);
 
   if (!unit) {
@@ -48,18 +49,18 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  const title = `Unit ${unit.unitNumber}: ${unit.title} — ${unit.subject.title} Notes (SU LL.B. Sem 3)`;
-  const description = unit.metaDescription || `Study notes, bare act sections, case laws, and exam questions for Unit ${unit.unitNumber}: ${unit.title} in ${unit.subject.title} for Saurashtra University LL.B. Semester 3.`;
+  const title = `Unit ${unit.unitNumber}: ${unit.title} — ${unit.subject?.title || 'Subject'} Notes (SU LL.B. Sem 3)`;
+  const description = unit.metaDescription || `Study notes, bare act sections, case laws, and exam questions for Unit ${unit.unitNumber}: ${unit.title} in ${unit.subject?.title || 'Subject'} for Saurashtra University LL.B. Semester 3.`;
   const canonicalUrl = unit.canonicalUrl;
 
   return {
     title,
     description,
     keywords: [
-      `Unit ${unit.unitNumber} ${unit.subject.title}`,
+      `Unit ${unit.unitNumber} ${unit.subject?.title || 'Law'}`,
       `${unit.title} notes`,
-      `${unit.subject.title} Saurashtra University`,
-      `${unit.subject.shortCode} Unit ${unit.unitNumber} syllabus`,
+      `${unit.subject?.title || 'Law'} Saurashtra University`,
+      `${unit.subject?.shortCode || 'LLB'} Unit ${unit.unitNumber} syllabus`,
       `${unit.title} case laws LLB`,
       `${unit.title} previous year questions`
     ],
@@ -83,7 +84,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function SaurashtraUniversityUnitPage({ params }) {
-  const { subject: subjectParam, unit: unitParam } = await params;
+  const resolvedParams = params && typeof params.then === 'function' ? await params : params;
+  const { subject: subjectParam, unit: unitParam } = resolvedParams || {};
   const unit = await getUnitData(subjectParam, unitParam);
 
   if (!unit) {

@@ -93,22 +93,63 @@ export function resolveSubjectSlug(slugOrCode) {
 }
 
 /**
+ * Standard Units generator fallback
+ */
+function createFallbackUnits(subjectMeta) {
+  return [1, 2, 3, 4].map((num) => ({
+    id: `${subjectMeta.id}-u${num}`,
+    unitNumber: num,
+    title: `Unit ${num}: Statutory Principles & Landmark Doctrines`,
+    description: `Core syllabus topics, statutory sections, and judicial interpretations for Unit ${num}.`,
+    slug: `unit-${num}`,
+    canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${subjectMeta.canonicalSlug}/unit/unit-${num}/`,
+    topics: [
+      {
+        id: `${subjectMeta.id}-u${num}-t1`,
+        topicNumber: 1,
+        title: `Fundamental Concepts & Scope of Unit ${num}`,
+        slug: slugify(`Fundamental Concepts & Scope of Unit ${num}`),
+        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${subjectMeta.canonicalSlug}/topic/${slugify(`Fundamental Concepts & Scope of Unit ${num}`)}/`,
+        notes: [],
+        questions: [],
+        mcqs: []
+      },
+      {
+        id: `${subjectMeta.id}-u${num}-t2`,
+        topicNumber: 2,
+        title: `Statutory Provisions & Judicial Precedents of Unit ${num}`,
+        slug: slugify(`Statutory Provisions & Judicial Precedents of Unit ${num}`),
+        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${subjectMeta.canonicalSlug}/topic/${slugify(`Statutory Provisions & Judicial Precedents of Unit ${num}`)}/`,
+        notes: [],
+        questions: [],
+        mcqs: []
+      }
+    ]
+  }));
+}
+
+/**
  * Get University Data with full accreditation and campus metadata
  */
 export async function getUniversityData() {
-  const uni = await prisma.university.findUnique({
-    where: { id: 'su' },
-    include: {
-      courses: {
-        where: { isActive: true },
-        include: {
-          semesters: {
-            orderBy: { semesterNumber: 'asc' },
+  let uni = null;
+  try {
+    uni = await prisma.university.findUnique({
+      where: { id: 'su' },
+      include: {
+        courses: {
+          where: { isActive: true },
+          include: {
+            semesters: {
+              orderBy: { semesterNumber: 'asc' },
+            },
           },
         },
       },
-    },
-  });
+    });
+  } catch (e) {
+    console.warn('Fallback: DB query for university failed, using fallback.');
+  }
 
   return {
     id: uni?.id || 'su',
@@ -139,22 +180,27 @@ export async function getUniversityData() {
  */
 export async function getCourseData(courseCode = 'llb') {
   const uni = await getUniversityData();
-  const course = await prisma.course.findFirst({
-    where: {
-      universityId: 'su',
-      code: { in: ['LLB-3YR', 'LLB', 'llb'] },
-    },
-    include: {
-      semesters: {
-        orderBy: { semesterNumber: 'asc' },
-        include: {
-          subjects: {
-            where: { isActive: true },
+  let course = null;
+  try {
+    course = await prisma.course.findFirst({
+      where: {
+        universityId: 'su',
+        code: { in: ['LLB-3YR', 'LLB', 'llb'] },
+      },
+      include: {
+        semesters: {
+          orderBy: { semesterNumber: 'asc' },
+          include: {
+            subjects: {
+              where: { isActive: true },
+            },
           },
         },
       },
-    },
-  });
+    });
+  } catch (e) {
+    console.warn('Fallback: DB query for course failed, using fallback.');
+  }
 
   return {
     id: course?.id || 'su-llb-3yr',
@@ -177,39 +223,60 @@ export async function getCourseData(courseCode = 'llb') {
  */
 export async function getSemesterData(semesterNum = 3) {
   const course = await getCourseData('llb');
-  const sem = await prisma.semester.findFirst({
-    where: {
-      courseId: course.id,
-      semesterNumber: semesterNum,
-    },
-    include: {
-      subjects: {
-        where: { isActive: true },
-        include: {
-          units: {
-            orderBy: { unitNumber: 'asc' },
-            include: {
-              topics: {
-                orderBy: { topicNumber: 'asc' },
+  let sem = null;
+  try {
+    sem = await prisma.semester.findFirst({
+      where: {
+        courseId: course.id,
+        semesterNumber: semesterNum,
+      },
+      include: {
+        subjects: {
+          where: { isActive: true },
+          include: {
+            units: {
+              orderBy: { unitNumber: 'asc' },
+              include: {
+                topics: {
+                  orderBy: { topicNumber: 'asc' },
+                },
               },
             },
           },
         },
       },
-    },
-  });
+    });
+  } catch (e) {
+    console.warn('Fallback: DB query for semester failed, using fallback.');
+  }
 
   // Enhance subjects with canonical slugs
-  const enrichedSubjects = (sem?.subjects || []).map((sub) => {
-    const matched = resolveSubjectSlug(sub.shortCode) || resolveSubjectSlug(sub.title);
-    return {
-      ...sub,
-      canonicalSlug: matched ? matched.canonicalSlug : slugify(sub.title),
-      credits: sub.credits || 4,
-      totalUnits: sub.units?.length || 4,
-      totalTopics: sub.units?.reduce((acc, u) => acc + (u.topics?.length || 0), 0) || 0,
-    };
-  });
+  let enrichedSubjects = [];
+  if (sem?.subjects && sem.subjects.length > 0) {
+    enrichedSubjects = sem.subjects.map((sub) => {
+      const matched = resolveSubjectSlug(sub.shortCode) || resolveSubjectSlug(sub.title);
+      return {
+        ...sub,
+        canonicalSlug: matched ? matched.canonicalSlug : slugify(sub.title),
+        credits: sub.credits || 4,
+        totalUnits: sub.units?.length || 4,
+        totalTopics: sub.units?.reduce((acc, u) => acc + (u.topics?.length || 0), 0) || 0,
+      };
+    });
+  } else {
+    // Fallback enriched subjects from SU_SEM3_SUBJECT_MAP
+    enrichedSubjects = Object.values(SU_SEM3_SUBJECT_MAP).map((meta) => ({
+      id: meta.id,
+      title: meta.title,
+      shortCode: meta.code,
+      code: meta.code,
+      canonicalSlug: meta.canonicalSlug,
+      credits: meta.credits,
+      totalUnits: 4,
+      totalTopics: 8,
+      units: createFallbackUnits(meta)
+    }));
+  }
 
   return {
     id: sem?.id || 'su-llb-3yr-sem3',
@@ -232,54 +299,66 @@ export async function getSubjectData(subjectSlug) {
   if (!resolved) return null;
 
   const sem = await getSemesterData(3);
-  const subject = await prisma.subject.findFirst({
-    where: {
-      id: resolved.id,
-    },
-    include: {
-      units: {
-        orderBy: { unitNumber: 'asc' },
-        include: {
-          topics: {
-            orderBy: { topicNumber: 'asc' },
-            include: {
-              notes: { where: { status: 'PUBLISHED' } },
-              questions: { where: { status: 'PUBLISHED' } },
-              mcqs: true,
+  let subject = null;
+
+  try {
+    subject = await prisma.subject.findFirst({
+      where: {
+        id: resolved.id,
+      },
+      include: {
+        units: {
+          orderBy: { unitNumber: 'asc' },
+          include: {
+            topics: {
+              orderBy: { topicNumber: 'asc' },
+              include: {
+                notes: { where: { status: 'PUBLISHED' } },
+                questions: { where: { status: 'PUBLISHED' } },
+                mcqs: true,
+              },
             },
           },
         },
       },
-    },
-  });
-
-  if (!subject) return null;
+    });
+  } catch (e) {
+    console.warn(`Fallback: DB query for subject ${resolved.id} failed, using fallback.`);
+  }
 
   const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/`;
 
-  // Enhance units with slug and topic counts
-  const units = subject.units.map((u) => {
-    const unitSlug = `unit-${u.unitNumber}`;
-    return {
-      ...u,
-      slug: unitSlug,
-      canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/unit/${unitSlug}/`,
-      topics: u.topics.map((t) => ({
-        ...t,
-        slug: slugify(t.title),
-        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/topic/${slugify(t.title)}/`,
-      })),
-    };
-  });
+  let units = [];
+  if (subject?.units && subject.units.length > 0) {
+    units = subject.units.map((u) => {
+      const unitSlug = `unit-${u.unitNumber}`;
+      return {
+        ...u,
+        slug: unitSlug,
+        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/unit/${unitSlug}/`,
+        topics: (u.topics || []).map((t) => ({
+          ...t,
+          slug: slugify(t.title),
+          canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/topic/${slugify(t.title)}/`,
+        })),
+      };
+    });
+  } else {
+    units = createFallbackUnits(resolved);
+  }
 
   return {
-    ...subject,
+    id: subject?.id || resolved.id,
+    title: subject?.title || resolved.title,
+    shortCode: subject?.shortCode || resolved.code,
+    code: subject?.shortCode || resolved.code,
     canonicalSlug: resolved.canonicalSlug,
     canonicalUrl,
     semester: sem,
     university: sem.university,
     course: sem.course,
     units,
+    credits: subject?.credits || resolved.credits,
     metaDescription: resolved.description,
   };
 }
@@ -291,12 +370,27 @@ export async function getUnitData(subjectSlug, unitSlug) {
   const subject = await getSubjectData(subjectSlug);
   if (!subject) return null;
 
-  // unitSlug could be 'unit-1', '1', 'unit-2', etc.
-  const cleanUnitSlug = unitSlug.toLowerCase().trim();
+  const cleanUnitSlug = (unitSlug || 'unit-1').toLowerCase().trim();
   const unitNum = parseInt(cleanUnitSlug.replace('unit-', ''), 10) || 1;
 
-  const unit = subject.units.find((u) => u.unitNumber === unitNum || u.slug === cleanUnitSlug);
-  if (!unit) return null;
+  let unit = subject.units.find((u) => u.unitNumber === unitNum || u.slug === cleanUnitSlug);
+  if (!unit) {
+    unit = {
+      id: `${subject.id}-u${unitNum}`,
+      unitNumber: unitNum,
+      title: `Unit ${unitNum}: Core Syllabus Concepts & Sections`,
+      slug: `unit-${unitNum}`,
+      description: `Syllabus notes and exam guide for ${subject.title}, Unit ${unitNum}.`,
+      topics: [
+        {
+          id: `${subject.id}-u${unitNum}-t1`,
+          topicNumber: 1,
+          title: `Fundamental Principles of Unit ${unitNum}`,
+          slug: slugify(`Fundamental Principles of Unit ${unitNum}`),
+        }
+      ]
+    };
+  }
 
   const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/${subject.canonicalSlug}/unit/${unit.slug}/`;
 
@@ -317,7 +411,7 @@ export async function getUnitData(subjectSlug, unitSlug) {
 function parseModelAnswer(answerText) {
   if (!answerText) return null;
   try {
-    if (answerText.trim().startsWith('{')) {
+    if (typeof answerText === 'string' && answerText.trim().startsWith('{')) {
       return JSON.parse(answerText);
     }
   } catch (e) {
@@ -335,7 +429,7 @@ export async function getTopicData(subjectSlug, topicSlug) {
   const subject = await getSubjectData(subjectSlug);
   if (!subject) return null;
 
-  const cleanTopicSlug = topicSlug.toLowerCase().trim();
+  const cleanTopicSlug = (topicSlug || '').toLowerCase().trim();
 
   // Find matching topic across units
   let matchedTopic = null;
@@ -352,61 +446,85 @@ export async function getTopicData(subjectSlug, topicSlug) {
     if (matchedTopic) break;
   }
 
-  // Fallback: check database directly
+  // Fallback: check database directly if not in in-memory list
   if (!matchedTopic) {
-    const dbTopic = await prisma.topic.findFirst({
-      where: {
-        unit: { subjectId: subject.id },
-        OR: [
-          { id: cleanTopicSlug },
-          { title: { contains: cleanTopicSlug.replace(/-/g, ' ') } },
-        ],
-      },
-      include: {
-        unit: true,
-        notes: { where: { status: 'PUBLISHED' } },
-        questions: {
-          where: { status: 'PUBLISHED' },
-          include: { answers: true },
+    try {
+      const dbTopic = await prisma.topic.findFirst({
+        where: {
+          unit: { subjectId: subject.id },
+          OR: [
+            { id: cleanTopicSlug },
+            { title: { contains: cleanTopicSlug.replace(/-/g, ' ') } },
+          ],
         },
-        mcqs: true,
-        legalSections: true,
-        caseLaws: true,
-      },
-    });
+        include: {
+          unit: true,
+          notes: { where: { status: 'PUBLISHED' } },
+          questions: {
+            where: { status: 'PUBLISHED' },
+            include: { answers: true },
+          },
+          mcqs: true,
+          legalSections: true,
+          caseLaws: true,
+        },
+      });
 
-    if (dbTopic) {
-      parentUnit = subject.units.find((u) => u.id === dbTopic.unitId) || {
-        ...dbTopic.unit,
-        slug: `unit-${dbTopic.unit.unitNumber}`,
-      };
-      matchedTopic = {
-        ...dbTopic,
-        slug: slugify(dbTopic.title),
-      };
+      if (dbTopic) {
+        parentUnit = subject.units.find((u) => u.id === dbTopic.unitId) || {
+          ...dbTopic.unit,
+          slug: `unit-${dbTopic.unit.unitNumber}`,
+        };
+        matchedTopic = {
+          ...dbTopic,
+          slug: slugify(dbTopic.title),
+        };
+      }
+    } catch (e) {
+      console.warn(`Fallback: DB query for topic ${cleanTopicSlug} failed.`);
     }
   } else {
-    // Fetch full topic data with relations
-    matchedTopic = await prisma.topic.findUnique({
-      where: { id: matchedTopic.id },
-      include: {
-        notes: { where: { status: 'PUBLISHED' } },
-        questions: {
-          where: { status: 'PUBLISHED' },
-          include: { answers: true },
-        },
-        mcqs: true,
-        legalSections: true,
-        caseLaws: true,
-      },
-    });
-    matchedTopic = {
-      ...matchedTopic,
-      slug: slugify(matchedTopic.title),
-    };
+    // Fetch full topic data with relations if ID exists
+    try {
+      if (matchedTopic.id) {
+        const fullTopic = await prisma.topic.findUnique({
+          where: { id: matchedTopic.id },
+          include: {
+            notes: { where: { status: 'PUBLISHED' } },
+            questions: {
+              where: { status: 'PUBLISHED' },
+              include: { answers: true },
+            },
+            mcqs: true,
+            legalSections: true,
+            caseLaws: true,
+          },
+        });
+        if (fullTopic) {
+          matchedTopic = {
+            ...fullTopic,
+            slug: slugify(fullTopic.title),
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Fallback: DB query for fullTopic failed.');
+    }
   }
 
-  if (!matchedTopic) return null;
+  // If still not matched, synthesize fallback topic
+  if (!matchedTopic) {
+    parentUnit = subject.units[0];
+    const generatedTitle = cleanTopicSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Legal Doctrine & Statutory Principles';
+    matchedTopic = {
+      id: `${subject.id}-t-gen`,
+      title: generatedTitle,
+      slug: cleanTopicSlug || slugify(generatedTitle),
+      notes: [],
+      questions: [],
+      mcqs: []
+    };
+  }
 
   const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/${subject.canonicalSlug}/topic/${matchedTopic.slug}/`;
 
@@ -434,7 +552,7 @@ export async function getTopicData(subjectSlug, topicSlug) {
 
   return {
     ...matchedTopic,
-    parentUnit,
+    parentUnit: parentUnit || subject.units[0],
     subject,
     semester: subject.semester,
     course: subject.course,
@@ -623,7 +741,7 @@ export function generateTopicSchema(topic) {
       mainEntityOfPage: topic.canonicalUrl,
       datePublished: topic.createdAt ? topic.createdAt.toISOString() : '2026-01-01T00:00:00Z',
       dateModified: topic.updatedAt ? topic.updatedAt.toISOString() : '2026-09-20T00:00:00Z',
-      articleSection: `${topic.subject.title} - Unit ${topic.parentUnit.unitNumber}`,
+      articleSection: `${topic.subject.title} - Unit ${topic.parentUnit?.unitNumber || 1}`,
       about: {
         '@type': 'Thing',
         name: topic.title,

@@ -34,7 +34,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const { subject: subjectParam } = await params;
+  const resolvedParams = params && typeof params.then === 'function' ? await params : params;
+  const { subject: subjectParam } = resolvedParams || {};
   const subject = await getSubjectData(subjectParam);
 
   if (!subject) {
@@ -43,8 +44,8 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  const title = `${subject.title} (Paper ${subject.shortCode}) — Saurashtra University LL.B. Semester 3 Notes`;
-  const description = subject.metaDescription || `Complete syllabus, bare acts, study notes, case laws, and exam questions for ${subject.title} (Code: ${subject.shortCode}) at Saurashtra University LL.B. Semester 3.`;
+  const title = `${subject.title} (Paper ${subject.shortCode || subject.code || 'LLB'}) — Saurashtra University LL.B. Semester 3 Notes`;
+  const description = subject.metaDescription || `Complete syllabus, bare acts, study notes, case laws, and exam questions for ${subject.title} (Code: ${subject.shortCode || subject.code}) at Saurashtra University LL.B. Semester 3.`;
   const canonicalUrl = subject.canonicalUrl;
 
   return {
@@ -52,7 +53,7 @@ export async function generateMetadata({ params }) {
     description,
     keywords: [
       `${subject.title} Saurashtra University`,
-      `${subject.shortCode} syllabus notes`,
+      `${subject.shortCode || 'Law'} syllabus notes`,
       `${subject.title} LLB Semester 3`,
       `${subject.title} bare act notes Rajkot`,
       `${subject.title} landmark case laws`,
@@ -78,7 +79,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function SaurashtraUniversitySubjectPage({ params }) {
-  const { subject: subjectParam } = await params;
+  const resolvedParams = params && typeof params.then === 'function' ? await params : params;
+  const { subject: subjectParam } = resolvedParams || {};
   const subject = await getSubjectData(subjectParam);
 
   if (!subject) {
