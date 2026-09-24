@@ -1,4 +1,6 @@
 import '@/app/globals.css';
+import '@/app/tailwind-built.css';
+import '@/app/white-theme.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
@@ -68,8 +70,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${poppins.variable} ${hindVadodara.variable} dark`}>
-      <body className={`${poppins.className} bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased`}>
+    <html lang="en" className={`${poppins.variable} ${hindVadodara.variable}`}>
+      <body className={`${poppins.className} bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased`}>
         {/* Google AdSense */}
         <Script
           async

@@ -7,10 +7,13 @@ import React from 'react';
 export default function JsonLd({ data }) {
   if (!data) return null;
 
+  // Safely serialize and escape < as \u003c to prevent script-breakout XSS vulnerabilities
+  const safeJson = JSON.stringify(data).replace(/</g, '\\u003c');
+
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: safeJson }}
     />
   );
 }

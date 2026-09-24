@@ -11,588 +11,485 @@ import {
   Copy, 
   Check, 
   BookOpen, 
-  Flame, 
+  Scale, 
   BrainCircuit,
   FileText,
   Lightbulb,
   Building2,
-  ThumbsUp,
-  ThumbsDown,
   AlertTriangle,
   Award,
   Clock,
-  X,
-  ChevronRight,
+  Layers,
   ShieldCheck,
-  Globe,
-  Sliders,
-  GraduationCap
+  Languages,
+  ArrowRight,
+  RefreshCw,
+  ExternalLink,
+  Flame,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
-import { MockDB } from '@/data/db';
-import SyllabusSelectorModal from '@/components/syllabus/SyllabusSelectorModal';
 
-export default function AiTutorPage({ searchParams }) {
-  const [selectedUni, setSelectedUni] = useState(null);
-  const [selectedCollege, setSelectedCollege] = useState(null);
-  const [selectedSem, setSelectedSem] = useState(null);
-  const [selectedProgram, setSelectedProgram] = useState(null);
-  const [selectedVersion, setSelectedVersion] = useState('new');
-  const [isSyllabusModalOpen, setIsSyllabusModalOpen] = useState(false);
+export default function AiStudyAssistantPage() {
+  const [studentContext, setStudentContext] = useState(null);
+  const [contextLoading, setContextLoading] = useState(true);
 
-  // Controls
-  const [language, setLanguage] = useState('english'); // english, gujarat, hinglish
-  const [depth, setDepth] = useState('detailed'); // quick, short, detailed, exam, deep
-  const [studyMode, setStudyMode] = useState('ask'); // ask, study, practice, revise, examprep
-
-  // Chat State
+  // Active capability state
+  const [activeCapability, setActiveCapability] = useState('EXPLAIN_SIMPLE');
+  const [selectedSubjectId, setSelectedSubjectId] = useState('');
+  
+  // Messages state
   const [messages, setMessages] = useState([
     {
-      id: 'msg-init',
+      id: 'init-msg',
       sender: 'ai',
-      text: "Namaste! I am NyayaAI, your Gujarat Law & Syllabus Intelligence Assistant. How can I assist your study today? Ask me any doubt on your official Gujarat University curriculum, BNS 2023 sections, landmark case ratios, or exam questions.",
+      capability: 'EXPLAIN_SIMPLE',
+      content: `### 🎓 Welcome to the Lowstudy AI Study Assistant!
+
+I am primarily grounded in **verified Lowstudy educational content** for your official **Saurashtra University LL.B. Semester 3** curriculum.
+
+I strictly adhere to **Legal Grounding Rules**:
+* ⚖️ Verified Bare Act sections (BNS, BNSS, BSA, Industrial Disputes, Taxation)
+* 🏛️ Landmark Supreme Court & High Court precedents
+* ✍️ University-pattern exam answer structures
+* 🚫 Never fabricating legal sections or citations
+
+Select a capability below or ask any legal doubt to begin!`,
       timestamp: 'Just now',
-      retrievedSources: []
+      verifiedSources: [
+        { type: 'CURRICULUM', title: 'Saurashtra University LL.B. Semester 3 Verified Syllabus' }
+      ]
     }
   ]);
+
   const [inputQuery, setInputQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [copiedIdx, setCopiedIdx] = useState(null);
-
-  // Quiz Recommendation State
-  const [activeQuizRec, setActiveQuizRec] = useState(null);
-  const [quizModalData, setQuizModalData] = useState(null);
-  const [quizAnswerState, setQuizAnswerState] = useState({});
-  const [quizCurrentIdx, setQuizCurrentIdx] = useState(0);
-
-  // Report Modal State
-  const [reportModalMsgId, setReportModalMsgId] = useState(null);
-  const [reportCategory, setReportCategory] = useState('Wrong Law');
-  const [reportSuccessMsg, setReportSuccessMsg] = useState('');
+  const [errorState, setErrorState] = useState(null);
+  const [lastQueryData, setLastQueryData] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   const chatBottomRef = useRef(null);
 
-  useEffect(() => {
-    MockDB.init();
-    refreshContext();
-  }, []);
-
-  const refreshContext = () => {
-    setSelectedUni(MockDB.getSelectedUni());
-    setSelectedCollege(MockDB.getSelectedCollege());
-    setSelectedSem(MockDB.getSelectedSem());
-    setSelectedVersion(MockDB.getSelectedSyllabusVersion());
-  };
-
-  const promptPills = [
-    "Explain BNS Section 103 (Murder) vs Old IPC 302",
-    "Summarize Kesavananda Bharati v. State of Kerala",
-    "What is the Golden Triangle in Constitutional Law?",
-    "Explain consideration under Contract Law in Gujarati",
-    "Give exam-oriented notes on Article 14"
+  // Capability definitions
+  const capabilityList = [
+    { key: 'EXPLAIN_SIMPLE', label: 'Explain Simply', icon: Lightbulb, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+    { key: 'EXPLAIN_GUJARATI', label: 'Explain in Gujarati', icon: Languages, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+    { key: 'EXPLAIN_ENGLISH', label: 'Explain in English', icon: BookOpen, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+    { key: 'STRUCTURE_EXAM_ANSWER', label: 'Exam Answer Structure', icon: FileText, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+    { key: 'GENERATE_PRACTICE_QUESTIONS', label: 'Generate Practice Qs', icon: HelpCircle, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+    { key: 'GENERATE_MCQS', label: 'Generate MCQs', icon: Award, color: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
+    { key: 'EXPLAIN_LEGAL_SECTION', label: 'Explain Section', icon: Scale, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+    { key: 'EXPLAIN_CASE_LAW', label: 'Explain Case Law', icon: Building2, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
+    { key: 'SUMMARIZE_TOPIC', label: 'Summarize Topic', icon: Layers, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' },
+    { key: 'QUICK_REVISION_NOTES', label: 'Quick Revision Notes', icon: Flame, color: 'text-orange-400 bg-orange-500/10 border-orange-500/20' },
+    { key: 'EXPLAIN_MCQ_ANSWER', label: 'Explain MCQ Answer', icon: CheckCircle2, color: 'text-lime-400 bg-lime-500/10 border-lime-500/20' },
+    { key: 'CREATE_STUDY_PLAN', label: 'Personalized Study Plan', icon: Clock, color: 'text-amber-300 bg-amber-500/20 border-amber-500/40' }
   ];
 
-  const handleSend = async (textToSend = null) => {
-    const text = textToSend || inputQuery;
-    if (!text.trim()) return;
+  useEffect(() => {
+    fetchContext();
+  }, []);
 
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  const fetchContext = async () => {
+    try {
+      setContextLoading(true);
+      const res = await fetch('/api/assistant/context');
+      const json = await res.json();
+      if (json.success) {
+        setStudentContext(json.data);
+        if (json.data.subjects && json.data.subjects.length > 0) {
+          setSelectedSubjectId(json.data.subjects[0].id);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading student context:', err);
+    } finally {
+      setContextLoading(false);
+    }
+  };
+
+  const handleSend = async (overrideQuery = null, overrideCap = null) => {
+    const queryToSend = (overrideQuery || inputQuery).trim();
+    const capToSend = overrideCap || activeCapability;
+
+    if (!queryToSend) return;
+
+    setErrorState(null);
+    setInputQuery('');
+
+    // Add user message to state
     const userMsg = {
-      id: `msg-user-${Date.now()}`,
+      id: `user-${Date.now()}`,
       sender: 'user',
-      text,
+      content: queryToSend,
+      capability: capToSend,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
     setMessages(prev => [...prev, userMsg]);
-    if (!textToSend) setInputQuery('');
     setIsTyping(true);
 
-    const studentContext = {
-      universityId: selectedUni?.id || 'gu',
-      universityName: selectedUni?.name || 'Gujarat University',
-      collegeId: selectedCollege?.id || 'col-la-shah',
-      semesterId: selectedSem?.id || 'sem1',
-      semesterNum: selectedSem?.num || 1,
-      syllabusVersion: selectedVersion || 'new'
+    const payload = {
+      query: queryToSend,
+      capability: capToSend,
+      subjectId: selectedSubjectId || undefined,
+      userId: 'usr-student-01'
     };
+    setLastQueryData(payload);
 
     try {
-      const res = await fetch('/api/nyayaai/chat', {
+      const res = await fetch('/api/assistant/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: text,
-          language,
-          depth,
-          mode: studyMode,
-          studentContext,
-          historyCount: messages.length
-        })
+        body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
-      if (data.success) {
-        const aiMsg = {
-          id: `msg-ai-${Date.now()}`,
-          sender: 'ai',
-          text: data.text,
-          retrievedSources: data.retrievedSources || [],
-          isOutsideSyllabus: data.isOutsideSyllabus,
-          timestamp: data.timestamp
-        };
-        setMessages(prev => [...prev, aiMsg]);
+      const json = await res.json();
 
-        if (data.quizRecommendation) {
-          setActiveQuizRec(data.quizRecommendation);
-        }
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || `Server responded with status ${res.status}`);
       }
+
+      const aiMsg = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        content: json.content,
+        capability: json.capability,
+        uncertaintyWarning: json.uncertaintyWarning,
+        verifiedSources: json.verifiedSources || [],
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setMessages(prev => [...prev, aiMsg]);
     } catch (err) {
-      console.error('NyayaAI Chat Error:', err);
+      console.error('Assistant error:', err);
+      setErrorState(err.message || 'Failed to generate assistant response. Please retry.');
     } finally {
       setIsTyping(false);
     }
   };
 
-  const handleLaunchQuiz = async (rec) => {
-    try {
-      const res = await fetch('/api/nyayaai/quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topicTitle: rec.title,
-          universityId: selectedUni?.id || 'gu',
-          semesterId: selectedSem?.id || 'sem1',
-          syllabusVersion: selectedVersion || 'new',
-          questionCount: rec.questionCount || 5
-        })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setQuizModalData(data.quiz);
-        setQuizCurrentIdx(0);
-        setQuizAnswerState({});
-        setActiveQuizRec(null);
-      }
-    } catch (err) {
-      console.error('Quiz Generation Error:', err);
+  const handleRetry = () => {
+    if (lastQueryData) {
+      handleSend(lastQueryData.query, lastQueryData.capability);
     }
   };
 
-  const handleReportSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await fetch('/api/nyayaai/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messageId: reportModalMsgId,
-          isHelpful: false,
-          reportReason: reportCategory
-        })
-      });
-      setReportSuccessMsg('Report submitted to Admin panel.');
-      setTimeout(() => {
-        setReportModalMsgId(null);
-        setReportSuccessMsg('');
-      }, 1800);
-    } catch (err) {}
-  };
-
-  const copyMessage = (text, idx) => {
+  const handleCopy = (id, text) => {
     navigator.clipboard.writeText(text);
-    setCopiedIdx(idx);
-    setTimeout(() => setCopiedIdx(null), 2000);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="min-h-[100dvh] bg-slate-950 text-slate-100 flex flex-col font-poppins selection:bg-amber-500/20 selection:text-amber-300">
       
-      {/* Active Syllabus Context Header */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-            <span className="text-xs font-bold text-emerald-400 font-mono">NYAYAAI SYLLABUS INTELLIGENCE</span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold font-serif-title text-white">Ask NyayaAI — Personal Law Tutor</h1>
-          
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-mono">
-            <span className="px-2.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-amber-400 font-bold">
-              {selectedUni ? selectedUni.name : 'Gujarat University'}
-            </span>
-            <span>•</span>
-            <span className="text-slate-300">
-              {selectedCollege ? selectedCollege.name : 'Sir L.A. Shah Law College'}
-            </span>
-            <span>•</span>
-            <span className="text-emerald-400 font-bold">
-              {selectedSem ? `Semester ${selectedSem.num}` : 'Semester 1'}
-            </span>
-            <span>•</span>
-            <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20 text-[10px] uppercase font-bold">
-              {selectedVersion === 'new' ? 'New BNS 2023' : 'Old IPC 1860'}
-            </span>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setIsSyllabusModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold border border-slate-700 transition-colors shrink-0"
-        >
-          Change Active Syllabus
-        </button>
-      </div>
-
-      {/* Control Bar: Language, Depth, Mode */}
-      <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-850 flex flex-wrap items-center justify-between gap-3 text-xs">
-        
-        {/* Language selector */}
-        <div className="flex items-center gap-2">
-          <Globe className="w-4 h-4 text-amber-400" />
-          <span className="text-slate-400 font-mono font-semibold">Language:</span>
-          <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
-            {[
-              { id: 'english', label: 'English' },
-              { id: 'gujarat', label: 'ગુજરાતી' },
-              { id: 'hinglish', label: 'Hinglish' }
-            ].map(l => (
-              <button
-                key={l.id}
-                onClick={() => setLanguage(l.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                  language === l.id ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Answer Depth */}
-        <div className="flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-emerald-400" />
-          <span className="text-slate-400 font-mono font-semibold">Depth:</span>
-          <select
-            value={depth}
-            onChange={(e) => setDepth(e.target.value)}
-            className="bg-slate-900 text-slate-200 border border-slate-800 px-3 py-1 rounded-xl focus:outline-none text-xs font-semibold"
-          >
-            <option value="quick">Quick (2-4 lines)</option>
-            <option value="short">Short (5-10 lines)</option>
-            <option value="detailed">Detailed (Structured)</option>
-            <option value="exam">Exam Ready (University Answer)</option>
-            <option value="deep">Deep Study (Doctrinal + Cases)</option>
-          </select>
-        </div>
-
-        {/* Study Mode */}
-        <div className="flex items-center gap-2">
-          <GraduationCap className="w-4 h-4 text-purple-400" />
-          <span className="text-slate-400 font-mono font-semibold">Mode:</span>
-          <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
-            {[
-              { id: 'ask', label: 'Ask' },
-              { id: 'study', label: 'Study' },
-              { id: 'practice', label: 'Practice' },
-              { id: 'revise', label: 'Revise' },
-              { id: 'examprep', label: 'Exam Prep' }
-            ].map(m => (
-              <button
-                key={m.id}
-                onClick={() => setStudyMode(m.id)}
-                className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  studyMode === m.id ? 'bg-purple-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-      </div>
-
-      {/* Recommended Quiz Banner */}
-      {activeQuizRec && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-slate-900 border border-amber-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl animate-fade-in">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-              <Award className="w-5 h-5" />
-            </div>
+      {/* Top Banner & Active Student Context Ribbon */}
+      <div className="border-b border-slate-800/80 bg-slate-900/40 backdrop-blur-md shrink-0">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
             <div>
-              <p className="text-xs font-bold text-white">{activeQuizRec.title}</p>
-              <p className="text-[11px] text-slate-400">Test your understanding based on your current study session.</p>
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-1">
+                <Link href="/dashboard" className="hover:text-amber-400 transition-colors">Dashboard</Link>
+                <span>/</span>
+                <span className="text-amber-400">AI Study Assistant</span>
+              </div>
+              <h1 className="text-lg xs-360:text-xl sm:text-2xl font-black text-white flex items-center gap-2 sm:gap-2.5">
+                <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 shrink-0" />
+                <span>Lowstudy AI Assistant</span>
+                <span className="hidden xs-375:inline-block text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">
+                  Verified Grounding
+                </span>
+              </h1>
             </div>
+
+            {/* Context Stats Pill Ribbon */}
+            {!contextLoading && studentContext && (
+              <div className="flex items-center gap-2 text-xs overflow-x-auto scrollbar-none flex-nowrap w-full sm:w-auto pb-1 sm:pb-0">
+                <span className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
+                  <Building2 className="w-3.5 h-3.5 text-amber-400" />
+                  {studentContext.university} ({studentContext.semester})
+                </span>
+                <span className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
+                  <Award className="w-3.5 h-3.5 text-emerald-400" />
+                  Progress: {studentContext.progressPercentage}%
+                </span>
+                <Link
+                  href="/revision"
+                  className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 font-bold flex items-center gap-1.5 transition-colors shrink-0 text-[11px] sm:text-xs"
+                >
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {studentContext.totalWeakTopics} Weak Topics
+                </Link>
+                <Link
+                  href="/revision/mistakes"
+                  className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 font-bold flex items-center gap-1.5 transition-colors shrink-0 text-[11px] sm:text-xs"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  {studentContext.totalMistakes} Mistakes
+                </Link>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => handleLaunchQuiz(activeQuizRec)}
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow flex items-center gap-1"
-            >
-              <span>Take 5-MCQ Quiz</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setActiveQuizRec(null)}
-              className="p-2 rounded-xl bg-slate-950 text-slate-400 hover:text-white"
-            >
-              <X className="w-4 h-4" />
-            </button>
+          {/* 12 Quick Capability Selector Pills */}
+          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-800/60 overflow-x-auto scrollbar-none pb-1 text-xs font-semibold flex-nowrap">
+            <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold shrink-0 mr-1">
+              Capabilities:
+            </span>
+            {capabilityList.map((cap) => {
+              const Icon = cap.icon;
+              const isActive = activeCapability === cap.key;
+              return (
+                <button
+                  key={cap.key}
+                  onClick={() => setActiveCapability(cap.key)}
+                  className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 shrink-0 transition-all ${
+                    isActive 
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-md shadow-amber-500/20' 
+                      : 'bg-slate-900/60 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{cap.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
-
-      {/* Prompt Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {promptPills.map((pill, idx) => (
-          <button
-            key={idx}
-            onClick={() => handleSend(pill)}
-            className="px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs whitespace-nowrap transition-all flex items-center gap-1.5 btn-mobile-touch shrink-0"
-          >
-            <Lightbulb className="w-3 h-3 text-amber-400" />
-            <span>{pill}</span>
-          </button>
-        ))}
       </div>
 
-      {/* Chat Messages Container */}
-      <div className="bg-slate-900/90 rounded-3xl border border-slate-800 p-4 sm:p-6 min-h-[450px] max-h-[550px] overflow-y-auto space-y-4 shadow-2xl">
-        {messages.map((msg, idx) => (
-          <div key={msg.id || idx} className={`flex gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            
-            {msg.sender === 'ai' && (
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+      {/* Main Chat Container */}
+      <div className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col space-y-6">
+        
+        {/* Messages List */}
+        <div className="flex-1 space-y-6">
+          {messages.map((msg) => {
+            const isUser = msg.sender === 'user';
+
+            return (
+              <div
+                key={msg.id}
+                className={`flex items-start gap-3.5 ${isUser ? 'flex-row-reverse' : ''}`}
+              >
+                {/* Avatar */}
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                  isUser 
+                    ? 'bg-amber-500 text-slate-950 font-bold text-xs' 
+                    : 'bg-slate-900 border border-amber-500/40 text-amber-400'
+                }`}>
+                  {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                </div>
+
+                {/* Message Bubble */}
+                <div className={`max-w-2xl sm:max-w-3xl space-y-3 ${
+                  isUser 
+                    ? 'bg-amber-500/10 border border-amber-500/30 text-slate-100 rounded-2xl rounded-tr-none p-4' 
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-200 rounded-2xl rounded-tl-none p-5 shadow-lg'
+                }`}>
+                  {/* Top Bar for AI message */}
+                  {!isUser && (
+                    <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-amber-400">Lowstudy AI</span>
+                        <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded uppercase font-bold">
+                          {msg.capability?.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => handleCopy(msg.id, msg.content)}
+                        className="p-1 hover:bg-slate-800 text-slate-400 hover:text-white rounded transition-colors"
+                        title="Copy Response"
+                      >
+                        {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Uncertainty Warning Banner (If applicable) */}
+                  {msg.uncertaintyWarning && (
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-300 leading-relaxed">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <span>{msg.uncertaintyWarning}</span>
+                    </div>
+                  )}
+
+                  {/* Message Content (Rendered Markdown) */}
+                  <div className="text-xs sm:text-sm text-slate-200 leading-relaxed space-y-3 whitespace-pre-wrap font-sans">
+                    {msg.content}
+                  </div>
+
+                  {/* Verified Sources Grounding Footer */}
+                  {msg.verifiedSources && msg.verifiedSources.length > 0 && (
+                    <div className="pt-3 border-t border-slate-800/80 space-y-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                        Verified Lowstudy Sources Grounding:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {msg.verifiedSources.map((src, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300"
+                          >
+                            {src.title}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Timestamp */}
+                  <div className="text-[10px] text-slate-500 text-right">
+                    {msg.timestamp}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex items-start gap-3.5">
+              <div className="w-8 h-8 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 flex items-center justify-center shrink-0">
                 <Bot className="w-4 h-4" />
               </div>
-            )}
+              <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" />
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-bounce [animation-delay:0.2s]" />
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-bounce [animation-delay:0.4s]" />
+                <span className="text-xs text-slate-400 font-semibold ml-2">
+                  Grounding in verified syllabus & statutory provisions...
+                </span>
+              </div>
+            </div>
+          )}
 
-            <div className={`max-w-[85%] sm:max-w-[78%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed space-y-3 relative ${
-              msg.sender === 'user'
-                ? 'bg-amber-500 text-slate-950 font-medium shadow-md'
-                : 'bg-slate-950 border border-slate-800 text-slate-200 shadow-inner'
-            }`}>
-              <div className="whitespace-pre-wrap">{msg.text}</div>
-
-              {/* RAG Sources Accordion if available */}
-              {msg.retrievedSources && msg.retrievedSources.length > 0 && (
-                <div className="pt-2 border-t border-slate-800/80 space-y-1.5 text-[11px] text-slate-400 font-mono">
-                  <p className="font-bold text-amber-400 text-[10px] uppercase tracking-wider flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Verified Legal Sources:
-                  </p>
-                  {msg.retrievedSources.map((src, sIdx) => (
-                    <div key={sIdx} className="bg-slate-900 p-2 rounded-lg border border-slate-850">
-                      <p className="font-bold text-slate-300">{src.title}</p>
-                      <ul className="list-disc list-inside text-[10px] text-slate-400 mt-1">
-                        {Array.isArray(src.data) && src.data.slice(0, 2).map((d, dIdx) => (
-                          <li key={dIdx} className="truncate">{typeof d === 'string' ? d : d.topicTitle || 'Source entry'}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+          {/* Error Banner with Retry State */}
+          {errorState && (
+            <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                <div className="text-xs text-rose-300 font-semibold">
+                  {errorState}
                 </div>
-              )}
-
-              {/* Action Toolbar */}
-              <div className={`flex items-center justify-between text-[10px] pt-1 ${
-                msg.sender === 'user' ? 'text-slate-900 font-mono' : 'text-slate-500 font-mono'
-              }`}>
-                <span>{msg.timestamp}</span>
-                
-                {msg.sender === 'ai' && (
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => copyMessage(msg.text, idx)}
-                      className="hover:text-emerald-400 transition-colors flex items-center gap-1"
-                    >
-                      {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                    <button 
-                      onClick={() => setReportModalMsgId(msg.id)}
-                      className="hover:text-red-400 transition-colors flex items-center gap-1"
-                      title="Report legal error or unverified statement"
-                    >
-                      <ThumbsDown className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
               </div>
-            </div>
-
-            {msg.sender === 'user' && (
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                <User className="w-4 h-4" />
-              </div>
-            )}
-
-          </div>
-        ))}
-
-        {isTyping && (
-          <div className="flex items-center gap-2 text-xs text-emerald-400 font-mono pl-11">
-            <Sparkles className="w-4 h-4 animate-spin" />
-            <span>NyayaAI is reasoning and checking verified statutory precedents...</span>
-          </div>
-        )}
-
-        <div ref={chatBottomRef} />
-      </div>
-
-      {/* Input Form */}
-      <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex items-center gap-3">
-        <input 
-          type="text"
-          placeholder="Ask NyayaAI any doubt on your syllabus, BNS 2023 sections, landmark case ratios, or exam questions..."
-          value={inputQuery}
-          onChange={(e) => setInputQuery(e.target.value)}
-          className="flex-1 bg-slate-900 text-white text-xs sm:text-sm px-4 py-3.5 rounded-2xl border border-slate-800 focus:outline-none focus:border-emerald-500 placeholder:text-slate-500 shadow-inner"
-        />
-        <button 
-          type="submit"
-          disabled={!inputQuery.trim()}
-          className="px-5 sm:px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all shrink-0 btn-mobile-touch"
-        >
-          <span>Ask</span>
-          <Send className="w-4 h-4" />
-        </button>
-      </form>
-
-      {/* Legal Disclaimer */}
-      <div className="p-3 rounded-2xl bg-slate-950 border border-slate-850 text-center text-[11px] text-slate-500 font-mono">
-        ⚖️ <strong>Educational Disclaimer:</strong> NyayaAI is designed for legal education and examination study. It is not a substitute for advice from a qualified advocate.
-      </div>
-
-      {/* Syllabus Selector Modal */}
-      <SyllabusSelectorModal
-        isOpen={isSyllabusModalOpen}
-        onClose={() => setIsSyllabusModalOpen(false)}
-        onSelectComplete={() => {
-          refreshContext();
-          setIsSyllabusModalOpen(false);
-        }}
-      />
-
-      {/* Dynamic MCQ Quiz Modal */}
-      {quizModalData && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl p-6 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 font-mono">Personalized Checkpoint Test</span>
-                <h3 className="text-lg font-bold text-white font-serif-title">{quizModalData.title}</h3>
-              </div>
-              <button onClick={() => setQuizModalData(null)} className="p-2 rounded-xl bg-slate-950 text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <p className="text-xs text-slate-400 font-mono">Question {quizCurrentIdx + 1} of {quizModalData.questions.length}</p>
-              <h4 className="text-sm sm:text-base font-bold text-white">{quizModalData.questions[quizCurrentIdx].question}</h4>
-
-              <div className="space-y-2">
-                {quizModalData.questions[quizCurrentIdx].options.map((opt, oIdx) => {
-                  const isSelected = quizAnswerState[quizCurrentIdx] === oIdx;
-                  return (
-                    <button
-                      key={oIdx}
-                      onClick={() => setQuizAnswerState(prev => ({ ...prev, [quizCurrentIdx]: oIdx }))}
-                      className={`w-full text-left p-3 rounded-xl border text-xs font-semibold transition-all ${
-                        isSelected ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-slate-950 border-slate-850 text-slate-300'
-                      }`}
-                    >
-                      {String.fromCharCode(65 + oIdx)}. {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
               <button
-                onClick={() => { if (quizCurrentIdx > 0) setQuizCurrentIdx(prev => prev - 1); }}
-                disabled={quizCurrentIdx === 0}
-                className="px-4 py-2 bg-slate-950 border border-slate-800 text-xs font-bold text-slate-400 rounded-xl disabled:opacity-40"
+                onClick={handleRetry}
+                className="px-4 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold rounded-xl flex items-center gap-1.5 shrink-0 transition-colors"
               >
-                Previous
+                <RefreshCw className="w-3.5 h-3.5" />
+                Retry Request
               </button>
+            </div>
+          )}
 
-              {quizCurrentIdx + 1 < quizModalData.questions.length ? (
-                <button
-                  onClick={() => setQuizCurrentIdx(prev => prev + 1)}
-                  className="px-5 py-2 bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl"
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    alert("Personalized study test completed! Points added to your profile.");
-                    setQuizModalData(null);
-                  }}
-                  className="px-5 py-2 bg-amber-500 text-slate-950 font-bold text-xs rounded-xl"
-                >
-                  Complete Quiz
-                </button>
-              )}
+          <div ref={chatBottomRef} />
+        </div>
+
+        {/* Input & Context Control Box */}
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-2xl sticky bottom-4 backdrop-blur-md">
+          
+          {/* Active Settings Row */}
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400 font-bold">Target Subject:</span>
+              <select
+                value={selectedSubjectId}
+                onChange={(e) => setSelectedSubjectId(e.target.value)}
+                className="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-500"
+              >
+                {studentContext?.subjects?.map(s => (
+                  <option key={s.id} value={s.id}>{s.shortCode} - {s.title}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <span>Active Mode:</span>
+              <span className="font-bold text-amber-400">
+                {capabilityList.find(c => c.key === activeCapability)?.label || activeCapability}
+              </span>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Report Error Modal */}
-      {reportModalMsgId && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <h3 className="text-base font-bold text-white font-serif-title flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-400" /> Report AI Legal Error
-            </h3>
-            
-            <form onSubmit={handleReportSubmit} className="space-y-4 text-xs">
-              <div className="space-y-1">
-                <label className="text-slate-400 font-semibold font-mono">Select Issue Category</label>
-                <select
-                  value={reportCategory}
-                  onChange={(e) => setReportCategory(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-slate-200 focus:outline-none"
-                >
-                  <option value="Wrong Law">Wrong Law / Statute Reference</option>
-                  <option value="Wrong Section">Wrong Section Number</option>
-                  <option value="Wrong Case">Wrong Case Citation / Holding</option>
-                  <option value="Outdated Info">Outdated Legal Provision</option>
-                  <option value="Not Relevant to Syllabus">Not Relevant to Selected Syllabus</option>
-                  <option value="Explanation Unclear">Explanation Unclear</option>
-                </select>
-              </div>
+          {/* Query Input Bar */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="flex items-center gap-2"
+          >
+            <input
+              type="text"
+              placeholder={`Ask anything on your law curriculum (e.g. "Explain workman definition" or "Structure 14-mark answer on strike")...`}
+              value={inputQuery}
+              onChange={(e) => setInputQuery(e.target.value)}
+              disabled={isTyping}
+              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors disabled:opacity-50"
+            />
+            <button
+              type="submit"
+              disabled={!inputQuery.trim() || isTyping}
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md shadow-amber-500/20 disabled:opacity-50 transition-all shrink-0"
+            >
+              <span>Ask</span>
+              <Send className="w-3.5 h-3.5" />
+            </button>
+          </form>
 
-              {reportSuccessMsg && (
-                <div className="p-2 rounded bg-emerald-500/20 text-emerald-400 text-center font-bold">
-                  {reportSuccessMsg}
-                </div>
-              )}
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setReportModalMsgId(null)}
-                  className="px-4 py-2 bg-slate-950 text-slate-400 rounded-xl font-bold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold"
-                >
-                  Submit Report
-                </button>
-              </div>
-            </form>
+          {/* Suggested Prompts */}
+          <div className="flex items-center gap-2 overflow-x-auto text-[11px] pt-1">
+            <span className="text-slate-500 font-bold shrink-0">Try:</span>
+            {[
+              "Explain 'Workman' Section 2(s) simply",
+              "Structure 14-mark exam answer on Strikes & Lockouts",
+              "Generate 3 practice MCQs for Labour Law",
+              "Create personalized study plan for my weak topics",
+              "Explain Section 103 BNS 2023 in Gujarati"
+            ].map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSend(p)}
+                className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/30 shrink-0 transition-colors"
+              >
+                {p}
+              </button>
+            ))}
           </div>
-        </div>
-      )}
 
+        </div>
+
+      </div>
     </div>
+  );
+}
+
+// HelpCircle Icon Helper
+function HelpCircle(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <path d="M12 17h.01" />
+    </svg>
   );
 }

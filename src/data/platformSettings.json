@@ -1,0 +1,14 @@
+{
+  "adsEnabled": true,
+  "premiumGating": true,
+  "adSensePublisherId": "ca-pub-6428712390812345",
+  "adSlots": {
+    "headerBanner": "1234567890",
+    "inArticle": "2345678901",
+    "sidebar": "3456789012"
+  },
+  "maintenanceMode": false,
+  "systemNotice": "Admin Suite Verified",
+  "autoSyncSyllabus": true,
+  "updatedAt": "2026-09-24T05:48:01.129Z"
+}

@@ -278,37 +278,33 @@
     },
     "sem3": {
       "new": {
-        "Core Law": [],
+        "Core Law": [
+          { "title": "Labour and Industrial Law - I", "code": "220301", "credits": 5 },
+          { "title": "Labour and Industrial Law - II", "code": "220302", "credits": 5 },
+          { "title": "Principles of Taxation Laws", "code": "220303", "credits": 5 },
+          { "title": "Principal of Banking Laws", "code": "220304", "credits": 5 },
+          { "title": "Information Technology Laws and Cyber Crimes", "code": "220305", "credits": 5 }
+        ],
         "Criminal Law": [],
-        "Civil Law": [
-          { "title": "Property Law (TPA)", "code": "TPA", "credits": 5 }
-        ],
-        "Corporate Law": [
-          { "title": "Labour & Industrial Law - I", "code": "LABOUR-1", "credits": 5 }
-        ],
-        "Personal Law": [
-          { "title": "Family Law - I (Hindu Law)", "code": "FAMILY-1", "credits": 5 }
-        ],
-        "Specialized Law": [
-          { "title": "Environmental Law", "code": "ENV", "credits": 5 }
-        ],
+        "Civil Law": [],
+        "Corporate Law": [],
+        "Personal Law": [],
+        "Specialized Law": [],
         "Commercial Law": []
       },
       "old": {
-        "Core Law": [],
+        "Core Law": [
+          { "title": "Labour and Industrial Law - I", "code": "220301", "credits": 5 },
+          { "title": "Labour and Industrial Law - II", "code": "220302", "credits": 5 },
+          { "title": "Principles of Taxation Laws", "code": "220303", "credits": 5 },
+          { "title": "Principal of Banking Laws", "code": "220304", "credits": 5 },
+          { "title": "Information Technology Laws and Cyber Crimes", "code": "220305", "credits": 5 }
+        ],
         "Criminal Law": [],
-        "Civil Law": [
-          { "title": "Property Law (TPA)", "code": "TPA", "credits": 5 }
-        ],
-        "Corporate Law": [
-          { "title": "Labour & Industrial Law - I", "code": "LABOUR-1", "credits": 5 }
-        ],
-        "Personal Law": [
-          { "title": "Family Law - I (Hindu Law)", "code": "FAMILY-1", "credits": 5 }
-        ],
-        "Specialized Law": [
-          { "title": "Environmental Law", "code": "ENV", "credits": 5 }
-        ],
+        "Civil Law": [],
+        "Corporate Law": [],
+        "Personal Law": [],
+        "Specialized Law": [],
         "Commercial Law": []
       }
     },

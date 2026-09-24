@@ -19,22 +19,22 @@ export default function Breadcrumbs({ items = [] }) {
   return (
     <>
       <JsonLd data={jsonLd} />
-      <nav aria-label="Breadcrumb" className="mb-6 overflow-x-auto py-1.5 px-3 rounded-lg bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm text-xs font-medium text-slate-400 flex items-center gap-2 whitespace-nowrap">
+      <nav aria-label="Breadcrumb" className="mb-6 overflow-x-auto py-2 px-3.5 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-600 flex items-center gap-2 whitespace-nowrap shadow-sm">
         {fullItems.map((item, index) => {
           const isLast = index === fullItems.length - 1;
           return (
             <React.Fragment key={item.url + index}>
-              {index > 0 && <ChevronRight className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />}
+              {index > 0 && <ChevronRight className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />}
               {isLast ? (
-                <span className="text-emerald-400 font-semibold truncate max-w-[200px] sm:max-w-[300px]" aria-current="page">
+                <span className="text-emerald-700 font-bold truncate max-w-[200px] sm:max-w-[300px]" aria-current="page">
                   {item.name}
                 </span>
               ) : (
                 <Link
                   href={item.url}
-                  className="hover:text-emerald-400 transition-colors flex items-center gap-1 text-slate-300"
+                  className="hover:text-emerald-700 transition-colors flex items-center gap-1 text-slate-600 font-medium"
                 >
-                  {index === 0 && <Home className="w-3.5 h-3.5 text-emerald-400" />}
+                  {index === 0 && <Home className="w-3.5 h-3.5 text-emerald-600" />}
                   <span>{item.name}</span>
                 </Link>
               )}

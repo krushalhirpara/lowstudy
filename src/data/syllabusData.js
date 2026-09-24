@@ -177,6 +177,221 @@ function generateSyllabusForSubject(uniId, semId, version, subjectMeta) {
         ]
       }
     ];
+  } else if (code === "220301" || lowercaseTitle.includes("labour and industrial law - i") || lowercaseTitle.includes("labour & industrial law - i")) {
+    unitTemplates = [
+      {
+        title: "The Industrial Disputes Act, 1947 - Scope, Objects and Key Definitions",
+        desc: "Evolution of labour jurisprudence, constitutional directives, foundational definitions, and adjudicatory machinery.",
+        topics: [
+          { title: "Historical Background and Constitutional Mandate of Labour Protection", desc: "Socio-economic background, fundamental rights, and DPSP in labour welfare." },
+          { title: "Concept of Industry under Section 2(j)", desc: "Bangalore Water Supply triple test and sovereign function doctrines." },
+          { title: "Industrial Dispute vs Individual Dispute (Sec 2(k) & 2A)", desc: "Criteria for dispute transformation with or without union espousal." },
+          { title: "Definition of Workman under Section 2(s)", desc: "Supervisory tests, managerial exclusions, and salary thresholds." }
+        ]
+      },
+      {
+        title: "Instruments of Economic Coercion: Strikes and Lock-outs",
+        desc: "Statutory framework governing collective cessation of work, prohibitions, and legal consequences.",
+        topics: [
+          { title: "Statutory Concept and Definition of Strike (Section 2(q))", desc: "Forms of strikes, constitutional status, and legal boundaries." },
+          { title: "Statutory Concept and Definition of Lock-out (Section 2(l))", desc: "Distinction from closure, lay-off, and retrenchment." },
+          { title: "General and Specific Prohibitions (Sections 22 & 23)", desc: "Public utility notice requirements and pendency prohibitions." },
+          { title: "Illegal Strikes, Lock-outs and Wage Consequences", desc: "Legality tests and 'no work, no pay' doctrine." }
+        ]
+      },
+      {
+        title: "Lay-off, Retrenchment, Transfer and Closure of Undertakings",
+        desc: "Employment continuity protections, compensation formulas, and Chapter V-B permissions.",
+        topics: [
+          { title: "Concept and Definition of Lay-off (Section 2(kkk))", desc: "Right to compensation and forfeiture conditions under Sec 25E." },
+          { title: "Continuous Service (Sec 25B) and Retrenchment (Sec 2(oo))", desc: "240 days formula and statutory retrenchment exceptions." },
+          { title: "Conditions Precedent to Retrenchment & Seniority Rule", desc: "Section 25F mandates and last come, first go rule under Sec 25G." },
+          { title: "Special Provisions under Chapter V-B & Unfair Labour Practices", desc: "Mandatory government permission and Fifth Schedule prohibitions." }
+        ]
+      },
+      {
+        title: "Gujarat Industrial Relations Act & Collective Bargaining",
+        desc: "State industrial framework under GIR Act and collective bargaining dynamics.",
+        topics: [
+          { title: "Historical Genesis and Key Definitions of GIR Act", desc: "Coverage of scheduled industries, employee, employer, and wage board." },
+          { title: "Classification of Unions and Representative Union Status", desc: "Primary, Qualified, and Representative unions rights and privileges." },
+          { title: "Notice of Change Procedure (Sections 42 & 43)", desc: "Schedule I, II, and III procedures and approach letter requirements." },
+          { title: "Principles and Enforceability of Collective Bargaining", desc: "Negotiation stages, good faith bargaining, and legal sanctity of pacts." }
+        ]
+      }
+    ];
+  } else if (code === "220302" || lowercaseTitle.includes("labour and industrial law - ii") || lowercaseTitle.includes("labour & industrial law - ii")) {
+    unitTemplates = [
+      {
+        title: "The Factories Act, 1948 - Safety, Health and Welfare",
+        desc: "Occupational health, machine guarding, factory hygiene, working hours, and female employment regulations.",
+        topics: [
+          { title: "Objects, Scope and Key Definitions under Factories Act", desc: "Factory, manufacturing process, worker, and occupier liabilities." },
+          { title: "Health and Cleanliness Provisions (Sections 11 to 20)", desc: "Cleanliness, ventilation, overcrowding, lighting, and drinking water." },
+          { title: "Safety Measures against Machinery (Sections 21 to 41)", desc: "Machine fencing, dangerous machines, and Chapter IV-A hazardous processes." },
+          { title: "Welfare Measures, Working Hours, and Female Employment", desc: "Canteens, creches, Welfare Officers, overtime pay, and annual leave." }
+        ]
+      },
+      {
+        title: "Wage Protection and Regulatory Legislations",
+        desc: "Fixation, revision, and timely payment of statutory wages without unauthorized deductions.",
+        topics: [
+          { title: "Concepts of Wages and Minimum Wages Act, 1948", desc: "Living, fair, and minimum wages; constitutional validity." },
+          { title: "Procedure for Fixation and Revision of Minimum Rates of Wages", desc: "Committee method, notification method, and advisory boards." },
+          { title: "The Payment of Wages Act, 1936: Scope and Time of Payment", desc: "Wage periods, responsibility of employer, and payment modes." },
+          { title: "Authorized Deductions and Wage Claims under Section 15", desc: "Permissible deductions under Section 7 and appellate machinery." }
+        ]
+      },
+      {
+        title: "Social Security Framework: ESI Act and Gratuity Act",
+        desc: "Comprehensive health insurance, sickness allowances, and lump-sum terminal retirement benefits.",
+        topics: [
+          { title: "The Employees' State Insurance Act, 1948: Scope and Authorities", desc: "ESI Corporation, medical benefit council, and fund administration." },
+          { title: "Six Statutory Benefits and EI Court Jurisdiction", desc: "Sickness, maternity, disablement, dependants, and medical benefits." },
+          { title: "The Payment of Gratuity Act, 1972: Scope and Entitlement", desc: "Establishment coverage, continuous service, and 5-year eligibility." },
+          { title: "Calculation Formula and Forfeiture of Gratuity", desc: "15/26 mathematical formula, forfeiture grounds, and Controlling Authority." }
+        ]
+      },
+      {
+        title: "Provident Funds, Employee Compensation & Special Welfare",
+        desc: "Old age retirement funds, employers liability for workplace injuries, and maternal health protection.",
+        topics: [
+          { title: "The Employees' Provident Funds Act, 1952 Schemes", desc: "EPF, Pension (EPS), and Insurance (EDLI) schemes; Section 7A inquiries." },
+          { title: "The Employees' Compensation Act, 1923: Liability under Section 3", desc: "Arising out of and in course of employment; notional extension." },
+          { title: "Calculation of Compensation and Commissioners Powers", desc: "Computation for death, disablement, and Section 30 appeals." },
+          { title: "Salient Welfare Features of Maternity Benefit Act, 1961", desc: "26 weeks paid leave, medical bonus, and anti-dismissal protections." }
+        ]
+      }
+    ];
+  } else if (code === "220303" || lowercaseTitle.includes("taxation")) {
+    unitTemplates = [
+      {
+        title: "Constitutional Foundations & General Principles of Taxation",
+        desc: "Sovereignty in tax levies, distribution of legislative powers, and fundamental canons.",
+        topics: [
+          { title: "Nature, Concept, and Characteristics of Taxes", desc: "Distinction between tax, fee, and cess; direct vs indirect taxes." },
+          { title: "Constitutional Framework of Taxation (Articles 265 & 246)", desc: "Seventh Schedule entries and residuary taxing powers." },
+          { title: "Constitutional Limitations and Immunities (Articles 285-289)", desc: "Inter-governmental tax immunities and territorial nexus." },
+          { title: "Canons of Taxation and Tax Planning vs Avoidance vs Evasion", desc: "Adam Smith's canons, McDowell doctrine, and Vodafone principles." }
+        ]
+      },
+      {
+        title: "Fundamental Concepts of Income Tax Act, 1961",
+        desc: "Key statutory definitions, basis of charge, residential status, and scope of total income.",
+        topics: [
+          { title: "Statutory Definitions under Section 2 of Income Tax Act", desc: "Assessee, person, income, previous year, and assessment year." },
+          { title: "Basis of Charge and Residential Status (Section 6)", desc: "ROR, RNOR, and NR tests; POEM test for companies." },
+          { title: "Scope of Total Income (Section 5) & Deemed Accrual (Section 9)", desc: "Global income vs territorial source and business connection." },
+          { title: "Incomes Exempt from Tax and Capital vs Revenue Receipts", desc: "Agricultural income exemption and capital vs revenue tests." }
+        ]
+      },
+      {
+        title: "Heads of Income & Computation of Total Income",
+        desc: "Computation of income under the five statutory heads, clubbing, and Chapter VI-A deductions.",
+        topics: [
+          { title: "Income from Salaries (Sections 15 to 17)", desc: "Allowances, perquisite valuations, and standard deductions." },
+          { title: "Income from House Property (Sections 22 to 27)", desc: "Annual value determination and Section 24 interest deductions." },
+          { title: "Profits and Gains of Business or Profession (Sections 28 to 44DB)", desc: "Allowable expenses, Section 40 disallowances, and presumptive taxation." },
+          { title: "Capital Gains, Other Sources, and Chapter VI-A Deductions", desc: "Capital gains exemptions, income from other sources, 80C to 80U deductions." }
+        ]
+      },
+      {
+        title: "Tax Administration, Assessment & Overview of GST",
+        desc: "Administrative hierarchy, return filing, assessment types, dispute resolution, and GST.",
+        topics: [
+          { title: "Income Tax Authorities and Powers of Search and Seizure", desc: "Hierarchy, jurisdiction, and Section 132 search and seizure powers." },
+          { title: "Filing of Returns and Types of Assessment", desc: "Section 139 returns, self, summary, scrutiny, and best judgment assessments." },
+          { title: "Appellate Machinery, Penalties, and Advance Tax / TDS", desc: "CIT(A), ITAT, High Court appeals, TDS collection, and penalty provisions." },
+          { title: "Overview of Goods and Services Tax (GST) Architecture", desc: "101st Amendment, dual GST structure, GST Council, and Input Tax Credit." }
+        ]
+      }
+    ];
+  } else if (code === "220304" || lowercaseTitle.includes("banking")) {
+    unitTemplates = [
+      {
+        title: "Evolution, Nature and Regulatory Structure of Banking in India",
+        desc: "History of banking in India, institutional classification, constitutional competence, and central bank functions.",
+        topics: [
+          { title: "Historical Evolution and Definition of Bank in India", desc: "Origin of term bank, joint-stock banking, and bank nationalization." },
+          { title: "Classification of Banks and Institutional Structure", desc: "Commercial, scheduled, co-operative, RRBs, small finance, and payment banks." },
+          { title: "Constitutional Perspectives and Legislative Competence", desc: "Union List Entry 45, State List Entry 32, and dual control issues." },
+          { title: "The Reserve Bank of India Act, 1934: Role as Central Bank", desc: "Currency management, monetary policy, CRR, SLR, repo rates." }
+        ]
+      },
+      {
+        title: "The Banking Regulation Act, 1949 & Licensing of Banking Companies",
+        desc: "Regulatory charter governing licensing, management, capital, lending, and liquidation of banks.",
+        topics: [
+          { title: "Objects, Scope, and Key Definitions of Banking Regulation Act", desc: "Definition of banking, permitted forms of business, and trade prohibition." },
+          { title: "Licensing of Banking Companies and Minimum Capital Adequacy", desc: "Section 22 licensing, branch expansion, and CRAR capital adequacy." },
+          { title: "Governance, Control over Advances, and Restrictions on Loans", desc: "Section 20 director loan restrictions and Section 35 RBI inspection powers." },
+          { title: "Suspension of Business, Reconstruction, and Winding Up of Banks", desc: "Section 45 moratorium, forced amalgamation, and High Court liquidation." }
+        ]
+      },
+      {
+        title: "Banker-Customer Relationship, Operations & Negotiable Instruments",
+        desc: "Contractual rights, duties, special privileges, and statutory protection under Negotiable Instruments Act.",
+        topics: [
+          { title: "Legal Nature of Banker-Customer Relationship", desc: "Primary debtor-creditor relationship and fiduciary/agency capacities." },
+          { title: "Special Rights, Privileges, and Duties of Bankers", desc: "Banker's general lien, right of set-off, duty of secrecy, and garnishee orders." },
+          { title: "Negotiable Instruments: Cheques, Crossing, and Endorsements", desc: "Cheque essentials, general and special crossing, and endorsements." },
+          { title: "Rights of Paying & Collecting Bankers & Section 138 Dishonour", desc: "Payment in due course protections and Section 138 penal prosecution." }
+        ]
+      },
+      {
+        title: "Debt Recovery Tribunals, Electronic Banking & Ombudsman",
+        desc: "Expeditious loan recovery systems, electronic payment legalities, and consumer redressal.",
+        topics: [
+          { title: "Recovery of Debts and Bankruptcy Act, 1993 (RDB Act)", desc: "Constitution and jurisdiction of DRT/DRAT and recovery officer modes." },
+          { title: "Overview of SARFAESI Act, 2002", desc: "Section 13 security interest enforcement without court intervention." },
+          { title: "Modern Electronic Banking, Cyber Operations and RBI Ombudsman", desc: "CBS, RTGS, NEFT, UPI legal framework, and Integrated Ombudsman Scheme." },
+          { title: "The Bankers' Books Evidence Act, 1891: Proof of Bank Records", desc: "Certified copies admissibility, computer printout proofs under Section 2A." }
+        ]
+      }
+    ];
+  } else if (code === "220305" || lowercaseTitle.includes("information technology") || lowercaseTitle.includes("cyber")) {
+    unitTemplates = [
+      {
+        title: "Genesis, Architecture & Governance under the Information Technology Act, 2000",
+        desc: "Origins of electronic law, UNCITRAL foundation, digital authentication, and regulatory authorities.",
+        topics: [
+          { title: "Genesis, Need and Scope of Information Technology Law in India", desc: "UNCITRAL Model Law, extraterritorial jurisdiction under Section 75, key definitions." },
+          { title: "Legal Recognition of Electronic Records and Digital Signatures", desc: "Asymmetric cryptography, hash functions, and electronic contracts under Sec 10A." },
+          { title: "Electronic Governance (Sections 6 to 10)", desc: "Digitization of public administration, e-filing, and electronic gazette." },
+          { title: "Regulation of Certifying Authorities and Digital Certificates", desc: "Controller of Certifying Authorities (CCA) powers and DSC issuance/revocation." }
+        ]
+      },
+      {
+        title: "Cyber Crimes, Offences & Civil Penalties",
+        desc: "Contraventions, damages, hacking, data theft, cyber terrorism, and safe harbour for intermediaries.",
+        topics: [
+          { title: "Civil Contraventions and Penalties under Chapter IX", desc: "Section 43 computer damage penalties and Section 43A data protection compensation." },
+          { title: "Hacking, Source Code Tampering, and Identity Theft", desc: "Sections 65, 66, 66C, and 66D offences and cheating by impersonation." },
+          { title: "Cyber Terrorism, Voyeurism, and Privacy Violations", desc: "Section 66E voyeurism and Section 66F cyber terrorism life imprisonment." },
+          { title: "Obscenity, CSAM, and Intermediary Liability (Section 79)", desc: "Sections 67/67A/67B obscenity laws and Shreya Singhal intermediary safe harbour." }
+        ]
+      },
+      {
+        title: "Cyber Space Jurisdiction, Adjudication & Evidence",
+        desc: "Extraterritorial conflicts, adjudicating officer proceedings, digital evidence, and police powers.",
+        topics: [
+          { title: "Jurisdictional Complexities and Doctrines in Cyberspace", desc: "Minimum contacts doctrine, long-arm jurisdiction, and territorial conflicts." },
+          { title: "Adjudication and Cyber Appellate Tribunal / TDSAT", desc: "Section 46 Adjudicating Officer inquiries and TDSAT appellate jurisdiction." },
+          { title: "Police Powers of Search, Arrest, and Website Blocking", desc: "Section 80 search powers and Section 69/69A interception and website blocking." },
+          { title: "Digital Evidence and Cyber Forensics", desc: "Section 65B Evidence Act / Section 63 BSA 2023 certificates and hash integrity." }
+        ]
+      },
+      {
+        title: "Data Privacy, Emerging Technologies & International Cyber Framework",
+        desc: "Digital personal data protection, emerging AI legal liabilities, cyber warfare, and global treaties.",
+        topics: [
+          { title: "Right to Privacy in Digital Era and DPDP Act, 2023", desc: "Puttaswamy privacy doctrine and Digital Personal Data Protection Act framework." },
+          { title: "Cyber Warfare, Espionage, and Critical Infrastructure", desc: "Section 70 protected systems, NCIIPC, and CERT-In 6-hour reporting directives." },
+          { title: "Emerging Technologies and Legal Challenges: AI, Crypto, and Deepfakes", desc: "AI accountability, crypto regulation, decentralized smart contracts, and deepfakes." },
+          { title: "International Cyber Framework and Conventions", desc: "Budapest Convention on Cybercrime and UNGGE responsible state behavior norms." }
+        ]
+      }
+    ];
   } else {
     // Default fallback unit template
     unitTemplates = [

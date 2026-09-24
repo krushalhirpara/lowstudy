@@ -29,6 +29,7 @@ model User {
   updatedAt      DateTime  @updatedAt
 
   university     University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  college        College?    @relation(fields: [collegeId], references: [id], onDelete: SetNull)
   course         Course?     @relation(fields: [courseId], references: [id], onDelete: SetNull)
   semester       Semester?   @relation(fields: [semesterId], references: [id], onDelete: SetNull)
   
@@ -43,6 +44,11 @@ model User {
   verifiedAnswers QuestionAnswer[] @relation("AnswerVerifier")
   aiVerifications AiContent[] @relation("AiVerifier")
   reviewsGiven   ContentReview[]
+  answerAttempts AnswerPracticeAttempt[]
+
+  verifiedSyllabi         SyllabusVersion[] @relation("SyllabusVerifier")
+  reviewedSyllabusChanges SyllabusChange[]  @relation("SyllabusChangeReviewer")
+  auditLogs               AuditLog[]
 
   @@index([email])
   @@index([role])
@@ -68,14 +74,42 @@ model University {
   updatedAt              DateTime  @updatedAt
 
   courses                Course[]
+  colleges               College[]
   subjects               Subject[]
   previousPapers         PreviousPaper[]
   mockTests              MockTest[]
   users                  User[]
 
+  syllabusSources        SyllabusSource[]
+  syllabusVersions       SyllabusVersion[]
+  nyayaContexts          NyayaAIContext[]
+
   @@index([code])
   @@index([state])
   @@index([city])
+}
+
+// 2.1 Colleges (Affiliated Institutions)
+model College {
+  id                  String    @id
+  universityId        String
+  name                String
+  city                String
+  district            String?
+  type                String    @default("Grant-in-Aid Law College")
+  officialWebsite     String?
+  status              String    @default("VERIFIED") // VERIFIED, PENDING_REVIEW
+  hasSeparateSyllabus Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  university          University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  syllabusVersions    SyllabusVersion[]
+  users               User[]
+
+  @@index([universityId])
+  @@index([city])
+  @@index([status])
 }
 
 // 3. Courses / Degree Programs (e.g. 3-Yr LLB, 5-Yr BA LLB, LLM)
@@ -96,6 +130,9 @@ model Course {
   previousPapers PreviousPaper[]
   mockTests      MockTest[]
   users          User[]
+
+  syllabusVersions SyllabusVersion[]
+  nyayaContexts    NyayaAIContext[]
 
   @@unique([universityId, code])
   @@index([universityId])
@@ -147,6 +184,8 @@ model Subject {
   previousPapers  PreviousPaper[]
   mockTests       MockTest[]
   subjectProgress StudentSubjectProgress[]
+
+  syllabusSubjects SyllabusSubject[]
 
   @@unique([semesterId, shortCode, syllabusVersion])
   @@index([universityId])
@@ -307,18 +346,36 @@ model Question {
   preparationPriority String    @default("HIGH")   // HIGH, MEDIUM, LOW
   pyqFrequency        Int       @default(1)
   questionType        String    @default("DESCRIPTIVE") // DESCRIPTIVE, SHORT, CASE_PROBLEM, ESSAY
-  status              String    @default("PUBLISHED") // DRAFT, REVIEW, PUBLISHED
+  status              String    @default("PUBLISHED") // DRAFT, REVIEW, PUBLISHED, OUTDATED, REJECTED
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
+  previous_year_count Int       @default(0)
+  years_asked         String?   // JSON array or comma list, e.g. ["2023", "2024"]
+  syllabus_weight     Float     @default(1.0)
+  legal_importance    Float     @default(1.0)
+  priority_score      Float     @default(0.0) // 0 to 100 composite score
+  priority_label      String    @default("Practice") // "Very High Priority", "High Priority", "Important", "Practice"
+  why_important       String?   // Evidence-grounded rationale without predictive claims
+  isManualPriority    Boolean   @default(false)
+
+  syllabusVersionId   String?
+  syllabusStatus      String    @default("CURRENT") // CURRENT, OUTDATED, REVIEW_REQUIRED
+
   topic               Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  syllabusVersion     SyllabusVersion? @relation(fields: [syllabusVersionId], references: [id], onDelete: SetNull)
   answers             QuestionAnswer[]
   paperQuestions      PreviousPaperQuestion[]
+  practiceAttempts    AnswerPracticeAttempt[]
 
   @@index([topicId])
   @@index([difficulty])
   @@index([preparationPriority])
+  @@index([priority_label])
+  @@index([priority_score])
   @@index([status])
+  @@index([syllabusVersionId])
+  @@index([syllabusStatus])
 }
 
 // 13. Question Answers (Model Answer Structure & Citations)
@@ -353,12 +410,16 @@ model Mcq {
   preparationPriority String    @default("HIGH")   // HIGH, MEDIUM, LOW
   explanation         String
   explanationGu       String?
-  status              String    @default("PUBLISHED") // DRAFT, REVIEW, PUBLISHED
+  status              String    @default("PUBLISHED") // DRAFT, REVIEW_REQUIRED, PUBLISHED, OUTDATED, REJECTED
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
+  syllabusVersionId   String?
+  syllabusStatus      String    @default("CURRENT") // CURRENT, OUTDATED, REVIEW_REQUIRED
+
   topic               Topic?    @relation(fields: [topicId], references: [id], onDelete: SetNull)
   subject             Subject?  @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  syllabusVersion     SyllabusVersion? @relation(fields: [syllabusVersionId], references: [id], onDelete: SetNull)
   
   options             McqOption[]
   mockTestQuestions   MockTestQuestion[]
@@ -369,6 +430,8 @@ model Mcq {
   @@index([subjectId])
   @@index([difficulty])
   @@index([status])
+  @@index([syllabusVersionId])
+  @@index([syllabusStatus])
 }
 
 // 15. MCQ Options
@@ -397,10 +460,14 @@ model PreviousPaper {
   subjectId       String
   examYear        Int
   examSession     String    @default("WINTER") // WINTER, SUMMER, REGULAR, REMEDIAL
+  title           String?
   totalMarks      Int       @default(70)
   durationMinutes Int       @default(180)
   paperCode       String?
   fileUrl         String?
+  allowDownload   Boolean   @default(true)
+  status          String    @default("PUBLISHED") // DRAFT, AI_MAPPED, REVIEWED, PUBLISHED
+  instructions    String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -414,6 +481,7 @@ model PreviousPaper {
   @@index([universityId])
   @@index([subjectId])
   @@index([examYear])
+  @@index([status])
 }
 
 // 17. Previous Paper Questions Junction
@@ -426,6 +494,9 @@ model PreviousPaperQuestion {
   marks          Int           @default(14)
   isCompulsory   Boolean       @default(true)
   examYear       Int?
+  mappingStatus  String        @default("VERIFIED") // AI_SUGGESTED, VERIFIED, MANUAL_OVERRIDE
+  confidence     Float         @default(1.0)
+  mappingNotes   String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -435,6 +506,7 @@ model PreviousPaperQuestion {
   @@index([paperId])
   @@index([questionId])
   @@index([examYear])
+  @@index([mappingStatus])
 }
 
 // 18. Mock Tests
@@ -485,26 +557,32 @@ model MockTestQuestion {
   @@index([mcqId])
 }
 
-// 20. Test Attempts (Student exam sessions)
+// 20. Test Attempts (Student exam and practice sessions)
 model TestAttempt {
   id                String       @id @default(cuid())
   userId            String
-  mockTestId        String
+  mockTestId        String?
+  practiceMode      String       @default("TIMED_QUIZ") // TOPIC, UNIT, SUBJECT, MIXED, RANDOM, TIMED_QUIZ, MY_MISTAKES
+  subjectId         String?
+  unitId            String?
+  topicId           String?
   score             Float        @default(0)
   totalQuestions    Int          @default(0)
   correctCount      Int          @default(0)
   incorrectCount    Int          @default(0)
   skippedCount      Int          @default(0)
   timeTakenSeconds  Int          @default(0)
+  topicPerformance  String?      // JSON string storing per-topic accuracy and analytics
   completedAt       DateTime     @default(now())
   createdAt         DateTime     @default(now())
 
   user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mockTest          MockTest     @relation(fields: [mockTestId], references: [id], onDelete: Cascade)
+  mockTest          MockTest?    @relation(fields: [mockTestId], references: [id], onDelete: SetNull)
   answers           TestAnswer[]
 
   @@index([userId])
   @@index([mockTestId])
+  @@index([practiceMode])
 }
 
 // 21. Test Answers (Per-question test responses)
@@ -542,21 +620,27 @@ model Bookmark {
 
 // 23. Wrong Answers (Mistake Notebook)
 model WrongAnswer {
-  id           String   @id @default(cuid())
-  userId       String
-  mcqId        String
-  mistakeCount Int      @default(1)
-  lastWrongAt  DateTime @default(now())
-  isResolved   Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String    @id @default(cuid())
+  userId             String
+  mcqId              String
+  studentAnswer      String?
+  mistakeCount       Int       @default(1)
+  lastWrongAt        DateTime  @default(now())
+  isResolved         Boolean   @default(false)
+  reviewCount        Int       @default(0)
+  correctReviewCount Int       @default(0)
+  status             String    @default("NEED_REVISION") // NEED_REVISION, REVIEW_AGAIN, MASTERED
+  lastReviewedAt     DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mcq          Mcq      @relation(fields: [mcqId], references: [id], onDelete: Cascade)
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mcq                Mcq       @relation(fields: [mcqId], references: [id], onDelete: Cascade)
 
   @@unique([userId, mcqId])
   @@index([userId])
   @@index([isResolved])
+  @@index([status])
 }
 
 // 24. Study Progress (Topic-level completion)
@@ -599,24 +683,29 @@ model StudentSubjectProgress {
   @@index([subjectId])
 }
 
-// 26. Revision Items (Spaced Repetition Schedule - SM2)
+// 26. Revision Items (Spaced Repetition Schedule - SM2 & Leitner)
 model RevisionItem {
-  id               String   @id @default(cuid())
-  userId           String
-  entityType       String   // TOPIC, CASE_LAW, LEGAL_SECTION, QUESTION
-  entityId         String
-  nextReviewAt     DateTime @default(now())
-  intervalDays     Int      @default(1)
-  repetitionNumber Int      @default(0)
-  easeFactor       Float    @default(2.5)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                 String    @id @default(cuid())
+  userId             String
+  entityType         String    // TOPIC, CASE_LAW, LEGAL_SECTION, QUESTION, MCQ, NOTE
+  entityId           String
+  nextReviewAt       DateTime  @default(now())
+  intervalDays       Int       @default(1)
+  repetitionNumber   Int       @default(0)
+  easeFactor         Float     @default(2.5)
+  reviewCount        Int       @default(0)
+  correctReviewCount Int       @default(0)
+  revisionStatus     String    @default("NEED_REVISION") // NEED_REVISION, REVIEW_AGAIN, MASTERED
+  lastReviewedAt     DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, entityType, entityId])
   @@index([userId])
   @@index([nextReviewAt])
+  @@index([revisionStatus])
 }
 
 // 27. Study Plans (AI-Generated & Personalized Schedules)
@@ -680,4 +769,291 @@ model ContentReview {
   @@index([entityType, entityId])
   @@index([reviewerId])
   @@index([reviewStatus])
+}
+
+// 30. Answer Practice Attempts (Student Exam Writing Practice & AI Feedback)
+model AnswerPracticeAttempt {
+  id             String    @id @default(cuid())
+  userId         String
+  questionId     String
+  studentAnswer  String
+  evaluationJson String    // JSON containing AI Practice Feedback (10 checks, wellDone, missing, improve, flags)
+  wordCount      Int       @default(0)
+  timeSpentSecs  Int       @default(0)
+  status         String    @default("SAVED") // SAVED, RETRIED, DRAFT
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question       Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([status])
+}
+
+// =========================================================================
+// 31. AUTOMATIC CURRENT SYLLABUS INTELLIGENCE SYSTEM
+// Official Gujarat University Source Tracking, Diff Engine, Verification & Sync
+// =========================================================================
+
+// 31.1 Syllabus Sources (Authoritative University Repositories)
+model SyllabusSource {
+  id                    String    @id @default(cuid())
+  universityId          String
+  name                  String
+  sourceType            String    @default("OFFICIAL_WEBSITE") // OFFICIAL_WEBSITE, CIRCULAR_PORTAL, ACADEMIC_SECTION, LAW_FACULTY, OFFICIAL_PDF
+  url                   String
+  circularUrl           String?
+  academicSectionUrl    String?
+  lawFacultyUrl         String?
+  active                Boolean   @default(true)
+  lastCheckedAt         DateTime?
+  lastSuccessfulCheckAt DateTime?
+  lastDocumentHash      String?
+  checkFrequency        String    @default("DAILY") // HOURLY, DAILY, WEEKLY
+  monitoringStatus      String    @default("HEALTHY") // HEALTHY, WARNING, ERROR, PAUSED
+  lastErrorMessage      String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  university            University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  syncJobs              SyllabusSyncJob[]
+
+  @@index([universityId])
+  @@index([active])
+  @@index([monitoringStatus])
+}
+
+// 31.2 Syllabus Versions (Versioned Academic Catalogs)
+// Statuses: PENDING_REVIEW, VERIFIED_CURRENT, ARCHIVED, REJECTED
+model SyllabusVersion {
+  id                  String    @id @default(cuid())
+  universityId        String
+  collegeId           String?
+  courseId            String?
+  academicYear        String    // e.g. "2026-27"
+  semesterNumber      Int       @default(1)
+  version             String    @default("1.0")
+  status              String    @default("PENDING_REVIEW") // PENDING_REVIEW, VERIFIED_CURRENT, ARCHIVED, REJECTED
+  isCurrent           Boolean   @default(false)
+  sourceUrl           String
+  sourceDocumentUrl   String?
+  sourceTitle         String?
+  sourcePublishedDate DateTime?
+  retrievedAt         DateTime  @default(now())
+  verifiedAt          DateTime?
+  verifiedById        String?
+  contentHash         String
+  confidenceScore     Float     @default(1.0)
+  extractionNotes     String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  university          University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  college             College?   @relation(fields: [collegeId], references: [id], onDelete: SetNull)
+  course              Course?    @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  verifiedBy          User?      @relation("SyllabusVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+
+  syllabusSubjects    SyllabusSubject[]
+  changes             SyllabusChange[]
+  questions           Question[]
+  mcqs                Mcq[]
+  notifications       SyllabusNotification[]
+  nyayaContexts       NyayaAIContext[]
+
+  @@unique([universityId, collegeId, courseId, academicYear, semesterNumber, version])
+  @@index([universityId])
+  @@index([academicYear])
+  @@index([semesterNumber])
+  @@index([status])
+  @@index([isCurrent])
+}
+
+// 31.3 Syllabus Subject Schema
+model SyllabusSubject {
+  id                String    @id @default(cuid())
+  syllabusVersionId String
+  subjectId         String?   // Link to active primary Subject
+  title             String
+  titleGu           String?
+  code              String
+  category          String    @default("Core Law")
+  credits           Int       @default(4)
+  marksTotal        Int       @default(100)
+  marksExternal     Int       @default(70)
+  marksInternal     Int       @default(30)
+  sourcePage        Int?
+  orderIndex        Int       @default(1)
+  status            String    @default("VERIFIED") // VERIFIED, ADDED, MODIFIED, OUTDATED
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  syllabusVersion   SyllabusVersion @relation(fields: [syllabusVersionId], references: [id], onDelete: Cascade)
+  subject           Subject?        @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  units             SyllabusUnit[]
+
+  @@index([syllabusVersionId])
+  @@index([code])
+}
+
+// 31.4 Syllabus Unit Schema
+model SyllabusUnit {
+  id                String    @id @default(cuid())
+  syllabusSubjectId String
+  unitNumber        Int       @default(1)
+  title             String
+  titleGu           String?
+  description       String?
+  sourcePage        Int?
+  status            String    @default("VERIFIED")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  syllabusSubject   SyllabusSubject @relation(fields: [syllabusSubjectId], references: [id], onDelete: Cascade)
+  topics            SyllabusTopic[]
+
+  @@index([syllabusSubjectId])
+}
+
+// 31.5 Syllabus Topic Schema
+model SyllabusTopic {
+  id             String    @id @default(cuid())
+  syllabusUnitId String
+  topicNumber    Int       @default(1)
+  title          String
+  titleGu        String?
+  description    String?
+  confidence     Float     @default(1.0)
+  sourcePage     Int?
+  status         String    @default("VERIFIED") // VERIFIED, ADDED, MODIFIED, OUTDATED
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  syllabusUnit   SyllabusUnit @relation(fields: [syllabusUnitId], references: [id], onDelete: Cascade)
+
+  @@index([syllabusUnitId])
+  @@index([status])
+}
+
+// 31.6 Syllabus Changes (Diff Records)
+// Types: ADDED, REMOVED, MODIFIED, RENAMED, MOVED, UNCHANGED
+model SyllabusChange {
+  id                String    @id @default(cuid())
+  syllabusVersionId String
+  changeType        String    // ADDED, REMOVED, MODIFIED, RENAMED, MOVED, UNCHANGED
+  entityType        String    // SUBJECT, UNIT, TOPIC, CREDITS, MARKS, GENERAL
+  entityId          String?
+  fieldName         String?
+  oldValue          String?
+  newValue          String?
+  summary           String
+  summaryGu         String?
+  confidence        Float     @default(1.0)
+  status            String    @default("PENDING_REVIEW") // PENDING_REVIEW, APPROVED, REJECTED
+  reviewedById      String?
+  reviewedAt        DateTime?
+  createdAt         DateTime  @default(now())
+
+  syllabusVersion   SyllabusVersion @relation(fields: [syllabusVersionId], references: [id], onDelete: Cascade)
+  reviewedBy        User?           @relation("SyllabusChangeReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([syllabusVersionId])
+  @@index([changeType])
+  @@index([status])
+}
+
+// 31.7 Syllabus Sync Jobs (Automated & Manual Ingestion Runs)
+model SyllabusSyncJob {
+  id                String    @id @default(cuid())
+  sourceId          String
+  startedAt         DateTime  @default(now())
+  completedAt       DateTime?
+  status            String    @default("IN_PROGRESS") // IN_PROGRESS, SUCCESS, NO_CHANGE, FAILED, EXTRACTION_FAILED
+  documentsFound    Int       @default(0)
+  documentsChanged  Int       @default(0)
+  changesDetected   Int       @default(0)
+  documentUrl       String?
+  documentHash      String?
+  syllabusVersionId String?
+  errorMessage      String?
+  rawPayload        String?
+  createdAt         DateTime  @default(now())
+
+  source            SyllabusSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+// 31.8 Student Syllabus Update Notifications
+model SyllabusNotification {
+  id                 String    @id @default(cuid())
+  syllabusVersionId  String
+  universityId       String
+  courseId           String?
+  semesterNumber     Int
+  title              String
+  titleGu            String?
+  message            String
+  messageGu          String?
+  changesSummaryJson String?
+  isRead             Boolean   @default(false)
+  targetAudience     String    @default("ALL_STUDENTS") // ALL_STUDENTS, RELEVANT_STUDENTS, ADMINS
+  createdAt          DateTime  @default(now())
+
+  syllabusVersion    SyllabusVersion @relation(fields: [syllabusVersionId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+  @@index([syllabusVersionId])
+}
+
+// 31.9 NyayaAI Grounded Context Knowledge Store
+model NyayaAIContext {
+  id                 String    @id @default(cuid())
+  syllabusVersionId  String
+  universityId       String
+  courseId           String?
+  semesterNumber     Int
+  subjectTitle       String
+  unitTitle          String?
+  topicTitle         String?
+  contentSummary     String
+  keyPrinciples      String?
+  statutorySections  String?
+  sourceCitation     String
+  sourcePage         Int?
+  isCurrent          Boolean   @default(true)
+  verificationStatus String    @default("VERIFIED_CURRENT")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  syllabusVersion    SyllabusVersion @relation(fields: [syllabusVersionId], references: [id], onDelete: Cascade)
+  university         University      @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  course             Course?         @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@index([universityId, semesterNumber, isCurrent])
+  @@index([syllabusVersionId])
+  @@index([subjectTitle])
+}
+
+// 31.10 Platform Audit Trail
+model AuditLog {
+  id         String    @id @default(cuid())
+  userId     String?
+  action     String    // SOURCE_CHECKED, DOCUMENT_DETECTED, DOCUMENT_DOWNLOADED, AI_EXTRACTED, CHANGE_DETECTED, ADMIN_REVIEWED, APPROVED, REJECTED, PUBLISHED, ARCHIVED, QUESTION_SYNCED
+  entityType String    // SYLLABUS_VERSION, SYLLABUS_SOURCE, SYLLABUS_CHANGE, QUESTION, MCQ, NYAYAAI_CONTEXT
+  entityId   String?
+  oldValue   String?
+  newValue   String?
+  details    String?
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
+
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }

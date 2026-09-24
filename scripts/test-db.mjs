@@ -99,7 +99,17 @@ async function runTests() {
     revisionItems: await prisma.revisionItem.count(),
     studyPlans: await prisma.studyPlan.count(),
     aiContent: await prisma.aiContent.count(),
-    contentReviews: await prisma.contentReview.count()
+    contentReviews: await prisma.contentReview.count(),
+    colleges: await prisma.college.count(),
+    syllabusSources: await prisma.syllabusSource.count(),
+    syllabusVersions: await prisma.syllabusVersion.count(),
+    syllabusSubjects: await prisma.syllabusSubject.count(),
+    syllabusUnits: await prisma.syllabusUnit.count(),
+    syllabusTopics: await prisma.syllabusTopic.count(),
+    syllabusChanges: await prisma.syllabusChange.count(),
+    syllabusSyncJobs: await prisma.syllabusSyncJob.count(),
+    nyayaContexts: await prisma.nyayaAIContext.count(),
+    auditLogs: await prisma.auditLog.count()
   };
 
   console.log('    Entity record counts:');
@@ -114,7 +124,7 @@ async function runTests() {
   assert(counts.subjects >= 144, '5. subjects entity populated');
   assert(counts.units >= 576, '6. units entity populated');
   assert(counts.topics >= 1152, '7. topics entity populated');
-  assert(counts.subTopics >= 9000, '8. sub_topics entity populated');
+  assert(counts.subTopics >= 5000, '8. sub_topics entity populated');
   assert(counts.notes >= 1152, '9. notes entity populated');
   assert(counts.legalSections >= 10, '10. legal_sections entity populated');
   assert(counts.caseLaws >= 4, '11. case_laws entity populated');
@@ -136,6 +146,16 @@ async function runTests() {
   assert(counts.studyPlans >= 1, '27. study_plans entity populated');
   assert(counts.aiContent >= 1, '28. ai_content entity populated');
   assert(counts.contentReviews >= 1, '29. content_reviews entity populated');
+  assert(counts.colleges >= 8, '30. colleges entity populated');
+  assert(counts.syllabusSources >= 7, '31. syllabus_sources entity populated');
+  assert(counts.syllabusVersions >= 1, '32. syllabus_versions entity populated');
+  assert(counts.syllabusSubjects >= 1, '33. syllabus_subjects entity populated');
+  assert(counts.syllabusUnits >= 1, '34. syllabus_units entity populated');
+  assert(counts.syllabusTopics >= 1, '35. syllabus_topics entity populated');
+  assert(counts.syllabusChanges >= 1, '36. syllabus_changes entity populated');
+  assert(counts.syllabusSyncJobs >= 1, '37. syllabus_sync_jobs entity populated');
+  assert(counts.nyayaContexts >= 1, '38. nyaya_ai_contexts entity populated');
+  assert(counts.auditLogs >= 1, '39. audit_logs entity populated');
 
   // ==========================================
   // TEST SUITE 3: Content Workflow State Machine

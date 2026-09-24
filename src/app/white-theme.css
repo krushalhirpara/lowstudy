@@ -1,0 +1,297 @@
+/* ==========================================================================
+   LOWSTUDY COMPREHENSIVE WHITE THEME ENGINE
+   Guarantees 100% uniform white theme across every page, component & modal
+   ========================================================================== */
+
+/* 1. Universal Base Styles */
+html, body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+::selection {
+  background-color: #fde68a !important;
+  color: #78350f !important;
+}
+
+/* 2. Global Dark Background Transformation to Pure White or Soft Slate */
+.bg-slate-950,
+.bg-slate-900,
+.bg-slate-850,
+.bg-slate-800,
+.bg-zinc-950,
+.bg-zinc-900,
+.bg-zinc-800,
+.bg-gray-950,
+.bg-gray-900,
+.bg-gray-800,
+.bg-neutral-950,
+.bg-neutral-900,
+.bg-black,
+[class*="bg-slate-9"],
+[class*="bg-slate-8"],
+[class*="bg-slate-7"],
+[class*="bg-zinc-9"],
+[class*="bg-zinc-8"],
+[class*="bg-gray-9"],
+[class*="bg-gray-8"],
+[class*="bg-neutral-9"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Secondary muted chips, badges, and code blocks */
+[class*="bg-slate-800/"],
+[class*="bg-slate-900/30"],
+[class*="bg-slate-900/40"],
+[class*="bg-slate-900/50"],
+[class*="bg-slate-900/60"],
+[class*="bg-slate-900/70"],
+[class*="bg-slate-900/80"],
+[class*="bg-slate-900/90"],
+[class*="bg-slate-950/30"],
+[class*="bg-slate-950/40"],
+[class*="bg-slate-950/50"],
+[class*="bg-slate-950/60"],
+[class*="bg-slate-950/70"],
+[class*="bg-slate-950/80"] {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Soft accent tinted badges on white */
+[class*="bg-amber-500/10"],
+[class*="bg-amber-500/15"],
+[class*="bg-amber-500/20"] {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fde68a !important;
+}
+
+[class*="bg-emerald-500/10"],
+[class*="bg-emerald-500/15"],
+[class*="bg-emerald-500/20"] {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+  border-color: #a7f3d0 !important;
+}
+
+[class*="bg-blue-500/10"],
+[class*="bg-blue-500/15"],
+[class*="bg-blue-500/20"] {
+  background-color: #eff6ff !important;
+  color: #1e40af !important;
+  border-color: #bfdbfe !important;
+}
+
+[class*="bg-rose-500/10"],
+[class*="bg-rose-500/15"],
+[class*="bg-rose-500/20"] {
+  background-color: #fff1f2 !important;
+  color: #9f1239 !important;
+  border-color: #fecdd3 !important;
+}
+
+[class*="bg-purple-500/10"],
+[class*="bg-purple-500/15"],
+[class*="bg-purple-500/20"] {
+  background-color: #faf5ff !important;
+  color: #6b21a8 !important;
+  border-color: #e9d5ff !important;
+}
+
+/* 3. Eliminate All Dark Gradient Stops Across Headers & Cards */
+[class*="from-slate-"],
+[class*="from-zinc-"],
+[class*="from-"][class*="-950"],
+[class*="from-"][class*="-900"],
+[class*="from-"][class*="-850"] {
+  --tw-gradient-from: #ffffff var(--tw-gradient-from-position, 0%) !important;
+  --tw-gradient-to: rgba(255, 255, 255, 0) var(--tw-gradient-to-position, 100%) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+[class*="via-slate-"],
+[class*="via-zinc-"],
+[class*="via-"][class*="-950"],
+[class*="via-"][class*="-900"],
+[class*="via-"][class*="-850"] {
+  --tw-gradient-to: rgba(248, 250, 252, 0) var(--tw-gradient-to-position, 100%) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #f8fafc var(--tw-gradient-via-position, 50%), var(--tw-gradient-to) !important;
+}
+
+[class*="to-slate-"],
+[class*="to-zinc-"],
+[class*="to-"][class*="-950"],
+[class*="to-"][class*="-900"],
+[class*="to-"][class*="-850"],
+[class*="to-"][class*="-800"] {
+  --tw-gradient-to: #f1f5f9 var(--tw-gradient-to-position, 100%) !important;
+}
+
+/* 4. Neutral Elegant Borders */
+[class*="border-slate-9"],
+[class*="border-slate-8"],
+[class*="border-slate-7"],
+[class*="border-zinc-9"],
+[class*="border-zinc-8"],
+[class*="border-gray-9"],
+[class*="border-gray-8"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* 5. Clean Typography with High Contrast */
+h1, h2, h3, h4, h5, h6 {
+  color: #0f172a !important;
+}
+
+h1.text-white, h2.text-white, h3.text-white, h4.text-white, h5.text-white, h6.text-white {
+  color: #0f172a !important;
+}
+
+p.text-white,
+p.text-slate-100,
+p.text-slate-200,
+p.text-slate-300 {
+  color: #1e293b !important;
+}
+
+p.text-slate-400,
+p.text-slate-500 {
+  color: #64748b !important;
+}
+
+div.text-slate-100,
+div.text-slate-200,
+div.text-slate-300 {
+  color: #1e293b !important;
+}
+
+div.text-slate-400,
+div.text-slate-500 {
+  color: #64748b !important;
+}
+
+span.text-slate-100,
+span.text-slate-200,
+span.text-slate-300 {
+  color: #1e293b !important;
+}
+
+span.text-slate-400,
+span.text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Target standalone text-white elements that are NOT inside solid colored buttons */
+a.text-white:not([class*="bg-amber"]):not([class*="bg-emerald"]):not([class*="bg-blue"]):not([class*="bg-rose"]):not([class*="bg-indigo"]):not([class*="bg-red"]),
+div.text-white:not([class*="bg-amber"]):not([class*="bg-emerald"]):not([class*="bg-blue"]):not([class*="bg-rose"]):not([class*="bg-indigo"]):not([class*="bg-red"]),
+span.text-white:not([class*="bg-amber"]):not([class*="bg-emerald"]):not([class*="bg-blue"]):not([class*="bg-rose"]):not([class*="bg-indigo"]):not([class*="bg-red"]) {
+  color: #0f172a !important;
+}
+
+/* Hover text-white overrides */
+a[class*="hover:text-white"]:hover,
+button[class*="hover:text-white"]:hover {
+  color: #0f172a !important;
+}
+
+/* Deep vivid accent text colors for AAA contrast on white */
+.text-amber-400,
+.text-amber-300,
+[class*="text-amber-400"],
+[class*="text-amber-300"] {
+  color: #d97706 !important;
+}
+
+.text-emerald-400,
+.text-emerald-300,
+[class*="text-emerald-400"],
+[class*="text-emerald-300"] {
+  color: #059669 !important;
+}
+
+.text-blue-400,
+.text-blue-300,
+[class*="text-blue-400"],
+[class*="text-blue-300"] {
+  color: #2563eb !important;
+}
+
+.text-cyan-400,
+.text-cyan-300,
+[class*="text-cyan-400"],
+[class*="text-cyan-300"] {
+  color: #0284c7 !important;
+}
+
+.text-rose-400,
+.text-rose-300,
+[class*="text-rose-400"],
+[class*="text-rose-300"] {
+  color: #e11d48 !important;
+}
+
+.text-purple-400,
+.text-purple-300,
+[class*="text-purple-400"],
+[class*="text-purple-300"] {
+  color: #7c3aed !important;
+}
+
+/* 6. Solid Buttons & Interactive Elements */
+button[class*="bg-amber-500"],
+a[class*="bg-amber-500"],
+button[class*="bg-amber-400"],
+a[class*="bg-amber-400"] {
+  color: #0f172a !important;
+}
+
+button[class*="bg-emerald-500"],
+a[class*="bg-emerald-500"],
+button[class*="bg-emerald-600"],
+a[class*="bg-emerald-600"] {
+  color: #ffffff !important;
+}
+
+/* 7. Card Surface Styling & Elevation */
+.bg-white,
+[class*="bg-slate-900"],
+[class*="bg-slate-950"] {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* 8. Modals, Backdrops & Inputs */
+input, select, textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Modal overlay */
+.fixed.inset-0[class*="bg-slate-9"] {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* 9. Progress meters and SVG strokes */
+.stroke-slate-800,
+.stroke-slate-900 {
+  stroke: #e2e8f0 !important;
+}
+
+/* 10. Tables */
+th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+td {
+  border-color: #e2e8f0 !important;
+}

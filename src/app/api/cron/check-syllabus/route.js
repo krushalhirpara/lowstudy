@@ -1,65 +1,50 @@
 import { NextResponse } from 'next/server';
+import { checkAllSources, checkSingleSource } from '@/lib/services/syllabusIntelligenceService';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+/**
+ * Scheduled Cron Endpoint: /api/cron/check-syllabus
+ * Protected by CRON_SECRET authorization header.
+ */
 export async function GET(request) {
   try {
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET || 'lowstudy-cron-secret-2026';
 
-    // Verify cron authorization header if provided in production environment
+    // Verify cron authorization header
     if (process.env.NODE_ENV === 'production' && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json(
-        { success: false, message: 'Unauthorized cron request' },
+        { success: false, message: 'Unauthorized cron request: Invalid or missing CRON_SECRET' },
         { status: 401 }
       );
     }
 
-    const checkTimestamp = new Date().toISOString();
+    const { searchParams } = new URL(request.url);
+    const sourceId = searchParams.get('sourceId');
 
-    // Gujarat University sources monitored
-    const monitoredSources = [
-      {
-        universityId: 'gu',
-        universityName: 'Gujarat University',
-        url: 'https://www.gujaratuniversity.ac.in/syllabus',
-        academicYear: '2026-27'
-      },
-      {
-        universityId: 'su',
-        universityName: 'Saurashtra University',
-        url: 'https://www.saurashtrauniversity.edu/syllabi',
-        academicYear: '2026-27'
-      },
-      {
-        universityId: 'vnsgu',
-        universityName: 'Veer Narmad South Gujarat University',
-        url: 'https://www.vnsgu.ac.in/syllabus.php',
-        academicYear: '2026-27'
-      }
-    ];
-
-    const logs = [];
-    monitoredSources.forEach(source => {
-      logs.push({
-        universityId: source.universityId,
-        sourceUrl: source.url,
-        status: 'CHECKED_NO_CHANGE',
-        contentHash: 'hash-verified-2026-09-14',
-        lastChecked: checkTimestamp
-      });
-    });
+    let result;
+    if (sourceId) {
+      result = await checkSingleSource(sourceId);
+    } else {
+      result = await checkAllSources();
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Gujarat University syllabus automated monitoring completed successfully.',
-      timestamp: checkTimestamp,
-      sourcesChecked: monitoredSources.length,
-      updatesDetected: 0,
-      logs
+      message: 'Gujarat University syllabus automated monitoring job executed successfully.',
+      ...result
     });
   } catch (error) {
+    console.error('Error executing syllabus cron job:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error.message || 'Internal error in syllabus check cron' },
       { status: 500 }
     );
   }
+}
+
+export async function POST(request) {
+  return GET(request);
 }

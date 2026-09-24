@@ -353,6 +353,7 @@ export async function promoteToOfficialCatalog(id, { actorId, targetTopicId, tar
 
     promotedEntity = await prisma.note.create({
       data: {
+        id: `note-ai-${id}-${Date.now()}`.toLowerCase(),
         topicId: topicId || 'unknown',
         language: content.language || 'EN',
         simpleNotes: simpleNotes || '',

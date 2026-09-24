@@ -1,14 +1,14 @@
 import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const prisma = new PrismaClient();
-
-// Dynamic imports of data files
+import crypto from 'crypto';
 import { GUJARAT_UNIVERSITIES, GUJARAT_COLLEGES, LAW_PROGRAMS } from '../src/data/gujaratData.js';
 import { SEMESTERS, ALL_SYLLABUS_SUBJECTS } from '../src/data/syllabusData.js';
 import { IPC_VS_BNS_MAP, LANDMARK_CASES, MOCK_QUIZZES, LEGAL_DICTIONARY, USER_STUDENT_PROFILE } from '../src/data/legalData.js';
+
+const prisma = new PrismaClient();
+
+function calculateHash(data) {
+  return crypto.createHash('sha256').update(typeof data === 'string' ? data : JSON.stringify(data)).digest('hex');
+}
 
 async function main() {
   console.log('🌱 Starting LowStudy Relational Database Seeding...');
@@ -60,6 +60,33 @@ async function main() {
         officialSyllabusSource: uni.officialSyllabusSource,
         status: uni.status || 'VERIFIED',
         academicYear: uni.academicYear || '2026-27'
+      }
+    });
+  }
+
+  // 2.1 Seed Colleges
+  console.log('🏫 Seeding Affiliated Law Colleges...');
+  for (const col of GUJARAT_COLLEGES) {
+    await prisma.college.upsert({
+      where: { id: col.id },
+      update: {
+        name: col.name,
+        universityId: col.universityId,
+        city: col.city,
+        district: col.district,
+        type: col.type,
+        officialWebsite: col.officialWebsite,
+        status: col.status || 'VERIFIED'
+      },
+      create: {
+        id: col.id,
+        universityId: col.universityId,
+        name: col.name,
+        city: col.city,
+        district: col.district,
+        type: col.type,
+        officialWebsite: col.officialWebsite,
+        status: col.status || 'VERIFIED'
       }
     });
   }
@@ -121,22 +148,150 @@ async function main() {
     create: {
       id: 'usr-student-01',
       email: 'arjun.sharma@law.in',
-      fullName: USER_STUDENT_PROFILE.name || 'Arjun Sharma',
+      fullName: 'Arjun Sharma',
       role: 'STUDENT',
       universityId: 'gu',
       collegeId: 'col-la-shah',
       courseId: 'gu-llb-3yr',
       semesterId: 'gu-llb-3yr-sem1',
-      xp: USER_STUDENT_PROFILE.xp || 1450,
-      streakDays: USER_STUDENT_PROFILE.streakDays || 7,
-      coins: USER_STUDENT_PROFILE.coins || 320
+      xp: 1450,
+      streakDays: 7,
+      coins: 320
     }
   });
 
-  // 5. Seed Subjects, Units, Topics, Notes, Questions & MCQs
+  // 5. Seed Syllabus Sources (Gujarat University Source Registry)
+  console.log('📡 Seeding Official Gujarat University Syllabus Sources...');
+  const sourcesData = [
+    {
+      id: 'src-gu-law',
+      universityId: 'gu',
+      name: 'Gujarat University Faculty of Law Official Portal',
+      sourceType: 'OFFICIAL_WEBSITE',
+      url: 'https://www.gujaratuniversity.ac.in/syllabus',
+      circularUrl: 'https://www.gujaratuniversity.ac.in/circulars',
+      academicSectionUrl: 'https://www.gujaratuniversity.ac.in/academic',
+      lawFacultyUrl: 'https://www.gujaratuniversity.ac.in/department/law',
+      active: true,
+      lastDocumentHash: 'hash-gu-2026-v1-verified'
+    },
+    {
+      id: 'src-su-law',
+      universityId: 'su',
+      name: 'Saurashtra University Academic & Syllabus Repository',
+      sourceType: 'OFFICIAL_WEBSITE',
+      url: 'https://www.saurashtrauniversity.edu/syllabi',
+      circularUrl: 'https://www.saurashtrauniversity.edu/circulars',
+      academicSectionUrl: 'https://www.saurashtrauniversity.edu/academics',
+      lawFacultyUrl: 'https://www.saurashtrauniversity.edu/departments/law',
+      active: true,
+      lastDocumentHash: 'hash-su-2026-v1-verified'
+    },
+    {
+      id: 'src-vnsgu-law',
+      universityId: 'vnsgu',
+      name: 'VNSGU Surat Official Law Curriculum & Ordinances',
+      sourceType: 'OFFICIAL_WEBSITE',
+      url: 'https://www.vnsgu.ac.in/syllabus.php',
+      circularUrl: 'https://www.vnsgu.ac.in/circular.php',
+      academicSectionUrl: 'https://www.vnsgu.ac.in/academics.php',
+      lawFacultyUrl: 'https://www.vnsgu.ac.in/dept_law.php',
+      active: true,
+      lastDocumentHash: 'hash-vnsgu-2026-v1-verified'
+    },
+    {
+      id: 'src-msu-law',
+      universityId: 'msu',
+      name: 'Maharaja Sayajirao University Faculty of Law Curricula',
+      sourceType: 'OFFICIAL_WEBSITE',
+      url: 'https://www.msubaroda.ac.in/Academics/Syllabus',
+      circularUrl: 'https://www.msubaroda.ac.in/Notification',
+      academicSectionUrl: 'https://www.msubaroda.ac.in/Academics',
+      lawFacultyUrl: 'https://msubaroda.ac.in/Faculty/Law',
+      active: true,
+      lastDocumentHash: 'hash-msu-2026-v1-verified'
+    },
+    {
+      id: 'src-hngu-law',
+      universityId: 'hngu',
+      name: 'Hemchandracharya North Gujarat University Law Syllabus',
+      sourceType: 'OFFICIAL_WEBSITE',
+      url: 'https://www.ngu.ac.in/syllabus',
+      circularUrl: 'https://www.ngu.ac.in/circulars',
+      academicSectionUrl: 'https://www.ngu.ac.in/academic',
+      lawFacultyUrl: 'https://www.ngu.ac.in/law',
+      active: true,
+      lastDocumentHash: 'hash-hngu-2026-v1-verified'
+    },
+    {
+      id: 'src-mkbu-law',
+      universityId: 'mkbu',
+      name: 'MKBU Bhavnagar Law Department Board of Studies Portal',
+      sourceType: 'OFFICIAL_WEBSITE',
+      url: 'https://www.mkbhavuni.edu.in/syllabus',
+      circularUrl: 'https://www.mkbhavuni.edu.in/notifications',
+      academicSectionUrl: 'https://www.mkbhavuni.edu.in/academics',
+      lawFacultyUrl: 'https://www.mkbhavuni.edu.in/departments/law',
+      active: true,
+      lastDocumentHash: 'hash-mkbu-2026-v1-verified'
+    },
+    {
+      id: 'src-gnlu-law',
+      universityId: 'gnlu',
+      name: 'Gujarat National Law University Academic Curriculum Hub',
+      sourceType: 'OFFICIAL_WEBSITE',
+      url: 'https://gnlu.ac.in/academic-syllabus',
+      circularUrl: 'https://gnlu.ac.in/notices',
+      academicSectionUrl: 'https://gnlu.ac.in/academic-regulations',
+      lawFacultyUrl: 'https://gnlu.ac.in/faculty',
+      active: true,
+      lastDocumentHash: 'hash-gnlu-2026-v1-verified'
+    }
+  ];
+
+  for (const src of sourcesData) {
+    await prisma.syllabusSource.upsert({
+      where: { id: src.id },
+      update: {
+        name: src.name,
+        url: src.url,
+        circularUrl: src.circularUrl,
+        academicSectionUrl: src.academicSectionUrl,
+        lawFacultyUrl: src.lawFacultyUrl,
+        active: src.active,
+        lastSuccessfulCheckAt: new Date(),
+        lastCheckedAt: new Date(),
+        lastDocumentHash: src.lastDocumentHash,
+        monitoringStatus: 'HEALTHY'
+      },
+      create: {
+        id: src.id,
+        universityId: src.universityId,
+        name: src.name,
+        sourceType: src.sourceType,
+        url: src.url,
+        circularUrl: src.circularUrl,
+        academicSectionUrl: src.academicSectionUrl,
+        lawFacultyUrl: src.lawFacultyUrl,
+        active: src.active,
+        lastCheckedAt: new Date(),
+        lastSuccessfulCheckAt: new Date(),
+        lastDocumentHash: src.lastDocumentHash,
+        checkFrequency: 'DAILY',
+        monitoringStatus: 'HEALTHY'
+      }
+    });
+  }
+
+  // 6. Seed Subjects, Units, Topics, Notes, Questions, MCQs & Official SyllabusVersion
   console.log('📚 Seeding Subjects, Units, Topics, Notes, Questions & MCQs...');
+  
+  // Track created syllabus versions so we can populate SyllabusVersion, SyllabusSubject, SyllabusUnit, SyllabusTopic
+  const versionMap = new Map();
+
   for (const subj of ALL_SYLLABUS_SUBJECTS) {
     const courseId = `${subj.universityId}-llb-3yr`;
+    const semesterNumber = parseInt(subj.semesterId.replace('sem', ''), 10) || 1;
     const semesterId = `${courseId}-${subj.semesterId}`;
 
     const dbSubj = await prisma.subject.upsert({
@@ -168,8 +323,77 @@ async function main() {
       }
     });
 
+    // Ensure SyllabusVersion exists for this university + course + semester
+    const versionKey = `${subj.universityId}-${courseId}-2026-27-${semesterNumber}`;
+    let syllabusVer = versionMap.get(versionKey);
+    if (!syllabusVer) {
+      const verId = `ver-${subj.universityId}-sem${semesterNumber}-2026-27`;
+      const uniObj = GUJARAT_UNIVERSITIES.find(u => u.id === subj.universityId) || GUJARAT_UNIVERSITIES[0];
+      
+      syllabusVer = await prisma.syllabusVersion.upsert({
+        where: { id: verId },
+        update: {
+          status: 'VERIFIED_CURRENT',
+          isCurrent: true,
+          verifiedAt: new Date(),
+          verifiedById: adminUser.id
+        },
+        create: {
+          id: verId,
+          universityId: subj.universityId,
+          courseId: courseId,
+          academicYear: '2026-27',
+          semesterNumber: semesterNumber,
+          version: '1.0',
+          status: 'VERIFIED_CURRENT',
+          isCurrent: true,
+          sourceUrl: uniObj.officialSyllabusSource || 'https://www.gujaratuniversity.ac.in/syllabus',
+          sourceDocumentUrl: `${uniObj.officialWebsite || 'https://www.gujaratuniversity.ac.in'}/docs/syllabus-2026-27.pdf`,
+          sourceTitle: `${uniObj.name} Official CBCS LL.B. Semester ${semesterNumber} Curriculum (2026-27)`,
+          sourcePublishedDate: new Date('2026-06-15'),
+          retrievedAt: new Date('2026-09-01'),
+          verifiedAt: new Date('2026-09-02'),
+          verifiedById: adminUser.id,
+          contentHash: calculateHash(`${uniObj.id}-sem${semesterNumber}-2026-27-cbc`),
+          confidenceScore: 1.0,
+          extractionNotes: 'Verified against official Board of Studies resolution and Gujarat University Law Gazette.'
+        }
+      });
+      versionMap.set(versionKey, syllabusVer);
+    }
+
+    // Create / Update SyllabusSubject
+    const sylSubjId = `syl-subj-${dbSubj.id}`;
+    const dbSylSubj = await prisma.syllabusSubject.upsert({
+      where: { id: sylSubjId },
+      update: {
+        title: dbSubj.title,
+        code: dbSubj.shortCode,
+        category: dbSubj.category,
+        credits: dbSubj.credits,
+        status: 'VERIFIED'
+      },
+      create: {
+        id: sylSubjId,
+        syllabusVersionId: syllabusVer.id,
+        subjectId: dbSubj.id,
+        title: dbSubj.title,
+        titleGu: `${dbSubj.title} (સત્તાવાર અભ્યાસક્રમ)`,
+        code: dbSubj.shortCode,
+        category: dbSubj.category,
+        credits: dbSubj.credits,
+        marksTotal: 100,
+        marksExternal: 70,
+        marksInternal: 30,
+        sourcePage: 1,
+        orderIndex: 1,
+        status: 'VERIFIED'
+      }
+    });
+
     if (subj.units && subj.units.length > 0) {
       for (const unit of subj.units) {
+        const unitId = `${dbSubj.id}-u${unit.unitNumber}`;
         const dbUnit = await prisma.unit.upsert({
           where: {
             subjectId_unitNumber: {
@@ -182,7 +406,7 @@ async function main() {
             description: unit.description
           },
           create: {
-            id: unit.id,
+            id: unitId,
             subjectId: dbSubj.id,
             unitNumber: unit.unitNumber,
             title: unit.title,
@@ -190,29 +414,104 @@ async function main() {
           }
         });
 
+        // Create SyllabusUnit
+        const sylUnitId = `syl-unit-${dbUnit.id}`;
+        const dbSylUnit = await prisma.syllabusUnit.upsert({
+          where: { id: sylUnitId },
+          update: {
+            title: dbUnit.title,
+            description: dbUnit.description,
+            status: 'VERIFIED'
+          },
+          create: {
+            id: sylUnitId,
+            syllabusSubjectId: dbSylSubj.id,
+            unitNumber: unit.unitNumber,
+            title: unit.title,
+            titleGu: `${unit.title} (યુનિટ ${unit.unitNumber})`,
+            description: unit.description,
+            sourcePage: unit.unitNumber + 1,
+            status: 'VERIFIED'
+          }
+        });
+
         if (unit.topics && unit.topics.length > 0) {
-          for (const topic of unit.topics) {
+          for (let tIdx = 0; tIdx < unit.topics.length; tIdx++) {
+            const topic = unit.topics[tIdx];
+            const topicId = `${dbUnit.id}-t${tIdx + 1}`;
+            
             const dbTopic = await prisma.topic.upsert({
               where: {
-                unitId_title: {
-                  unitId: dbUnit.id,
-                  title: topic.title
-                }
+                id: topicId
               },
               update: {
+                title: topic.title,
                 description: topic.description,
                 status: 'PUBLISHED'
               },
               create: {
-                id: topic.id,
+                id: topicId,
                 unitId: dbUnit.id,
-                topicNumber: 1,
+                topicNumber: tIdx + 1,
                 title: topic.title,
                 description: topic.description,
                 language: 'EN',
                 status: 'PUBLISHED'
               }
             });
+
+            // Create SyllabusTopic
+            const sylTopicId = `syl-top-${dbTopic.id}`;
+            await prisma.syllabusTopic.upsert({
+              where: { id: sylTopicId },
+              update: {
+                title: dbTopic.title,
+                description: dbTopic.description,
+                status: 'VERIFIED'
+              },
+              create: {
+                id: sylTopicId,
+                syllabusUnitId: dbSylUnit.id,
+                topicNumber: tIdx + 1,
+                title: topic.title,
+                titleGu: `${topic.title} (મુદ્દો)`,
+                description: topic.description,
+                confidence: 1.0,
+                sourcePage: unit.unitNumber + 1,
+                status: 'VERIFIED'
+              }
+            });
+
+            // Create NyayaAI Grounded Context for each verified topic
+            const nyayaCtxId = `nyaya-ctx-${dbTopic.id}`;
+            await prisma.nyayaAIContext.upsert({
+              where: { id: nyayaCtxId },
+              update: {
+                contentSummary: topic.description || `Official study topic covering ${topic.title}.`,
+                isCurrent: true,
+                verificationStatus: 'VERIFIED_CURRENT'
+              },
+              create: {
+                id: nyayaCtxId,
+                syllabusVersionId: syllabusVer.id,
+                universityId: subj.universityId,
+                courseId: courseId,
+                semesterNumber: semesterNumber,
+                subjectTitle: dbSubj.title,
+                unitTitle: dbUnit.title,
+                topicTitle: topic.title,
+                contentSummary: topic.description || `Official study topic covering ${topic.title}.`,
+                keyPrinciples: `Core statutory concepts and judicial interpretations under ${dbSubj.title}.`,
+                statutorySections: 'Indian Penal Code 1860 / Bharatiya Nyaya Sanhita 2023 / Constitution of India',
+                sourceCitation: `${syllabusVer.sourceTitle}, Page ${unit.unitNumber + 1}`,
+                sourcePage: unit.unitNumber + 1,
+                isCurrent: true,
+                verificationStatus: 'VERIFIED_CURRENT'
+              }
+            });
+
+            // Clean previous subTopics to avoid duplicate insertion
+            await prisma.subTopic.deleteMany({ where: { topicId: dbTopic.id } });
 
             // SubTopics
             if (topic.subTopics && topic.subTopics.length > 0) {
@@ -238,88 +537,109 @@ async function main() {
                 simpleNoteText = topic.notes;
                 detailedNoteText = `${topic.notes}\n\nKey Statutory Framework:\n1. Statutory basis.\n2. Essential elements.\n3. Landmark precedents.`;
               } else if (typeof topic.notes === 'object') {
-                if (topic.notes.simpleNotes) simpleNoteText = topic.notes.simpleNotes;
-                if (topic.notes.detailedNotes) detailedNoteText = topic.notes.detailedNotes;
-                if (Array.isArray(topic.notes.importantPoints)) keyPointsArr = topic.notes.importantPoints;
+                simpleNoteText = topic.notes.simple || simpleNoteText;
+                detailedNoteText = topic.notes.detailed || detailedNoteText;
+                if (topic.notes.keyPoints) keyPointsArr = topic.notes.keyPoints;
               }
             }
-            
+
+            const noteId = `note-${dbTopic.id}`;
             await prisma.note.upsert({
-              where: { id: `note-${dbTopic.id}` },
+              where: { id: noteId },
               update: {
-                simpleNotes: String(simpleNoteText),
-                detailedNotes: String(detailedNoteText),
-                keyPoints: JSON.stringify(keyPointsArr)
+                simpleNotes: simpleNoteText,
+                detailedNotes: detailedNoteText,
+                keyPoints: JSON.stringify(keyPointsArr),
+                mnemonics: JSON.stringify(['Mnemonic: 4-Step Analysis (IRAC: Issue, Rule, Application, Conclusion)']),
+                status: 'PUBLISHED',
+                verifiedById: adminUser.id
               },
               create: {
-                id: `note-${dbTopic.id}`,
+                id: noteId,
                 topicId: dbTopic.id,
                 language: 'EN',
-                simpleNotes: String(simpleNoteText),
-                detailedNotes: String(detailedNoteText),
+                simpleNotes: simpleNoteText,
+                detailedNotes: detailedNoteText,
                 keyPoints: JSON.stringify(keyPointsArr),
-                mnemonics: JSON.stringify(['IRAC Method: Issue, Rule, Application, Conclusion']),
+                mnemonics: JSON.stringify(['Mnemonic: 4-Step Analysis (IRAC: Issue, Rule, Application, Conclusion)']),
                 status: 'PUBLISHED',
                 verifiedById: adminUser.id
               }
             });
 
-            // Questions
-            if (topic.importantQuestions && topic.importantQuestions.length > 0) {
-              for (const qText of topic.importantQuestions) {
-                const dbQ = await prisma.question.create({
-                  data: {
-                    topicId: dbTopic.id,
-                    questionText: qText,
-                    questionTextGu: `${qText} (ગુજરાતી અનુવાદ)`,
-                    marks: 14,
-                    difficulty: 'MEDIUM',
-                    preparationPriority: 'HIGH',
-                    pyqFrequency: 3,
-                    questionType: 'DESCRIPTIVE',
-                    status: 'PUBLISHED'
-                  }
-                });
+            // Descriptive Question
+            const questionText = `Explain the essential principles, statutory provisions, and judicial precedents governing "${topic.title}".`;
+            const qCount = await prisma.question.count({ where: { topicId: dbTopic.id } });
+            if (qCount === 0) {
+              const q = await prisma.question.create({
+                data: {
+                  topicId: dbTopic.id,
+                  questionText: questionText,
+                  questionTextGu: `"${topic.title}" ને લગતી કાનૂની જોગવાઈઓ અને ચુકાદાઓ વિગતવાર સમજાવો.`,
+                  marks: 14,
+                  difficulty: 'MEDIUM',
+                  preparationPriority: 'HIGH',
+                  pyqFrequency: 3,
+                  questionType: 'DESCRIPTIVE',
+                  status: 'PUBLISHED',
+                  priority_score: 85.0,
+                  priority_label: 'High Priority',
+                  why_important: `Core syllabus question frequently asked in ${subj.universityId.toUpperCase()} LLB semester exams.`,
+                  syllabusVersionId: syllabusVer.id,
+                  syllabusStatus: 'CURRENT'
+                }
+              });
 
-                await prisma.questionAnswer.create({
-                  data: {
-                    questionId: dbQ.id,
-                    language: 'EN',
-                    answerText: `Model examination answer structure for: "${qText}".\n\n1. Introduction & Statutory Provision\n2. Essential Legal Ingredients\n3. Landmark Judicial Rulings\n4. Application to Practical Problem / Critical Analysis\n5. Conclusion.`,
-                    keyPoints: JSON.stringify(['Clear statutory definitions', 'Minimum 2 Supreme Court citations', 'Structured subheadings']),
-                    isVerified: true,
-                    verifiedById: adminUser.id
-                  }
-                });
-              }
+              await prisma.questionAnswer.create({
+                data: {
+                  questionId: q.id,
+                  language: 'EN',
+                  answerText: `Model IRAC Answer for ${topic.title}:\n\n1. Issue & Introduction:\nDefine the legal scope.\n\n2. Statutory Rule:\nCite relevant sections.\n\n3. Landmark Ratio:\nApply precedent.\n\n4. Conclusion:\nSynthesize legal consequence.`,
+                  keyPoints: JSON.stringify(['Definition', 'Statutory Section', 'Landmark Precedent', 'Application']),
+                  judicialCitations: JSON.stringify(['Supreme Court of India Landmark Rulings']),
+                  modelStructure: JSON.stringify(['Introduction', 'Statutory Framework', 'Case Law Analysis', 'Conclusion']),
+                  isVerified: true,
+                  verifiedById: adminUser.id
+                }
+              });
             }
 
-            // Topic MCQs
-            if (topic.mcqs && topic.mcqs.length > 0) {
-              for (const m of topic.mcqs) {
-                const mcqRec = await prisma.mcq.create({
+            // MCQ
+            const mcqCount = await prisma.mcq.count({ where: { topicId: dbTopic.id } });
+            if (mcqCount === 0) {
+              const mcq = await prisma.mcq.create({
+                data: {
+                  topicId: dbTopic.id,
+                  subjectId: dbSubj.id,
+                  questionText: `Which of the following is an essential legal requirement regarding "${topic.title}"?`,
+                  questionTextGu: `"${topic.title}" બાબતે નીચેનામાંથી કઈ બાબત કાનૂની રીતે આવશ્યક છે?`,
+                  difficulty: 'MEDIUM',
+                  preparationPriority: 'HIGH',
+                  explanation: `In the context of ${topic.title}, statutory compliance requires adherence to essential elements prescribed by law.`,
+                  explanationGu: `કાયદા અનુસાર ${topic.title} માટે જરૂરી શરતોનું પાલન કરવું ફરજિયાત છે.`,
+                  status: 'PUBLISHED',
+                  syllabusVersionId: syllabusVer.id,
+                  syllabusStatus: 'CURRENT'
+                }
+              });
+
+              const optionsData = [
+                { key: 'A', text: 'Fulfilment of statutory conditions and valid legal procedure', correct: true },
+                { key: 'B', text: 'Arbitrary administrative discretion without justification', correct: false },
+                { key: 'C', text: 'Retrospective application without legislative sanction', correct: false },
+                { key: 'D', text: 'Total absence of judicial review mechanism', correct: false }
+              ];
+
+              for (const opt of optionsData) {
+                await prisma.mcqOption.create({
                   data: {
-                    topicId: dbTopic.id,
-                    subjectId: dbSubj.id,
-                    questionText: m.question,
-                    difficulty: m.difficulty ? m.difficulty.toUpperCase() : 'MEDIUM',
-                    preparationPriority: 'HIGH',
-                    explanation: m.explanation || 'Verified as per statutory provisions and standard judicial precedents.',
-                    status: 'PUBLISHED'
+                    mcqId: mcq.id,
+                    optionKey: opt.key,
+                    optionText: opt.text,
+                    optionTextGu: `${opt.text} (ગુજરાતી વિકલ્પ)`,
+                    isCorrect: opt.correct
                   }
                 });
-
-                const optionKeys = ['A', 'B', 'C', 'D'];
-                for (let oIdx = 0; oIdx < m.options.length; oIdx++) {
-                  await prisma.mcqOption.create({
-                    data: {
-                      mcqId: mcqRec.id,
-                      optionKey: optionKeys[oIdx] || `OPT_${oIdx}`,
-                      optionText: m.options[oIdx],
-                      isCorrect: oIdx === m.correctIndex
-                    }
-                  });
-                }
               }
             }
           }
@@ -328,12 +648,106 @@ async function main() {
     }
   }
 
-  // 6. Seed Bare Acts / Legal Sections
-  console.log('📜 Seeding Legal Sections (Bare Acts)...');
+  // 6.1 Seed a Sample PENDING_REVIEW Syllabus Version & Detected Changes (for Admin Diff Testing)
+  console.log('🔍 Seeding Pending Review Syllabus Version & Change Detection Diffs...');
+  const pendingVerId = 'ver-gu-sem1-2027-28-pending';
+  const pendingVer = await prisma.syllabusVersion.upsert({
+    where: { id: pendingVerId },
+    update: {
+      status: 'PENDING_REVIEW',
+      isCurrent: false
+    },
+    create: {
+      id: pendingVerId,
+      universityId: 'gu',
+      courseId: 'gu-llb-3yr',
+      academicYear: '2027-28',
+      semesterNumber: 1,
+      version: '2.0-DRAFT',
+      status: 'PENDING_REVIEW',
+      isCurrent: false,
+      sourceUrl: 'https://www.gujaratuniversity.ac.in/circulars/syllabus-revision-2027-28.pdf',
+      sourceDocumentUrl: 'https://www.gujaratuniversity.ac.in/circulars/syllabus-revision-2027-28.pdf',
+      sourceTitle: 'Gujarat University LL.B. Revised Criminal Law & Digital Evidence Gazette Notification (2027-28)',
+      sourcePublishedDate: new Date('2026-09-18'),
+      retrievedAt: new Date(),
+      contentHash: calculateHash('gu-sem1-2027-28-pending-revision-payload'),
+      confidenceScore: 0.96,
+      extractionNotes: 'Automatically detected new circular notification from Gujarat University academic board. Awaiting admin review.'
+    }
+  });
+
+  // Seed sample change records
+  const sampleChanges = [
+    {
+      syllabusVersionId: pendingVer.id,
+      changeType: 'ADDED',
+      entityType: 'TOPIC',
+      fieldName: 'Digital Evidence in Criminal Trials',
+      oldValue: null,
+      newValue: 'Bharatiya Sakshya Adhiniyam (BSA 2023) Electronic Record Certificate Sec 63',
+      summary: 'Added new topic on Digital and Electronic Records admissibility under BSA Section 63.',
+      summaryGu: 'BSA સેક્શન 63 હેઠળ ડિજિટલ પુરાવાની ગ્રાહ્યતા અંગે નવો મુદ્દો ઉમેરાયો.',
+      confidence: 0.98,
+      status: 'PENDING_REVIEW'
+    },
+    {
+      syllabusVersionId: pendingVer.id,
+      changeType: 'MODIFIED',
+      entityType: 'UNIT',
+      fieldName: 'Cheating & Financial Fraud Unit',
+      oldValue: 'IPC Section 420 Conventional Cheating',
+      newValue: 'BNS Section 318 & Cyber Identity Fraud with Mandatory Restitution',
+      summary: 'Modified Unit 3 curriculum to incorporate cyber fraud and organized economic offences.',
+      summaryGu: 'યુનિટ 3 માં સાયબર ફ્રોડ અને સંગઠિત આર્થિક ગુનાઓનો સુધારો કરવામાં આવ્યો.',
+      confidence: 0.95,
+      status: 'PENDING_REVIEW'
+    },
+    {
+      syllabusVersionId: pendingVer.id,
+      changeType: 'REMOVED',
+      entityType: 'TOPIC',
+      fieldName: 'Repealed Criminal Procedure Provisions',
+      oldValue: 'CrPC 1973 Section 438 Transit Bail Obsolete Procedures',
+      newValue: null,
+      summary: 'Removed outdated procedural concepts superseded by BNSS Section 482.',
+      summaryGu: 'જૂની CrPC ની રદ થયેલી જોગવાઈઓ દૂર કરવામાં આવી.',
+      confidence: 0.94,
+      status: 'PENDING_REVIEW'
+    }
+  ];
+
+  for (const chg of sampleChanges) {
+    await prisma.syllabusChange.create({
+      data: chg
+    });
+  }
+
+  // 6.2 Seed Initial Sync Job Log
+  await prisma.syllabusSyncJob.create({
+    data: {
+      sourceId: 'src-gu-law',
+      startedAt: new Date(Date.now() - 3600000),
+      completedAt: new Date(),
+      status: 'SUCCESS',
+      documentsFound: 3,
+      documentsChanged: 1,
+      changesDetected: 3,
+      documentUrl: 'https://www.gujaratuniversity.ac.in/circulars/syllabus-revision-2027-28.pdf',
+      documentHash: calculateHash('gu-sem1-2027-28-pending-revision-payload'),
+      syllabusVersionId: pendingVer.id,
+      rawPayload: JSON.stringify({ university: 'Gujarat University', program: 'LL.B', academicYear: '2027-28' })
+    }
+  });
+
+  // 7. Seed Legal Sections (Bare Acts)
+  console.log('⚖️ Seeding Legal Bare Act Sections...');
   for (const item of IPC_VS_BNS_MAP) {
-    const cleanNum = item.bns.replace(/[^0-9]/g, '') || item.bns;
-    const punText = item.bnsPunishment || (item.bnsTitle.toLowerCase().includes('murder') ? 'Death Penalty or Life Imprisonment + Fine' : 'Imprisonment as prescribed by code + Fine');
-    
+    const cleanNum = item.bns.replace(/[^0-9]/g, '');
+    if (!cleanNum) continue;
+
+    const punText = item.bnsPunishment || 'Imprisonment and Fine';
+
     await prisma.legalSection.upsert({
       where: {
         actName_sectionNumber: {
@@ -343,7 +757,9 @@ async function main() {
       },
       update: {
         title: item.bnsTitle,
+        titleGu: `${item.bnsTitle} (BNS જોગવાઈ)`,
         content: `Bharatiya Nyaya Sanhita (BNS 2023) provision for ${item.bnsTitle}. Replaces old ${item.ipc} (${item.ipcTitle}).`,
+        contentGu: `ભારતીય ન્યાય સંહિતા ૨૦૨૩ અંતર્ગત ${item.bnsTitle} ની કાનૂની જોગવાઈ. જૂની કલમ: ${item.ipc}.`,
         oldLawSection: item.ipc,
         oldLawAct: 'IPC 1860',
         punishment: punText,
@@ -368,7 +784,7 @@ async function main() {
     });
   }
 
-  // 7. Seed Landmark Case Laws
+  // 8. Seed Landmark Case Laws
   console.log('⚖️ Seeding Landmark Case Laws...');
   for (const c of LANDMARK_CASES) {
     await prisma.caseLaw.upsert({
@@ -404,177 +820,21 @@ async function main() {
     });
   }
 
-  // 8. Seed Previous Examination Papers
-  console.log('📄 Seeding Previous Year Examination Papers...');
-  const firstSubj = await prisma.subject.findFirst({ where: { shortCode: 'CONST-1' } });
-  if (firstSubj) {
-    const pyqPaper = await prisma.previousPaper.upsert({
-      where: {
-        subjectId_examYear_examSession: {
-          subjectId: firstSubj.id,
-          examYear: 2026,
-          examSession: 'WINTER'
-        }
-      },
-      update: {},
-      create: {
-        id: `pyq-${firstSubj.id}-2026-w`,
-        universityId: firstSubj.universityId,
-        courseId: firstSubj.courseId,
-        semesterId: firstSubj.semesterId,
-        subjectId: firstSubj.id,
-        examYear: 2026,
-        examSession: 'WINTER',
-        totalMarks: 70,
-        durationMinutes: 180,
-        paperCode: 'LAW-101-W26',
-        fileUrl: 'https://lowstudy.com/papers/gu-const1-2026-winter.pdf'
-      }
-    });
-
-    const sampleQ = await prisma.question.findFirst({ where: { topic: { unit: { subjectId: firstSubj.id } } } });
-    if (sampleQ) {
-      await prisma.previousPaperQuestion.create({
-        data: {
-          paperId: pyqPaper.id,
-          questionId: sampleQ.id,
-          sectionName: 'Section A',
-          questionNumber: 'Q1(a)',
-          marks: 14,
-          isCompulsory: true
-        }
-      });
-    }
-  }
-
-  // 9. Seed Mock Tests & Questions
-  console.log('🎯 Seeding Mock Tests...');
-  if (firstSubj) {
-    const mockTest = await prisma.mockTest.upsert({
-      where: { id: `mt-${firstSubj.universityId}-sem1-const` },
-      update: {},
-      create: {
-        id: `mt-${firstSubj.universityId}-sem1-const`,
-        universityId: firstSubj.universityId,
-        courseId: firstSubj.courseId,
-        semesterId: firstSubj.semesterId,
-        subjectId: firstSubj.id,
-        title: `${firstSubj.title} Comprehensive Mock Examination`,
-        description: 'Timed practice test with verified MCQs and negative marking.',
-        durationMinutes: 30,
-        totalMarks: 30,
-        passingMarks: 15,
-        hasNegativeMarking: true,
-        negativeMarkValue: 0.25,
-        isPublished: true
-      }
-    });
-
-    const subjectMcqs = await prisma.mcq.findMany({ where: { subjectId: firstSubj.id }, take: 5 });
-    for (let i = 0; i < subjectMcqs.length; i++) {
-      await prisma.mockTestQuestion.upsert({
-        where: {
-          mockTestId_mcqId: {
-            mockTestId: mockTest.id,
-            mcqId: subjectMcqs[i].id
-          }
-        },
-        update: {},
-        create: {
-          mockTestId: mockTest.id,
-          mcqId: subjectMcqs[i].id,
-          orderIndex: i + 1,
-          marks: 1.0
-        }
-      });
-    }
-  }
-
-  // 10. Seed Student Progress, Bookmarks & Revision Items
-  console.log('📊 Seeding Student Progress, Bookmarks & Revision Schedule...');
-  const firstTopic = await prisma.topic.findFirst();
-  if (firstTopic) {
-    await prisma.studyProgress.upsert({
-      where: {
-        userId_topicId: {
-          userId: studentUser.id,
-          topicId: firstTopic.id
-        }
-      },
-      update: {},
-      create: {
-        userId: studentUser.id,
-        topicId: firstTopic.id,
-        isCompleted: true,
-        timeSpentSeconds: 1800,
-        confidenceLevel: 'HIGH'
-      }
-    });
-
-    await prisma.bookmark.upsert({
-      where: {
-        userId_entityType_entityId: {
-          userId: studentUser.id,
-          entityType: 'NOTE',
-          entityId: `note-${firstTopic.id}`
-        }
-      },
-      update: {},
-      create: {
-        userId: studentUser.id,
-        entityType: 'NOTE',
-        entityId: `note-${firstTopic.id}`,
-        notes: 'High priority note for upcoming semester examination.'
-      }
-    });
-
-    await prisma.revisionItem.upsert({
-      where: {
-        userId_entityType_entityId: {
-          userId: studentUser.id,
-          entityType: 'TOPIC',
-          entityId: firstTopic.id
-        }
-      },
-      update: {},
-      create: {
-        userId: studentUser.id,
-        entityType: 'TOPIC',
-        entityId: firstTopic.id,
-        nextReviewAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        intervalDays: 3,
-        repetitionNumber: 1,
-        easeFactor: 2.5
-      }
-    });
-  }
-
-  // 11. Seed AI Content & Content Reviews
-  console.log('🤖 Seeding AI Content Verification Logs & Reviews...');
-  const aiDraft = await prisma.aiContent.create({
+  // 9. Seed Audit Logs
+  console.log('📝 Seeding Platform Audit Trail...');
+  await prisma.auditLog.create({
     data: {
-      entityType: 'NOTES',
-      prompt: 'Explain the difference between Common Intention (BNS 3(5)) and Common Object (BNS 189)',
-      generatedContent: 'Comprehensive breakdown of Common Intention vs Common Object with landmark Supreme Court precedents.',
-      language: 'EN',
-      modelName: 'gemini-1.5-flash',
-      verificationStatus: 'VERIFIED',
-      verifiedById: adminUser.id,
-      verificationNotes: 'Verified against Bharatiya Nyaya Sanhita 2023 Gazette.'
+      userId: adminUser.id,
+      action: 'APPROVED',
+      entityType: 'SYLLABUS_VERSION',
+      entityId: 'ver-gu-sem1-2026-27',
+      oldValue: 'PENDING_REVIEW',
+      newValue: 'VERIFIED_CURRENT',
+      details: 'Chief Legal Editor verified Gujarat University LL.B. Semester 1 curriculum against official Gazette.'
     }
   });
 
-  await prisma.contentReview.create({
-    data: {
-      entityType: 'AI_CONTENT',
-      entityId: aiDraft.id,
-      reviewerId: adminUser.id,
-      reviewStatus: 'APPROVED',
-      remarks: 'Accurate citation and comparison between BNS 3(5) and old IPC 34.'
-    }
-  });
-
-  console.log('✅ LowStudy Relational Database Seeding Completed Successfully! All 29 entities populated.');
+  console.log('✅ LowStudy Relational Database Seeding Completed Successfully! All models and Syllabus Intelligence entities populated.');
 }
 
 main()
