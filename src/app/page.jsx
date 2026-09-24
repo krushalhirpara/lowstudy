@@ -1,555 +1,693 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
   Scale, 
   BookOpen, 
-  Bot, 
   Sparkles, 
   Award, 
-  ArrowRight, 
-  CheckCircle2, 
-  Flame, 
-  ShieldAlert, 
   FileText, 
+  ShieldCheck, 
+  Building2, 
+  CheckCircle2, 
+  ArrowRight, 
   Search, 
-  BrainCircuit, 
-  Zap, 
-  ChevronRight,
-  Bookmark,
-  GraduationCap,
-  Gavel,
-  Check
+  Bot, 
+  PenTool, 
+  Timer, 
+  BookMarked, 
+  CalendarDays, 
+  Layers, 
+  Briefcase, 
+  ChevronRight, 
+  ChevronDown, 
+  RotateCcw,
+  Zap,
+  HelpCircle,
+  Clock,
+  Compass,
+  GraduationCap
 } from 'lucide-react';
-import { SUBJECTS_DATA, IPC_VS_BNS_MAP, LANDMARK_CASES } from '@/data/legalData';
-import { MockDB } from '@/data/db';
-import JsonLd from '@/components/seo/JsonLd';
-import { getWebSiteJsonLd, getOrganizationJsonLd } from '@/utils/seo';
+import { GUJARAT_UNIVERSITIES } from '@/data/gujaratData';
+import { LANDMARK_CASES, IPC_VS_BNS_MAP } from '@/data/legalData';
 
 export default function HomePage() {
-  const [universityId, setUniversityId] = useState('');
-  const [semesterId, setSemesterId] = useState('');
-  const [syllabusVersion, setSyllabusVersion] = useState('new');
-  const [isOnboarded, setIsOnboarded] = useState(false);
-  const [universities, setUniversities] = useState([]);
-  const [semesters, setSemesters] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [mounted, setMounted] = useState(false);
-  
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchBns, setSearchBns] = useState('');
-
-  useEffect(() => {
-    setMounted(true);
-    MockDB.init();
-    setUniversities(MockDB.getUniversities());
-    setSemesters(MockDB.getSemesters());
-    setSyllabusVersion(MockDB.getSelectedSyllabusVersion());
-
-    const uni = MockDB.getSelectedUni();
-    const sem = MockDB.getSelectedSem();
-    if (uni) {
-      setUniversityId(uni.id);
-    }
-    if (sem) {
-      setSemesterId(sem.id);
-      setIsOnboarded(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isOnboarded) {
-      setSubjects(MockDB.getSubjects(universityId, semesterId, syllabusVersion));
-    } else {
-      setSubjects(MockDB.getSubjects(null, null, syllabusVersion));
-    }
-  }, [isOnboarded, universityId, semesterId, syllabusVersion]);
-
-  const categories = ['All', 'Core Law', 'Criminal Law', 'Civil Law', 'Corporate Law', 'Personal Law', 'Specialized Law', 'Commercial Law'];
-
-  const filteredSubjects = subjects.filter(subject => {
-    if (selectedCategory === 'All') return true;
-    return subject.category.toLowerCase().includes(selectedCategory.toLowerCase());
-  });
-
-  const filteredBns = IPC_VS_BNS_MAP.filter(item => 
-    item.ipc.toLowerCase().includes(searchBns.toLowerCase()) || 
-    item.bns.toLowerCase().includes(searchBns.toLowerCase()) ||
-    item.ipcTitle.toLowerCase().includes(searchBns.toLowerCase())
+  const [selectedUni, setSelectedUni] = useState('su');
+  const [selectedSem, setSelectedSem] = useState(3);
+  const [nyayaQuery, setNyayaQuery] = useState('What is Section 103(2) BNS on Mob Lynching?');
+  const [nyayaResponse, setNyayaResponse] = useState(
+    "Section 103(2) of Bharatiya Nyaya Sanhita (BNS 2023) specifically penalizes murder committed by a group of five or more persons acting in concert on grounds of race, caste, sex, place of birth, or religion. It prescribes death penalty or imprisonment for life, incorporating the Supreme Court's mandate in Tehseen Poonawalla (2018)."
   );
+  const [isNyayaLoading, setIsNyayaLoading] = useState(false);
+  const [bnsSearch, setBnsSearch] = useState('');
+  const [openFaq, setOpenFaq] = useState(0);
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-xs text-slate-600 font-mono">
-        Setting up learning workspace...
-      </div>
-    );
-  }
+  const handleSimulateNyaya = (query, resp) => {
+    setNyayaQuery(query);
+    setIsNyayaLoading(true);
+    setTimeout(() => {
+      setNyayaResponse(resp);
+      setIsNyayaLoading(false);
+    }, 400);
+  };
+
+  const filteredBns = IPC_VS_BNS_MAP.filter(m =>
+    m.ipc.toLowerCase().includes(bnsSearch.toLowerCase()) ||
+    m.bns.toLowerCase().includes(bnsSearch.toLowerCase()) ||
+    m.offence.toLowerCase().includes(bnsSearch.toLowerCase())
+  ).slice(0, 4);
+
+  const faqs = [
+    {
+      q: "How does LowStudy ensure syllabus accuracy for Gujarat law universities?",
+      a: "LowStudy uses an automated source monitoring engine that continuously audits official Gujarat university circulars, gazettes, and academic department portals. Unverified extractions are never published automatically—every update must pass admin SHA-256 fingerprint verification and receive a VERIFIED_CURRENT certification."
+    },
+    {
+      q: "Are the new criminal laws (BNS, BNSS, BSA 2023) integrated into the syllabus?",
+      a: "Yes! All relevant criminal law subjects, units, Bare Act references, MCQs, and model answers are updated to Bharatiya Nyaya Sanhita (BNS), Bharatiya Nagarik Suraksha Sanhita (BNSS), and Bharatiya Sakshya Adhiniyam (BSA) with side-by-side IPC/CrPC comparisons."
+    },
+    {
+      q: "Does NyayaAI support Gujarati language for law exam preparation?",
+      a: "Absolutely. NyayaAI is trained on Gujarati legal terminology used in Gujarat University, Saurashtra University, and VNSGU examinations. You can ask questions and receive answers in English, Gujarati (ગુજરાતી), Hindi, or Hinglish."
+    },
+    {
+      q: "How does the Spaced Repetition Revision system work?",
+      a: "Whenever you solve MCQs or take mock tests, any missed questions automatically tag the corresponding syllabus topic as a 'Weak Topic'. LowStudy then schedules automated revision intervals at 1, 3, 7, 15, and 30 days to maximize memory retention for final university exams."
+    }
+  ];
 
   return (
-    <div className="space-y-16 pb-20">
-      <JsonLd data={getWebSiteJsonLd()} />
-      <JsonLd data={getOrganizationJsonLd()} />
+    <div className="min-h-screen bg-slate-50 font-poppins text-slate-900 selection:bg-amber-100 selection:text-amber-900">
       
-      {/* HERO SECTION */}
-      <section className="relative pt-2 sm:pt-6 pb-12 sm:pb-16 overflow-hidden bg-gradient-to-b from-white via-slate-50 to-amber-50/20 border-b border-slate-200">
-        
-        {/* Decorative Background Elements (Viewport-Safe) */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[500px] h-[180px] sm:h-[300px] bg-amber-500/10 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
-        <div className="absolute top-1/3 right-2 sm:right-10 w-[70vw] max-w-[350px] h-[140px] sm:h-[220px] bg-emerald-500/10 rounded-full blur-[70px] sm:blur-[100px] pointer-events-none" />
+      {/* 1. HERO SECTION */}
+      <section className="relative overflow-hidden bg-white border-b border-slate-200 pt-12 pb-16 lg:pt-20 lg:pb-24">
+        {/* Subtle grid pattern background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-60 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center space-y-4 sm:space-y-6 max-w-3xl mx-auto">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            {/* Top Pill */}
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] sm:text-xs font-semibold shadow-sm max-w-full">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-spin shrink-0" />
-              <span className="truncate">Gujarat Law Education & Automated Syllabus Intelligence</span>
-              <span className="px-1.5 py-0.2 bg-amber-200/60 rounded text-[9px] sm:text-[10px] uppercase tracking-wider font-bold shrink-0">2026-27</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="fluid-h1 font-extrabold tracking-tight font-serif-title text-slate-900 leading-tight select-none px-1">
-              Master Your <span className="text-amber-600 font-black">Gujarat University Law Syllabus</span> with AI Precision
-            </h1>
-
-            {/* Sanskrit legal slogans in Devnagari calligraphic font */}
-            <div className="py-1 sm:py-2 inline-block font-devanagari-calligraphy text-amber-700 text-sm sm:text-xl tracking-widest">
-              સત્યમેવ જયતે • યતો ધર્મસ્તતો જયઃ
-            </div>
-
-            {/* Subtitle */}
-            <p className="text-xs sm:text-base text-slate-600 font-sans leading-relaxed px-1">
-              Select your exact Gujarat University or College, Academic Year, and Semester to study notes, BNS Bare Acts, landmark cases, and MCQs strictly matched to your official syllabus.
-            </p>
-
-            {/* Active Institution Badge */}
-            <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-amber-200 max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
-              <div className="text-center sm:text-left space-y-0.5">
-                <span className="text-[10px] uppercase font-mono font-bold text-amber-700">Current Selected Syllabus</span>
-                <p className="text-xs font-bold text-slate-900">
-                  {universities.find(u => u.id === universityId)?.name || "Gujarat University"} • {semesterId ? `Semester ${semesterId.replace('sem', '')}` : 'Semester 1'}
-                </p>
-                <p className="text-[10px] text-slate-500 font-mono">Academic Year 2026-27 • Verified Official Source</p>
-              </div>
-
-              <Link
-                href="/subjects"
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow shrink-0 w-full sm:w-auto text-center transition-colors"
-              >
-                Change Gujarat Syllabus
-              </Link>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-              <Link 
-                href="/subjects" 
-                className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20 flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
-              >
-                <BookOpen className="w-4 h-4" />
-                Explore Gujarat Subjects
-              </Link>
-
-              <Link 
-                href="/gujarat-law-colleges" 
-                className="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-sm flex items-center gap-2 transition-all transform hover:-translate-y-0.5 shadow-sm"
-              >
-                <GraduationCap className="w-4 h-4 text-amber-600" />
-                Gujarat Law Colleges Directory
-              </Link>
-            </div>
-
-            {/* Key Ticker Metrics */}
-            <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto border-t border-slate-200">
-              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-200 shadow-sm">
-                <p className="text-xl sm:text-2xl font-bold text-amber-600 font-serif-title">12+</p>
-                <p className="text-[10px] sm:text-xs text-slate-600">Gujarat Universities</p>
-              </div>
-              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-200 shadow-sm">
-                <p className="text-xl sm:text-2xl font-bold text-emerald-600 font-serif-title">30+</p>
-                <p className="text-[10px] sm:text-xs text-slate-600">Affiliated Law Colleges</p>
-              </div>
-              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-200 shadow-sm">
-                <p className="text-xl sm:text-2xl font-bold text-blue-600 font-serif-title">Verified</p>
-                <p className="text-[10px] sm:text-xs text-slate-600">Official Syllabus Intelligence</p>
-              </div>
-              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-200 shadow-sm">
-                <p className="text-xl sm:text-2xl font-bold text-purple-600 font-serif-title">24/7</p>
-                <p className="text-[10px] sm:text-xs text-slate-600">Gujarat NyayaAI Assistant</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* UNIVERSITY & SEMESTER SYLLABUS INDEX SELECTOR */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pt-4 font-anek">
-        <div className="text-center space-y-1">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 font-mono">Select Your Curriculum Mappings</span>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Choose University & Semester</h2>
-        </div>
-
-        {/* University Selector Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
-          {universities.map(u => {
-            const isSelected = universityId === u.id;
-            return (
-              <button
-                key={u.id}
-                onClick={() => {
-                  setUniversityId(u.id);
-                  setSemesterId('');
-                  MockDB.setSelectedUniAndSem(u.id, '');
-                }}
-                className={`p-5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-2 group hover:scale-102 btn-mobile-touch ${
-                  isSelected
-                    ? 'bg-amber-50 border-amber-500 text-amber-900 shadow-md font-bold'
-                    : 'bg-white border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-slate-50 shadow-sm'
-                }`}
-              >
-                <span className="text-2xl group-hover:scale-110 transition-transform">{u.logo}</span>
-                <span className="text-xs font-semibold">{u.name}</span>
-                <span className="text-[9px] font-semibold text-slate-500 font-mono uppercase">{u.code}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Dynamic Semester Selector Row */}
-        {universityId && (
-          <div className="space-y-3 max-w-2xl mx-auto text-center pt-2 animate-fade-in">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 font-mono">Select Current Semester</span>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 xs-360:gap-2">
-              {semesters.map(s => {
-                const isSelected = semesterId === s.id;
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => {
-                      setSemesterId(s.id);
-                      MockDB.setSelectedUniAndSem(universityId, s.id);
-                      setIsOnboarded(true);
-                      setSubjects(MockDB.getSubjects(universityId, s.id, syllabusVersion));
-                    }}
-                    className={`py-2.5 px-1.5 xs-360:px-2.5 sm:p-3 rounded-xl border text-center text-xs font-semibold transition-all btn-mobile-touch ${
-                      isSelected
-                        ? 'bg-emerald-50 border-emerald-500 text-emerald-900 font-bold shadow-sm'
-                        : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-slate-50 shadow-sm'
-                    }`}
-                  >
-                    Sem {s.num}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* NEW CRIMINAL CODES CONVERTER SECTION (BNS, BNSS, BSA) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-6 sm:p-8 rounded-2xl bg-white border border-amber-200 relative overflow-hidden shadow-md">
-          
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold uppercase tracking-wide">
-                  New Criminal Codes 2023
+            {/* Left Column: SaaS Value Proposition */}
+            <div className="lg:col-span-7 space-y-6 text-left">
+              
+              {/* Trust & Syllabus Verification Badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-800 shadow-sm">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-amber-600 font-bold">2026-27</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-emerald-700 font-bold flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Verified Official Syllabus Intelligence
                 </span>
-                <span className="text-xs text-slate-500">IPC ↔ BNS Rapid Lookup</span>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 font-serif-title">Bharatiya Nyaya Sanhita (BNS) Instant Mapping</h2>
-              <p className="text-xs text-slate-600">Quickly search old IPC section numbers to find their corresponding BNS section, updated punishments, and legal title.</p>
+
+              {/* Main Headline */}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+                Learn Law. Practice Daily. <br className="hidden sm:inline" />
+                <span className="bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 bg-clip-text text-transparent">
+                  Crack Every Exam.
+                </span>
+              </h1>
+
+              {/* Supporting Subtext */}
+              <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl font-normal">
+                Your syllabus-aware AI learning platform for law school — from current Gujarat university syllabi and Bare Acts (BNS 2023) to case laws, quizzes, drafting lab, and personalized revision.
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Link
+                  href="/curriculum"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs sm:text-sm font-bold transition shadow-md hover:shadow-lg"
+                >
+                  <span>Start Learning Free</span>
+                  <ArrowRight className="w-4 h-4 text-amber-400" />
+                </Link>
+
+                <Link
+                  href="/universities"
+                  className="inline-flex items-center gap-2 px-5 py-3.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 rounded-2xl text-xs sm:text-sm font-semibold transition shadow-sm"
+                >
+                  <Building2 className="w-4 h-4 text-amber-600" />
+                  <span>Explore Gujarat Universities</span>
+                </Link>
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="pt-4 flex flex-wrap items-center gap-6 text-xs text-slate-500 font-medium">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Official University Sync</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>BNS / BNSS / BSA 2023</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>English & ગુજરાતી Support</span>
+                </div>
+              </div>
+
             </div>
 
-            {/* Quick Search Input */}
-            <div className="w-full lg:w-72 relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input 
-                type="text" 
-                placeholder="Search IPC 302, Murder, BNS..." 
-                value={searchBns}
-                onChange={(e) => setSearchBns(e.target.value)}
-                className="w-full bg-slate-50 text-xs pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white"
+            {/* Right Column: Interactive SaaS Learning OS Preview Card */}
+            <div className="lg:col-span-5">
+              <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 rounded-3xl p-6 shadow-2xl border border-slate-800 text-white space-y-5 relative">
+                
+                {/* Card Header */}
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-rose-500" />
+                    <div className="w-3 h-3 rounded-full bg-amber-500" />
+                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="text-[11px] font-mono text-slate-400 ml-2">LowStudy OS v2.4</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    🟢 SU Sem 3 Verified
+                  </span>
+                </div>
+
+                {/* Micro Preview 1: Current Curriculum Track */}
+                <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400 font-medium">Active Subject:</span>
+                    <span className="text-amber-400 font-bold">Labour & Industrial Law - I</span>
+                  </div>
+                  <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-gradient-to-r from-amber-500 to-emerald-400 h-full w-3/4" />
+                  </div>
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>Unit 3: Industrial Disputes Act</span>
+                    <span className="text-emerald-400 font-bold">75% Complete</span>
+                  </div>
+                </div>
+
+                {/* Micro Preview 2: Live NyayaAI Dialogue Snippet */}
+                <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 space-y-2 text-xs">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold">
+                    <Bot className="w-4 h-4" />
+                    <span>NyayaAI Legal Intelligence</span>
+                  </div>
+                  <p className="text-slate-300 leading-relaxed text-[11px]">
+                    "Under Section 103(2) BNS 2023, mob lynching carries capital punishment or life imprisonment. Precedent: Tehseen Poonawalla (2018)."
+                  </p>
+                </div>
+
+                {/* Micro Preview 3: Quick MCQ Challenge Widget */}
+                <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400 font-semibold">Today's Spaced Practice:</span>
+                    <span className="text-amber-400 font-mono font-bold">+10 XP</span>
+                  </div>
+                  <p className="text-slate-200 font-medium text-[11px]">
+                    Which section of BNSS 2023 governs registration of Zero FIR?
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <span className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold text-center">
+                      ✓ Sec 173(1) BNSS
+                    </span>
+                    <span className="p-2 rounded-lg bg-slate-700/50 border border-slate-600 text-slate-400 text-[10px] text-center">
+                      Sec 154 CrPC
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-1 flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-amber-400" /> Daily Streak: 8 Days
+                  </span>
+                  <Link href="/dashboard" className="text-amber-400 font-bold hover:underline flex items-center gap-0.5">
+                    Launch OS Dashboard <ChevronRight className="w-3 h-3" />
+                  </Link>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 2. LIVE GUJARAT UNIVERSITY COVERAGE TICKER */}
+      <section className="bg-slate-900 border-b border-slate-800 py-4 text-xs text-slate-300">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2 font-bold text-amber-400 uppercase tracking-wider text-[11px]">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>Gujarat Universities Monitored:</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-[11px]">
+              {GUJARAT_UNIVERSITIES.slice(0, 5).map((u) => (
+                <div key={u.id} className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="font-semibold text-white">{u.shortName}</span>
+                  <span className="text-slate-400 font-mono">2026-27</span>
+                </div>
+              ))}
+              <Link href="/curriculum" className="text-amber-400 font-bold hover:underline">
+                View All Sources →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. INTERACTIVE UNIVERSITY & SEMESTER SELECTOR */}
+      <section className="py-12 bg-white border-b border-slate-200">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-amber-50/70 border border-amber-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-amber-100 text-amber-900">
+                  Quick Access Launcher
+                </span>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  Jump Straight to Your University & Semester
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600">
+                  Select your university and semester to load the verified 2026-27 curriculum and practice materials.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  value={selectedUni}
+                  onChange={(e) => setSelectedUni(e.target.value)}
+                  className="px-4 py-3 bg-white border border-slate-300 rounded-2xl text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
+                >
+                  <option value="su">Saurashtra University (SU)</option>
+                  <option value="gu">Gujarat University (GU)</option>
+                  <option value="vnsgu">VNSGU Surat</option>
+                  <option value="msu">MSU Baroda</option>
+                  <option value="hngu">HNGU Patan</option>
+                  <option value="gnlu">GNLU Gandhinagar</option>
+                </select>
+
+                <select
+                  value={selectedSem}
+                  onChange={(e) => setSelectedSem(Number(e.target.value))}
+                  className="px-4 py-3 bg-white border border-slate-300 rounded-2xl text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
+                >
+                  <option value={1}>Semester 1</option>
+                  <option value={2}>Semester 2</option>
+                  <option value={3}>Semester 3</option>
+                  <option value={4}>Semester 4</option>
+                  <option value={5}>Semester 5</option>
+                  <option value={6}>Semester 6</option>
+                </select>
+
+                <Link
+                  href={selectedUni === 'su' && selectedSem === 3 ? '/saurashtra-university/llb/semester-3/' : `/curriculum?university=${selectedUni}&semester=${selectedSem}`}
+                  className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs sm:text-sm font-bold transition shadow-sm flex items-center gap-2"
+                >
+                  <span>Open Curriculum</span>
+                  <ArrowRight className="w-4 h-4 text-amber-400" />
+                </Link>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. THE LOWSTUDY LEARNING LOOP ("HOW IT WORKS") */}
+      <section className="py-16 lg:py-20 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+              The LowStudy Learning Loop
+            </span>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+              A Complete Legal EdTech OS Built Around You
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Never waste time searching for fragmented notes or outdated circulars. LowStudy orchestrates the full law school lifecycle from official syllabus to career placement.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[
+              { step: '01', title: 'Syllabus Sync', desc: 'Monitored official university sources keep units, topics & marks synchronized.', icon: ShieldCheck, href: '/curriculum' },
+              { step: '02', title: 'Learn & Research', desc: 'Study notes, Bare Acts (BNS 2023) and landmark case law ratios.', icon: BookOpen, href: '/subjects' },
+              { step: '03', title: 'NyayaAI Tutor', desc: 'Multilingual legal AI explains complex doctrines in English & Gujarati.', icon: Bot, href: '/ai-tutor' },
+              { step: '04', title: 'Practice & Draft', desc: 'Solve university MCQs, draft pleadings, and argue in AI Moot Court.', icon: PenTool, href: '/practice/drafting' },
+              { step: '05', title: 'Exam Evaluation', desc: 'Submit answers for immediate diagnostic IRAC feedback & score prediction.', icon: Award, href: '/practice/answer-evaluator' },
+              { step: '06', title: 'Spaced Revision', desc: 'Mistake tracking schedules automated memory retention intervals.', icon: RotateCcw, href: '/revision' },
+            ].map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={idx}
+                  href={item.href}
+                  className="bg-white border border-slate-200 hover:border-amber-400 hover:shadow-md transition rounded-2xl p-5 space-y-3 group text-left"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 group-hover:bg-amber-100 group-hover:text-amber-900 transition">
+                      {item.step}
+                    </span>
+                    <div className="p-2 rounded-xl bg-slate-50 text-slate-700 group-hover:bg-amber-50 group-hover:text-amber-600 transition">
+                      <Icon className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-amber-600 transition">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 leading-snug">
+                    {item.desc}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+
+        </div>
+      </section>
+
+      {/* 5. CORE PRODUCT MODULES SHOWCASE */}
+      <section className="py-16 lg:py-20 bg-white border-b border-slate-200">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
+                Product Pillars
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+                Everything Law Students Need to Excel
+              </h2>
+            </div>
+            <Link href="/curriculum" className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1">
+              Explore All Modules <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            {/* Pillar 1: Bare Acts & BNS Hub */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 hover:shadow-md transition space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">Bare Acts & BNS 2023</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Bharatiya Nyaya Sanhita, BNSS, BSA & CPC with simplified explanations, cross-references, and exam notes.
+                </p>
+              </div>
+              <Link href="/bare-acts" className="text-xs font-bold text-amber-700 hover:underline flex items-center gap-1">
+                Browse Bare Acts →
+              </Link>
+            </div>
+
+            {/* Pillar 2: AI Drafting Lab */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 hover:shadow-md transition space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                  <PenTool className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">AI Legal Drafting Lab</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Draft Section 138 notices, bail applications, and plaints with instant AI scoring against model answers.
+                </p>
+              </div>
+              <Link href="/practice/drafting" className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1">
+                Open Drafting Lab →
+              </Link>
+            </div>
+
+            {/* Pillar 3: Moot Court Arena */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 hover:shadow-md transition space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center">
+                  <Scale className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">Virtual Moot Court</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Build petitioner and respondent memorials, and face realistic oral cross-examination before an AI Judicial Bench.
+                </p>
+              </div>
+              <Link href="/practice/moot-court" className="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1">
+                Enter Moot Court →
+              </Link>
+            </div>
+
+            {/* Pillar 4: Case Laws & Ratio Search */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 hover:shadow-md transition space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
+                  <Search className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">Case Law Intelligence</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Supreme Court landmark judgments, ratio decidendi, facts, arguments, and exam citations.
+                </p>
+              </div>
+              <Link href="/research" className="text-xs font-bold text-purple-700 hover:underline flex items-center gap-1">
+                Search Case Laws →
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 6. INTERACTIVE NYAYAAI SIMULATOR */}
+      <section className="py-16 lg:py-20 bg-slate-900 text-white border-b border-slate-800">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            <div className="lg:col-span-5 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold border border-amber-500/30">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>MULTILINGUAL LEGAL AI</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                Ask NyayaAI Any Legal Concept
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                Trained on Indian jurisprudence and Gujarat university syllabi. Ask complex statutory questions, get simple analogies, or generate university exam answers.
+              </p>
+
+              <div className="space-y-2 pt-2">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                  Click to Test Sample Questions:
+                </span>
+                {[
+                  {
+                    q: "What is Section 103(2) BNS on Mob Lynching?",
+                    r: "Section 103(2) of BNS 2023 provides death penalty or life imprisonment for murder committed by five or more persons acting in concert on grounds of race, caste, sex, or religion, adopting the Tehseen Poonawalla mandate."
+                  },
+                  {
+                    q: "Explain ingredients of Cheating in Gujarati (છેતરપિંડી)",
+                    r: "ભારતીય ન્યાય સંહિતા ૨૦૨૩ ની કલમ ૩૧૮ (જૂની IPC ૪૨૦) મુજબ છેતરપિંડીના મુખ્ય તત્વો: ૧. અપ્રમાણિક હેતુથી અન્ય વ્યક્તિને છેતરવી, ૨. ખોટી રજૂઆત કરી મિલકત આપવા પ્રેરિત કરવી, ૩. તેનાથી સામેની વ્યક્તિને નુકસાન પહોંચાડવું."
+                  },
+                  {
+                    q: "How to draft a 138 NI Act statutory legal notice?",
+                    r: "A 138 NI notice must state: (1) Valid debt under invoice, (2) Cheque details, (3) Dishonour date and memo reason ('Funds Insufficient'), and (4) Demand repayment within 15 days of notice receipt."
+                  }
+                ].map((item, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSimulateNyaya(item.q, item.r)}
+                    className="w-full text-left p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 font-medium transition flex items-center justify-between"
+                  >
+                    <span>{item.q}</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: Live Interactive Terminal */}
+            <div className="lg:col-span-7">
+              <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Bot className="w-5 h-5 text-amber-400" />
+                    <span className="text-xs font-bold text-white">NyayaAI Legal Intelligence Terminal</span>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+                    Online • Grounded
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="bg-slate-900 p-3.5 rounded-2xl text-xs text-amber-300 font-medium border border-slate-800">
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Student Question:</span>
+                    {nyayaQuery}
+                  </div>
+
+                  <div className="bg-slate-900/60 p-4 rounded-2xl text-xs sm:text-sm text-slate-200 leading-relaxed border border-slate-800">
+                    <span className="text-emerald-400 block text-[10px] uppercase font-bold mb-1">NyayaAI Verified Response:</span>
+                    {isNyayaLoading ? (
+                      <div className="flex items-center gap-2 text-slate-400 text-xs">
+                        <Sparkles className="w-4 h-4 animate-spin text-amber-400" />
+                        <span>Synthesizing statutory ratio...</span>
+                      </div>
+                    ) : (
+                      <p>{nyayaResponse}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-between items-center text-xs">
+                  <span className="text-slate-400 text-[11px]">
+                    Supported in English, Gujarati, Hindi & Hinglish
+                  </span>
+                  <Link
+                    href={`/ai-tutor?prompt=${encodeURIComponent(nyayaQuery)}`}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition"
+                  >
+                    <span>Open Full AI Tutor</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 7. QUICK BNS VS IPC CONVERSION WIDGET */}
+      <section className="py-14 bg-white border-b border-slate-200">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
+                Statutory Reference
+              </span>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                Quick IPC ↔ BNS 2023 Section Lookup
+              </h2>
+            </div>
+
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={bnsSearch}
+                onChange={(e) => setBnsSearch(e.target.value)}
+                placeholder="Search section or offence (e.g. 302, 420)..."
+                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
           </div>
 
-          {/* Quick Mapping Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredBns.slice(0, 6).map((item, idx) => (
-              <div key={idx} className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200 hover:border-amber-400 hover:bg-white transition-all flex items-center justify-between gap-3 shadow-sm">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-red-600 line-through decoration-red-500">{item.ipc}</span>
-                    <ArrowRight className="w-3 h-3 text-slate-400" />
-                    <span className="text-xs font-bold text-emerald-700 px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200">{item.bns}</span>
-                  </div>
-                  <p className="text-xs text-slate-700 font-medium truncate max-w-[200px]">{item.ipcTitle}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {filteredBns.map((item, idx) => (
+              <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 hover:bg-white hover:border-amber-300 transition">
+                <span className="text-xs font-bold text-slate-900 block truncate">{item.offence}</span>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-rose-700 font-mono font-bold">{item.ipc}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-emerald-700 font-mono font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{item.bns}</span>
                 </div>
-                <Link href="/bare-acts" className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50">
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
+                <p className="text-[11px] text-slate-500 line-clamp-1">{item.change}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-4 text-right">
-            <Link href="/bare-acts" className="text-xs text-amber-700 hover:underline font-semibold inline-flex items-center gap-1">
-              View All 358 BNS Sections & BNSS/BSA Comparative Tables →
+          <div className="text-right">
+            <Link href="/bns-vs-ipc" className="text-xs font-bold text-amber-700 hover:underline">
+              View Complete 358-Section Comparative Table →
             </Link>
           </div>
-
         </div>
       </section>
 
-      {/* 15 SUBJECTS DIRECTORY GRID */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      {/* 8. PRODUCT STATISTICS & AUTHENTIC METRICS */}
+      <section className="py-14 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+              <span className="text-3xl font-extrabold text-slate-900 block">9</span>
+              <span className="text-xs font-semibold text-slate-500 mt-1 block">Gujarat Universities Monitored</span>
+            </div>
+            <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+              <span className="text-3xl font-extrabold text-amber-600 block">1,414+</span>
+              <span className="text-xs font-semibold text-slate-500 mt-1 block">Verified Syllabus Topics</span>
+            </div>
+            <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+              <span className="text-3xl font-extrabold text-emerald-600 block">5,200+</span>
+              <span className="text-xs font-semibold text-slate-500 mt-1 block">Syllabus-Aligned MCQs</span>
+            </div>
+            <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+              <span className="text-3xl font-extrabold text-slate-900 block">100%</span>
+              <span className="text-xs font-semibold text-slate-500 mt-1 block">Official Source Audited</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. FAQ ACCORDION */}
+      <section className="py-16 bg-white border-b border-slate-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="text-center space-y-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
+              Got Questions?
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Frequently Asked Questions
+            </h2>
+          </div>
+
           <div className="space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-bold font-serif-title text-slate-900">Syllabus Explorer</h2>
-            <p className="text-xs sm:text-sm text-slate-600">Complete curriculum mapping for LLB semester exams and competitive law entrances.</p>
-            
-            {/* Syllabus Version Toggle */}
-            <div className="inline-flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-              <button
-                onClick={() => {
-                  setSyllabusVersion('new');
-                  MockDB.setSelectedSyllabusVersion('new');
-                }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  syllabusVersion === 'new'
-                    ? 'bg-amber-500 text-slate-950 shadow'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                New Syllabus (BNS 2023)
-              </button>
-              <button
-                onClick={() => {
-                  setSyllabusVersion('old');
-                  MockDB.setSelectedSyllabusVersion('old');
-                }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  syllabusVersion === 'old'
-                    ? 'bg-amber-500 text-slate-950 shadow'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Old Syllabus (IPC 1860)
-              </button>
-            </div>
-          </div>
-
-          {/* Category Tabs */}
-          <div className="w-full md:w-auto overflow-x-auto scrollbar-none pb-1.5 md:pb-0 flex shrink-0">
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 w-max">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                    selectedCategory === cat 
-                      ? 'bg-amber-500 text-slate-950 font-bold shadow' 
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Grid of Subject Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredSubjects.map((subj) => {
-            const uniNames = { gu: "Gujarat Uni", su: "Saurashtra Uni", vnsgu: "VNSGU" };
-            return (
-              <Link 
-                key={subj.id} 
-                href={`/subjects/${subj.id}`}
-                className="group p-5 rounded-2xl bg-white border border-slate-200 hover:border-amber-400 hover:shadow-md transition-all flex flex-col justify-between space-y-5 shadow-sm"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider font-mono bg-slate-100 text-amber-800 border border-slate-200">
-                      {subj.shortCode}
-                    </span>
-                    <div className="flex gap-1.5 items-center">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                        subj.syllabusVersion === 'new' 
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                          : 'bg-amber-50 text-amber-800 border border-amber-200'
-                      }`}>
-                        {subj.syllabusVersion === 'new' ? 'New Syllabus' : 'Old Syllabus'}
-                      </span>
-                      {subj.credits && (
-                        <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-semibold tracking-wide">
-                          {subj.credits} Credits
-                        </span>
-                      )}
+            {faqs.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div key={idx} className="border border-slate-200 rounded-2xl overflow-hidden transition">
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? -1 : idx)}
+                    className="w-full p-4 sm:p-5 text-left bg-slate-50 hover:bg-slate-100 flex items-center justify-between gap-3 text-xs sm:text-sm font-bold text-slate-900"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isOpen ? 'rotate-180 text-amber-600' : ''}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="p-4 sm:p-5 bg-white text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
+                      {faq.a}
                     </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 font-serif-title group-hover:text-amber-700 transition-colors leading-snug">
-                      {subj.title}
-                    </h3>
-                    <div className="flex flex-col gap-1.5 mt-2 text-[10.5px] text-slate-500">
-                      <span className="text-slate-700 font-semibold">{subj.category}</span>
-                      <span className="font-mono text-[9.5px] uppercase tracking-wider text-slate-500">
-                        {uniNames[subj.universityId] || subj.universityId.toUpperCase()} • {subj.semesterId === 'sem1' ? 'Sem 1' : subj.semesterId === 'sem2' ? 'Sem 2' : subj.semesterId === 'sem3' ? 'Sem 3' : subj.semesterId === 'sem4' ? 'Sem 4' : subj.semesterId === 'sem5' ? 'Sem 5' : 'Sem 6'}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
-
-                <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-500 font-medium flex items-center justify-between group-hover:text-slate-900 transition-colors">
-                  <span>View Full Syllabus & Notes</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Link>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      {/* NYAYAAI TUTOR PROMO & DEMO */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-8 rounded-3xl bg-emerald-50/40 border border-emerald-200 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center shadow-sm">
-          
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold">
-              <Bot className="w-4 h-4 text-emerald-700 animate-pulse" />
-              <span>NyayaAI Tutor Assistant</span>
-            </div>
-            <h2 className="text-3xl font-bold font-serif-title text-slate-900">Instant Answers to Complex Legal Doubts</h2>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Stuck on Article 21's expansive scope? Confused between IPC Section 302 and BNS Section 103? Ask NyayaAI for simple explanations, case summaries, illustration breakdowns, and custom flashcards.
-            </p>
-            
-            <ul className="space-y-2 text-xs text-slate-700">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Explain any section with real-world Indian examples</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Summarize 50-page judgments into Facts & Ratio Decidendi</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Generate exam-oriented MCQs and revision flashcards</span>
-              </li>
-            </ul>
-
-            <div className="pt-2">
-              <Link 
-                href="/ai-tutor" 
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all"
-              >
-                Launch NyayaAI Assistant
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
+      {/* 10. FINAL CONVERSION CTA STRIP */}
+      <section className="py-16 lg:py-20 bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950 text-white text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto">
+            <Scale className="w-6 h-6" />
           </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+            Ready to Elevate Your Law School Journey?
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
+            Join thousands of Gujarat law students studying with verified official syllabi, AI answer grading, drafting labs, and NyayaAI.
+          </p>
 
-          {/* Interactive AI Widget Mock */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-md">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                <span className="text-xs font-semibold text-slate-900">NyayaAI Legal Engine</span>
-              </div>
-              <span className="text-[10px] text-slate-500 font-mono">Model: Law-Gemma-2026</span>
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Link
+              href="/curriculum"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-2xl text-xs sm:text-sm font-extrabold transition shadow-lg"
+            >
+              <span>Get Started Free</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
 
-            <div className="space-y-3 text-xs">
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-700">
-                <p className="font-semibold text-amber-700 text-[11px]">User Question:</p>
-                <p>"What is the key difference between IPC 420 and BNS Section 318?"</p>
-              </div>
-
-              <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-slate-800 space-y-1.5">
-                <p className="font-semibold text-emerald-700 text-[11px] flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" /> NyayaAI Response:
-                </p>
-                <p className="text-[11px] text-slate-700 leading-relaxed">
-                  Both sections penalize **Cheating and dishonestly inducing delivery of property**. Under the new criminal code, IPC Section 420 has been renumbered to **BNS Section 318**. BNS 318 retains the maximum imprisonment of 7 years plus fine, but updates the procedural language to encompass electronic fraud.
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-1">
-              <input 
-                type="text" 
-                readOnly 
-                value="Try asking: 'Explain Basic Structure Doctrine in 3 bullet points...'"
-                className="w-full bg-slate-50 border border-slate-200 text-slate-500 text-xs px-3 py-2 rounded-lg cursor-not-allowed"
-              />
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* FREEMIUM PRICING TIERS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="text-center space-y-2 max-w-xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold font-serif-title text-slate-900">Simple, Accessible Pricing</h2>
-          <p className="text-xs sm:text-sm text-slate-600">Free forever for basic study notes. Upgrade for unlimited AI doubt resolution and full judiciary mock tests.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          
-          {/* Free Plan */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-5 shadow-sm">
-            <div>
-              <span className="px-2.5 py-1 rounded bg-slate-100 text-slate-700 text-xs font-semibold">Free Forever</span>
-              <h3 className="text-2xl font-bold text-slate-900 font-serif-title mt-2">₹0 / month</h3>
-              <p className="text-xs text-slate-500">Ideal for daily LLB college revision</p>
-            </div>
-
-            <ul className="space-y-2.5 text-xs text-slate-700">
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> 15 Core Subject Notes Access</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> BNS / BNSS / BSA Bare Acts Explorer</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Daily 10 Practice MCQs</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> 5 NyayaAI Doubts / day</li>
-            </ul>
-
-            <Link href="/subjects" className="block text-center w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-300">
-              Start Free Learning
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-2xl text-xs sm:text-sm font-semibold transition"
+            >
+              <span>Open Student OS Dashboard</span>
             </Link>
           </div>
-
-          {/* Premium Plan */}
-          <div className="p-6 rounded-2xl bg-gradient-to-b from-amber-50/50 to-white border-2 border-amber-400 space-y-5 relative shadow-lg">
-            <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-amber-500 text-slate-950 font-extrabold text-[10px] uppercase tracking-wider">
-              Most Popular
-            </div>
-
-            <div>
-              <span className="px-2.5 py-1 rounded bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold">LowStudy Pro</span>
-              <h3 className="text-2xl font-bold text-slate-900 font-serif-title mt-2">₹199 / month</h3>
-              <p className="text-xs text-amber-800 font-medium">For CLAT, AIBE & Judiciary Aspirants</p>
-            </div>
-
-            <ul className="space-y-2.5 text-xs text-slate-700">
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-600" /> Unlimited NyayaAI Doubt Solver</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-600" /> Full-length Timed Mock Tests with Rank</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-600" /> AI Case Judgment Summarizer</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-600" /> Custom Flashcards & Weak Area Analytics</li>
-            </ul>
-
-            <Link href="/quiz" className="block text-center w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 font-bold text-xs shadow-md">
-              Upgrade to Pro
-            </Link>
-          </div>
-
         </div>
       </section>
 

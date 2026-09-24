@@ -24,7 +24,13 @@ import {
   Check,
   Building2,
   Timer,
-  ListTodo
+  ListTodo,
+  PenTool,
+  Scale,
+  Bot,
+  Search,
+  Calculator,
+  Briefcase
 } from 'lucide-react';
 
 export default function StudentDashboardPage() {
@@ -275,6 +281,101 @@ export default function StudentDashboardPage() {
             </div>
             <p className="text-2xl sm:text-3xl font-black font-mono text-white">{coreMetrics.studyStreak} Days</p>
             <p className="text-[11px] text-slate-500">Daily Study Consistency</p>
+          </div>
+        </div>
+
+        {/* 3.5. Law Student Practice & AI Studio Launchpad */}
+        <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                Law Student AI & Clinical Practice Suite
+              </h3>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              🟢 Grounded in Gujarat Syllabus
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <Link
+              href="/practice/drafting"
+              className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-amber-400/60 hover:bg-slate-850 transition group text-left space-y-1.5"
+            >
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 w-fit group-hover:scale-105 transition">
+                <PenTool className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition leading-tight">
+                AI Drafting Lab
+              </h4>
+              <p className="text-[10px] text-slate-400 leading-snug">Notices, Plaints & Bail</p>
+            </Link>
+
+            <Link
+              href="/practice/moot-court"
+              className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-400/60 hover:bg-slate-850 transition group text-left space-y-1.5"
+            >
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 w-fit group-hover:scale-105 transition">
+                <Scale className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-bold text-white group-hover:text-blue-400 transition leading-tight">
+                Moot Court Arena
+              </h4>
+              <p className="text-[10px] text-slate-400 leading-snug">Memorials & AI Judge</p>
+            </Link>
+
+            <Link
+              href="/practice/answer-evaluator"
+              className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-400/60 hover:bg-slate-850 transition group text-left space-y-1.5"
+            >
+              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 w-fit group-hover:scale-105 transition">
+                <Award className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-bold text-white group-hover:text-emerald-400 transition leading-tight">
+                Answer Evaluator
+              </h4>
+              <p className="text-[10px] text-slate-400 leading-snug">IRAC Rubric & Scores</p>
+            </Link>
+
+            <Link
+              href="/ai/document-analyzer"
+              className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-purple-400/60 hover:bg-slate-850 transition group text-left space-y-1.5"
+            >
+              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 w-fit group-hover:scale-105 transition">
+                <FileText className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-bold text-white group-hover:text-purple-400 transition leading-tight">
+                Document Analyzer
+              </h4>
+              <p className="text-[10px] text-slate-400 leading-snug">Pleadings & FIRs</p>
+            </Link>
+
+            <Link
+              href="/research"
+              className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-rose-400/60 hover:bg-slate-850 transition group text-left space-y-1.5"
+            >
+              <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 w-fit group-hover:scale-105 transition">
+                <Search className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-bold text-white group-hover:text-rose-400 transition leading-tight">
+                Ratio & Precedents
+              </h4>
+              <p className="text-[10px] text-slate-400 leading-snug">Supreme Court Cases</p>
+            </Link>
+
+            <Link
+              href="/career"
+              className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-cyan-400/60 hover:bg-slate-850 transition group text-left space-y-1.5"
+            >
+              <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 w-fit group-hover:scale-105 transition">
+                <Briefcase className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-bold text-white group-hover:text-cyan-400 transition leading-tight">
+                Career & Judiciary
+              </h4>
+              <p className="text-[10px] text-slate-400 leading-snug">Clerkships & JMFC</p>
+            </Link>
           </div>
         </div>
 
