@@ -1057,3 +1057,29 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
 }
+
+// 32. College & Institutional Enquiries / Leads
+model CollegeInstitutionalEnquiry {
+  id                     String    @id @default(cuid())
+  fullName               String
+  email                  String
+  mobile                 String
+  collegeName            String
+  designation            String
+  university             String?
+  cityState              String?
+  studentCount           Int
+  preferredContactMethod String    @default("Email") // Email, Phone, WhatsApp
+  description            String
+  plan                   String    @default("college_institutional")
+  planPrice              String    @default("499")
+  billingCycle           String    @default("monthly")
+  status                 String    @default("NEW") // NEW, CONTACTED, IN_DISCUSSION, CONVERTED, CLOSED
+  ipAddress              String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}

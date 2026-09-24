@@ -1,24 +1,37 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { 
   Check, 
   Sparkles, 
   ShieldCheck, 
   Scale, 
   ArrowRight, 
-  HelpCircle, 
   ChevronDown, 
-  Building2,
-  Award,
-  Zap,
-  BookOpen
+  Building2 
 } from 'lucide-react';
+import InstitutionalEnquiryModal from '@/components/pricing/InstitutionalEnquiryModal';
 
-export default function PricingPage() {
+function PricingInner() {
   const [billingCycle, setBillingCycle] = useState('semester'); // 'semester' | 'annual'
   const [openFaq, setOpenFaq] = useState(0);
+  const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
+  
+  const searchParams = useSearchParams();
+
+  // Auto-open modal if URL has ?plan=college-institutional
+  useEffect(() => {
+    const planParam = searchParams ? searchParams.get('plan') : null;
+    if (
+      planParam === 'college-institutional' ||
+      planParam === 'college_institutional' ||
+      planParam === 'institutional'
+    ) {
+      setIsEnquiryModalOpen(true);
+    }
+  }, [searchParams]);
 
   const plans = [
     {
@@ -29,6 +42,7 @@ export default function PricingPage() {
       desc: "Essential legal syllabus intelligence, Bare Acts and basic exam preparation for every law student in Gujarat.",
       ctaText: "Start Learning Free",
       ctaHref: "/curriculum",
+      isEnquiry: false,
       highlight: false,
       features: [
         "Complete 2026-27 Gujarat University Verified Syllabi",
@@ -47,6 +61,7 @@ export default function PricingPage() {
       desc: "Comprehensive exam evaluation, unlimited AI legal drafting critique, timed 3-hour mock tests, and weak-topic revision.",
       ctaText: "Get Started Pro",
       ctaHref: "/dashboard",
+      isEnquiry: false,
       highlight: true,
       features: [
         "Everything in Free Access",
@@ -62,11 +77,11 @@ export default function PricingPage() {
     {
       name: "College & Institutional",
       badge: "For Law Faculties",
-      price: "Custom",
-      period: "per institution",
+      price: "₹499",
+      period: "month",
       desc: "For Gujarat law colleges, universities, and student bar associations requiring centralized curriculum governance.",
-      ctaText: "Contact Institutional Desk",
-      ctaHref: "mailto:support@lowstudy.com?subject=Institutional%20Plan%20Inquiry",
+      ctaText: "Contact Us",
+      isEnquiry: true,
       highlight: false,
       features: [
         "Everything in Pro Law Scholar for all enrolled students",
@@ -91,6 +106,10 @@ export default function PricingPage() {
     {
       q: "Are the new criminal laws (BNS, BNSS, BSA 2023) included in all plans?",
       a: "Yes! Both Free and Pro tiers include side-by-side comparative references between old penal codes (IPC/CrPC/IEA) and the new 2023 criminal acts."
+    },
+    {
+      q: "How does the College & Institutional Plan work?",
+      a: "The College & Institutional Plan is priced at ₹499/month and enables law colleges, faculties, and universities to equip their faculty and students with centralized syllabus tracking, custom mock exams, question banks, and dedicated academic coordination. Click 'Contact Us' to enquire."
     },
     {
       q: "Can I cancel my subscription anytime?",
@@ -209,17 +228,28 @@ export default function PricingPage() {
               </div>
 
               <div className="pt-8">
-                <Link
-                  href={plan.ctaHref}
-                  className={`w-full py-3.5 px-6 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md ${
-                    plan.highlight
-                      ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 hover:shadow-amber-500/25'
-                      : 'bg-slate-900 hover:bg-slate-800 text-white'
-                  }`}
-                >
-                  <span>{plan.ctaText}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                {plan.isEnquiry ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEnquiryModalOpen(true)}
+                    className="w-full py-3.5 px-6 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md bg-slate-900 hover:bg-slate-800 text-white cursor-pointer active:scale-[0.98]"
+                  >
+                    <span>{plan.ctaText}</span>
+                    <ArrowRight className="w-4 h-4 text-amber-400" />
+                  </button>
+                ) : (
+                  <Link
+                    href={plan.ctaHref}
+                    className={`w-full py-3.5 px-6 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md ${
+                      plan.highlight
+                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 hover:shadow-amber-500/25'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white'
+                    }`}
+                  >
+                    <span>{plan.ctaText}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                )}
               </div>
             </div>
           ))}
@@ -298,6 +328,20 @@ export default function PricingPage() {
         </div>
       </section>
 
+      {/* Institutional Enquiry Modal */}
+      <InstitutionalEnquiryModal
+        isOpen={isEnquiryModalOpen}
+        onClose={() => setIsEnquiryModalOpen(false)}
+      />
+
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+      <PricingInner />
+    </Suspense>
   );
 }
