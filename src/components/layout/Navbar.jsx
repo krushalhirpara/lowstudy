@@ -7,155 +7,150 @@ import {
   Scale, 
   BookOpen, 
   FileText, 
-  Award, 
-  Search, 
   Layers, 
+  BookMarked,
+  Award, 
+  Flame, 
+  Timer, 
+  HelpCircle, 
+  Sparkles, 
+  PenTool, 
+  RotateCcw, 
+  ShieldCheck, 
+  Building2, 
+  GraduationCap, 
+  Radio, 
+  History, 
+  Briefcase, 
+  Calculator, 
+  Search, 
   Menu, 
   X, 
+  ChevronDown, 
+  ChevronRight, 
+  ArrowRight,
+  Command,
+  User,
+  ExternalLink
+} from 'lucide-react';
+import { NAV_ITEMS } from '@/data/navConfig';
+import GlobalSearchModal from '@/components/navigation/GlobalSearchModal';
+
+// Icon resolver map for dynamic config rendering
+const ICON_MAP = {
+  BookOpen,
+  FileText,
+  Layers,
   BookMarked,
-  Building2,
-  HelpCircle,
-  Timer,
-  LayoutDashboard,
-  Bot,
-  CalendarDays,
-  PenTool,
+  Award,
   Flame,
-  ChevronDown,
+  Timer,
+  HelpCircle,
   Sparkles,
+  PenTool,
+  RotateCcw,
+  ShieldCheck,
+  Building2,
+  GraduationCap,
+  Radio,
+  History,
   Briefcase,
   Calculator,
-  ShieldCheck,
-  History,
-  GraduationCap,
-  ArrowRight,
-  User
-} from 'lucide-react';
-import { MockDB } from '@/data/db';
-import SyllabusSelectorModal from '@/components/syllabus/SyllabusSelectorModal';
+  Scale
+};
+
+function getIcon(name) {
+  const Component = ICON_MAP[name] || BookOpen;
+  return Component;
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState(null); // 'learn' | 'practice' | 'ai' | 'syllabus' | 'career'
-  const [searchQuery, setSearchQuery] = useState('');
-  const [mounted, setMounted] = useState(false);
-  const dropdownContainerRef = useRef(null);
-  
-  const [selectedUni, setSelectedUni] = useState(null);
-  const [selectedSem, setSelectedSem] = useState(null);
 
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'learn' | 'practice' | 'syllabus' | 'career' | null
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileAccordion, setMobileAccordion] = useState({}); // { [id]: boolean }
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const navContainerRef = useRef(null);
+
+  // Global Ctrl+K / Cmd+K keyboard shortcut for Search
   useEffect(() => {
     setMounted(true);
-    MockDB.init();
-    setSelectedUni(MockDB.getSelectedUni());
-    setSelectedSem(MockDB.getSelectedSem());
 
-    const handleClickOutside = (event) => {
-      if (dropdownContainerRef.current && !dropdownContainerRef.current.contains(event.target)) {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+      if (e.key === 'Escape') {
         setActiveDropdown(null);
       }
     };
+
+    const handleClickOutside = (event) => {
+      if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
+        setActiveDropdown(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
-  // Close dropdown on route change
+  // Close menus on route change
   useEffect(() => {
     setActiveDropdown(null);
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    router.push(`/research?q=${encodeURIComponent(searchQuery.trim())}`);
-  };
-
-  const navCategories = [
-    {
-      id: 'learn',
-      label: 'Learn',
-      links: [
-        { name: 'Semester Subjects', href: '/subjects', icon: BookOpen, desc: 'All semester syllabus notes & unit breakdown', badge: 'Core' },
-        { name: 'Bare Acts (BNS 2023)', href: '/bare-acts', icon: FileText, desc: 'Bharatiya Nyaya Sanhita, BNSS, BSA & CPC', badge: 'Updated' },
-        { name: 'Landmark Case Laws', href: '/case-laws', icon: Scale, desc: 'Supreme Court precedents & ratio decidendi', badge: 'Precedents' },
-        { name: 'Legal Dictionary', href: '/dictionary', icon: BookMarked, desc: 'Gujarati-English definitions & Latin maxims' },
-        { name: 'Saurashtra Univ Sem 3', href: '/saurashtra-university/llb/semester-3/', icon: Layers, desc: 'Labour Law, Taxation, Banking & Cyber notes', badge: 'Official' }
-      ]
-    },
-    {
-      id: 'practice',
-      label: 'Practice',
-      links: [
-        { name: 'MCQ Practice & Quiz', href: '/quiz', icon: Award, desc: 'Syllabus-aligned multiple choice question banks', badge: 'Quiz' },
-        { name: 'AI Legal Drafting Lab', href: '/practice/drafting', icon: PenTool, desc: 'Draft notices, plaints, bail petitions with AI critique', badge: 'New' },
-        { name: 'Virtual Moot Court', href: '/practice/moot-court', icon: Scale, desc: 'Memorial builder & AI Judicial bench simulation', badge: 'Advocacy' },
-        { name: 'AI Exam Answer Grader', href: '/practice/answer-evaluator', icon: Sparkles, desc: 'Instant IRAC evaluation & score prediction', badge: 'AI' },
-        { name: 'Timed Mock Tests', href: '/mock-test', icon: Timer, desc: 'Simulated 3-hour university exam papers', badge: 'Official' },
-        { name: 'Previous Year Papers', href: '/previous-papers', icon: FileText, desc: 'Saurashtra & Gujarat University PYQs', badge: 'PYQs' },
-        { name: 'Spaced Revision & Mistakes', href: '/revision', icon: BookMarked, desc: 'Automated weak topic memory retention', badge: 'Active' },
-        { name: 'Exam Focus Mode', href: '/exam-mode', icon: Flame, desc: 'Distraction-free high-intensity revision', badge: 'Focus' }
-      ]
-    },
-    {
-      id: 'ai',
-      label: 'NyayaAI',
-      links: [
-        { name: 'Ask NyayaAI Tutor', href: '/ai-tutor', icon: Bot, desc: 'Multilingual legal AI grounded in Gujarat syllabus', badge: '24/7' },
-        { name: 'Legal Research & Ratio Search', href: '/research', icon: Search, desc: 'Search precedents, doctrines, and citations', badge: 'Smart' },
-        { name: 'AI Document Analyzer', href: '/ai/document-analyzer', icon: FileText, desc: 'Analyze pleadings, FIRs & judgments instantly', badge: 'Instant' },
-        { name: 'Exam Answer Evaluator', href: '/practice/answer-evaluator', icon: Award, desc: 'Submit written answers for AI grading rubric' }
-      ]
-    },
-    {
-      id: 'syllabus',
-      label: 'Syllabus Intelligence',
-      links: [
-        { name: 'Current Verified Syllabus', href: '/curriculum', icon: ShieldCheck, desc: 'Official 2026-27 Gujarat university syllabus', badge: 'Verified' },
-        { name: 'Syllabus Version History', href: '/syllabus/history', icon: History, desc: 'Track university syllabus changes & diffs' },
-        { name: 'Gujarat Law Universities', href: '/universities', icon: Building2, desc: 'GU, SU, VNSGU, MSU, HNGU, GNLU portals' },
-        { name: 'Law Colleges Directory', href: '/gujarat-law-colleges', icon: GraduationCap, desc: 'Affiliated colleges across Gujarat' }
-      ]
-    },
-    {
-      id: 'career',
-      label: 'Career & Tools',
-      links: [
-        { name: 'Court & Chamber Internships', href: '/career', icon: Briefcase, desc: 'Gujarat High Court clerkships & advocate chamber guidelines', badge: 'Careers' },
-        { name: 'Judicial Services Roadmap', href: '/career', icon: Scale, desc: 'Gujarat Civil Judge (JMFC) syllabus & preparation' },
-        { name: 'Legal Academic Calculators', href: '/tools', icon: Calculator, desc: 'Limitation Act, Sec 34 CPC interest & court fee calculators', badge: 'Tools' },
-        { name: 'BNS ↔ IPC Comparison Map', href: '/bns-vs-ipc', icon: Layers, desc: 'Quick reference converter between old and new penal laws' },
-        { name: 'Adaptive Study Planner', href: '/study-plan', icon: CalendarDays, desc: 'Personalized daily study schedules' }
-      ]
-    }
-  ];
-
   const toggleDropdown = (id) => {
-    setActiveDropdown(activeDropdown === id ? null : id);
+    setActiveDropdown(prev => (prev === id ? null : id));
   };
 
-  const uniLabel = typeof selectedUni === 'object' && selectedUni !== null
-    ? (selectedUni.code || selectedUni.shortName || selectedUni.id || '').toUpperCase()
-    : typeof selectedUni === 'string'
-    ? selectedUni.toUpperCase()
-    : '';
+  const toggleMobileAccordion = (id) => {
+    setMobileAccordion(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
-  const semLabel = typeof selectedSem === 'object' && selectedSem !== null
-    ? (selectedSem.num || selectedSem.number || selectedSem.id?.replace('sem', '') || 1)
-    : selectedSem || 1;
+  // Helper to determine if a dropdown category is active based on current path
+  const isCategoryActive = (category) => {
+    if (category.type === 'link') {
+      return pathname === category.href;
+    }
+    if (category.items) {
+      return category.items.some(item => pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href)));
+    }
+    if (category.groups) {
+      return category.groups.some(group => 
+        group.items.some(item => pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href)))
+      );
+    }
+    return false;
+  };
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md font-poppins border-b border-slate-200 shadow-sm">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-3 lg:gap-5" ref={dropdownContainerRef}>
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md font-poppins border-b border-slate-200/90 shadow-2xs">
+        <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-3 lg:gap-6" ref={navContainerRef}>
             
-            {/* 1. Brand Logo */}
-            <div className="flex items-center gap-3 shrink-0 min-w-0">
-              <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+            {/* 1. BRAND / LOGO (LEFT) */}
+            <div className="flex items-center gap-3 shrink-0">
+              <Link 
+                href="/" 
+                className="flex items-center gap-2.5 group shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-xl"
+                aria-label="LowStudy Home"
+              >
                 <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-md group-hover:bg-amber-600 transition-colors shrink-0">
                   <Scale className="w-5 h-5 text-amber-400 group-hover:text-white transition-colors" />
                 </div>
@@ -166,126 +161,209 @@ export default function Navbar() {
                       Legal EdTech OS
                     </span>
                   </span>
-                  <span className="hidden sm:block text-[9.5px] text-slate-500 font-semibold tracking-wider pt-0.5 font-gujarati">
+                  <span className="hidden sm:block text-[9px] text-slate-500 font-semibold tracking-wider pt-0.5 font-gujarati">
                     ગુજરાત Law Education
                   </span>
                 </div>
               </Link>
             </div>
 
-            {/* 2. Desktop Mega Dropdowns */}
-            <nav className="hidden xl:flex items-center gap-1 shrink-0">
-              {navCategories.map((cat) => {
-                const isOpen = activeDropdown === cat.id;
-                const isCatActive = cat.links.some(l => pathname === l.href);
-
-                return (
-                  <div key={cat.id} className="relative">
-                    <button
-                      onClick={() => toggleDropdown(cat.id)}
-                      className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-                        isOpen || isCatActive
-                          ? 'bg-slate-100 text-slate-900 font-bold'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            {/* 2. DESKTOP NAVIGATION (CENTER) */}
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5" aria-label="Main Navigation">
+              {NAV_ITEMS.map((item) => {
+                if (item.type === 'link') {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
+                        isActive
+                          ? 'bg-amber-50 text-amber-900 border border-amber-200 font-bold'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
                       }`}
                     >
-                      <span>{cat.label}</span>
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180 text-amber-600' : 'text-slate-400'}`} />
+                      {item.label}
+                    </Link>
+                  );
+                }
+
+                const isOpen = activeDropdown === item.id;
+                const isActive = isCategoryActive(item);
+
+                return (
+                  <div key={item.id} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown(item.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'ArrowDown' && !isOpen) {
+                          e.preventDefault();
+                          setActiveDropdown(item.id);
+                        }
+                      }}
+                      aria-expanded={isOpen}
+                      aria-haspopup="true"
+                      className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
+                        isOpen
+                          ? 'bg-slate-900 text-white font-bold shadow-xs'
+                          : isActive
+                          ? 'bg-amber-50 text-amber-900 border border-amber-200 font-bold'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180 text-amber-400' : 'text-slate-400'
+                      }`} />
                     </button>
 
-                    {/* Dropdown Menu */}
+                    {/* DROPDOWN FLYOUT MENU */}
                     {isOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                        <div className="space-y-1">
-                          {cat.links.map((link) => {
-                            const Icon = link.icon;
-                            const isCurrent = pathname === link.href;
-                            return (
-                              <Link
-                                key={link.name}
-                                href={link.href}
-                                onClick={() => setActiveDropdown(null)}
-                                className={`flex items-start gap-3 p-2.5 rounded-xl transition ${
-                                  isCurrent ? 'bg-amber-50/80 text-amber-900' : 'hover:bg-slate-50 text-slate-800'
-                                }`}
-                              >
-                                <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${isCurrent ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
-                                  <Icon className="w-4 h-4" />
+                      <div 
+                        className={`absolute top-full mt-2 bg-white border border-slate-200/90 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${
+                          item.id === 'practice' || item.id === 'career' 
+                            ? 'w-[560px] -left-20 xl:left-0' 
+                            : 'w-[440px] left-0'
+                        }`}
+                        role="menu"
+                        aria-label={`${item.label} Menu`}
+                      >
+                        {/* Structure 1: Grouped Subsections (Practice, Career & Tools) */}
+                        {item.groups ? (
+                          <div className="grid grid-cols-2 gap-3 divide-x divide-slate-100">
+                            {item.groups.map((grp, gIdx) => (
+                              <div key={grp.title} className={`space-y-1 ${gIdx > 0 ? 'pl-3' : ''}`}>
+                                <div className="px-2 py-1 mb-1">
+                                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                                    {grp.title}
+                                  </span>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center justify-between gap-1">
-                                    <span className="text-xs font-bold text-slate-900">{link.name}</span>
-                                    {link.badge && (
-                                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                                        {link.badge}
-                                      </span>
-                                    )}
+                                <div className="space-y-1">
+                                  {grp.items.map((subItem) => {
+                                    const Icon = getIcon(subItem.iconName);
+                                    const isCurrent = pathname === subItem.href;
+                                    return (
+                                      <Link
+                                        key={subItem.name}
+                                        href={subItem.href}
+                                        onClick={() => setActiveDropdown(null)}
+                                        role="menuitem"
+                                        className={`flex items-start gap-2.5 p-2 rounded-xl transition group ${
+                                          isCurrent 
+                                            ? 'bg-amber-50 text-amber-900 font-semibold' 
+                                            : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900'
+                                        }`}
+                                      >
+                                        <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 transition ${
+                                          isCurrent ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600 group-hover:bg-amber-50 group-hover:text-amber-700'
+                                        }`}>
+                                          <Icon className="w-3.5 h-3.5" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                          <div className="flex items-center justify-between gap-1">
+                                            <span className="text-xs font-bold text-slate-900 group-hover:text-amber-800 transition">
+                                              {subItem.name}
+                                            </span>
+                                            {subItem.badge && (
+                                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 group-hover:bg-amber-100 group-hover:text-amber-800 border border-slate-200/60">
+                                                {subItem.badge}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <p className="text-[11px] text-slate-500 leading-snug line-clamp-1 mt-0.5">
+                                            {subItem.desc}
+                                          </p>
+                                        </div>
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          /* Structure 2: 2-Column Flat List (Learn, Syllabus) */
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {item.items.map((subItem) => {
+                              const Icon = getIcon(subItem.iconName);
+                              const isCurrent = pathname === subItem.href;
+                              return (
+                                <Link
+                                  key={subItem.name}
+                                  href={subItem.href}
+                                  onClick={() => setActiveDropdown(null)}
+                                  role="menuitem"
+                                  className={`flex items-start gap-2.5 p-2 rounded-xl transition group ${
+                                    isCurrent 
+                                      ? 'bg-amber-50 text-amber-900 font-semibold' 
+                                      : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900'
+                                  }`}
+                                >
+                                  <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 transition ${
+                                    isCurrent ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600 group-hover:bg-amber-50 group-hover:text-amber-700'
+                                  }`}>
+                                    <Icon className="w-3.5 h-3.5" />
                                   </div>
-                                  <p className="text-[11px] text-slate-500 leading-snug line-clamp-1 mt-0.5">
-                                    {link.desc}
-                                  </p>
-                                </div>
-                              </Link>
-                            );
-                          })}
-                        </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <span className="text-xs font-bold text-slate-900 group-hover:text-amber-800 transition">
+                                        {subItem.name}
+                                      </span>
+                                      {subItem.badge && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 group-hover:bg-amber-100 group-hover:text-amber-800 border border-slate-200/60">
+                                          {subItem.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 leading-snug line-clamp-1 mt-0.5">
+                                      {subItem.desc}
+                                    </p>
+                                  </div>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 );
               })}
-
-              {/* Direct Dashboard Link */}
-              <Link
-                href="/dashboard"
-                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-                  pathname === '/dashboard'
-                    ? 'bg-amber-50 text-amber-800 border border-amber-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <LayoutDashboard className="w-4 h-4 text-amber-600" />
-                <span>Dashboard</span>
-              </Link>
             </nav>
 
-            {/* 3. Search Bar Shortcut (Desktop) */}
-            <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center relative max-w-[220px] lg:max-w-[260px] w-full">
-              <Search className="absolute left-3 w-3.5 h-3.5 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search case, BNS section..."
-                className="w-full pl-8 pr-3 py-1.5 bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 transition"
-              />
-            </form>
-
-            {/* 4. Action CTAs */}
+            {/* 3. RIGHT ACTIONS (SEARCH, LOGIN, GET STARTED) */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               
-              {/* University Selector Modal Trigger */}
+              {/* Global Search Button */}
               <button
                 type="button"
-                onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition"
-                title="Change Gujarat University / Semester"
+                onClick={() => setIsSearchOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/80 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200/80 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 shadow-2xs"
+                title="Search LowStudy (Ctrl+K)"
+                aria-label="Search LowStudy"
               >
-                <Building2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <span className="hidden sm:inline font-bold">
-                  {uniLabel ? `${uniLabel} Sem ${semLabel}` : 'Select University'}
-                </span>
-                <span className="sm:hidden font-bold">
-                  {uniLabel ? uniLabel : 'Univ'}
-                </span>
+                <Search className="w-3.5 h-3.5 text-slate-500" />
+                <span className="hidden sm:inline">Search</span>
+                <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white border border-slate-200 font-mono text-[9.5px] text-slate-400 font-bold shadow-2xs">
+                  ⌘K
+                </kbd>
               </button>
 
-              {/* Start Learning Free Primary CTA */}
+              {/* Login Link */}
+              <Link
+                href="/login"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/60 rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+              >
+                Login
+              </Link>
+
+              {/* Get Started Primary CTA */}
               <Link
                 href="/curriculum"
-                className="hidden xs-430:inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold transition shadow-sm hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               >
-                <span>Start Learning</span>
+                <span>Get Started</span>
                 <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
               </Link>
 
@@ -293,8 +371,9 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="xl:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-xl border border-slate-200 transition"
+                className="lg:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-xl border border-slate-200 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ml-1"
                 aria-label="Toggle navigation menu"
+                aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -303,87 +382,138 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* 5. Mobile Drawer */}
+        {/* 4. RESPONSIVE MOBILE DRAWER */}
         {mobileMenuOpen && (
-          <div className="xl:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-4 max-h-[85vh] overflow-y-auto animate-in slide-in-from-top-4 duration-200">
-            {/* Search */}
-            <form onSubmit={handleSearchSubmit} className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search cases, BNS sections, topics..."
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900"
-              />
-            </form>
-
-            {/* Mobile Categories Accordion */}
-            <div className="space-y-3 pt-1">
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs font-bold text-amber-900"
-              >
-                <div className="flex items-center gap-2">
-                  <LayoutDashboard className="w-4 h-4 text-amber-600" />
-                  <span>Student Dashboard</span>
-                </div>
-                <ArrowRight className="w-4 h-4 text-amber-600" />
-              </Link>
-
-              {navCategories.map((cat) => (
-                <div key={cat.id} className="border border-slate-100 rounded-xl p-2.5 bg-slate-50/50">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1 block mb-2">
-                    {cat.label}
-                  </span>
-                  <div className="grid grid-cols-1 gap-1">
-                    {cat.links.map((link) => {
-                      const Icon = link.icon;
-                      return (
-                        <Link
-                          key={link.name}
-                          href={link.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-2.5 p-2 rounded-lg text-xs font-medium text-slate-800 hover:bg-white transition"
-                        >
-                          <Icon className="w-4 h-4 text-amber-600 shrink-0" />
-                          <span className="flex-1 truncate">{link.name}</span>
-                          {link.badge && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                              {link.badge}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-              <span className="flex items-center gap-1 font-medium">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                Verified Gujarat Syllabus
+          <div className="lg:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-8 space-y-4 max-h-[85vh] overflow-y-auto animate-in slide-in-from-top-4 duration-200">
+            
+            {/* Mobile Search Input Trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setIsSearchOpen(true);
+              }}
+              className="w-full flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-left"
+            >
+              <div className="flex items-center gap-2">
+                <Search className="w-4 h-4 text-slate-400" />
+                <span>Search subjects, BNS, case laws...</span>
+              </div>
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-400">
+                Search
               </span>
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="font-bold text-slate-800 hover:text-amber-600">
-                Admin Sign In →
-              </Link>
+            </button>
+
+            {/* Categories Accordion */}
+            <div className="space-y-2 pt-1">
+              {NAV_ITEMS.map((item) => {
+                if (item.type === 'link') {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center justify-between p-3 rounded-xl text-xs font-bold transition border ${
+                        isActive
+                          ? 'bg-amber-50 border-amber-200 text-amber-900'
+                          : 'bg-white border-slate-100 text-slate-800 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <ArrowRight className="w-4 h-4 text-slate-400" />
+                    </Link>
+                  );
+                }
+
+                const isExpanded = mobileAccordion[item.id];
+                const isActive = isCategoryActive(item);
+
+                // Collect all items (flatten groups if present)
+                const allItems = item.groups 
+                  ? item.groups.flatMap(g => g.items) 
+                  : item.items;
+
+                return (
+                  <div key={item.id} className="border border-slate-200/80 rounded-2xl overflow-hidden bg-slate-50/50">
+                    <button
+                      type="button"
+                      onClick={() => toggleMobileAccordion(item.id)}
+                      className={`w-full p-3.5 text-left flex items-center justify-between text-xs font-bold transition ${
+                        isActive ? 'text-amber-800 bg-amber-50/50' : 'text-slate-800 hover:bg-slate-100/70'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                        isExpanded ? 'rotate-180 text-amber-600' : ''
+                      }`} />
+                    </button>
+
+                    {isExpanded && (
+                      <div className="p-2 space-y-1 bg-white border-t border-slate-100">
+                        {allItems.map((subItem) => {
+                          const Icon = getIcon(subItem.iconName);
+                          const isCurrent = pathname === subItem.href;
+                          return (
+                            <Link
+                              key={subItem.name}
+                              href={subItem.href}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className={`flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium transition ${
+                                isCurrent ? 'bg-amber-50 text-amber-900 font-bold' : 'text-slate-700 hover:bg-slate-50'
+                              }`}
+                            >
+                              <Icon className="w-4 h-4 text-amber-600 shrink-0" />
+                              <span className="flex-1 truncate">{subItem.name}</span>
+                              {subItem.badge && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                  {subItem.badge}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+
+            {/* Mobile Actions Footer */}
+            <div className="pt-3 border-t border-slate-200 space-y-2">
+              <Link
+                href="/curriculum"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
+              >
+                <span>Get Started Free</span>
+                <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+              </Link>
+
+              <div className="flex items-center justify-between pt-2 px-1 text-xs text-slate-500">
+                <span className="flex items-center gap-1 font-medium">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  Verified Gujarat Syllabus
+                </span>
+                <Link 
+                  href="/login" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="font-bold text-slate-800 hover:text-amber-600"
+                >
+                  Login →
+                </Link>
+              </div>
+            </div>
+
           </div>
         )}
       </header>
 
-      {/* Syllabus Selector Modal */}
-      <SyllabusSelectorModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSelectComplete={() => {
-          MockDB.init();
-          setSelectedUni(MockDB.getSelectedUni());
-          setSelectedSem(MockDB.getSelectedSem());
-        }}
+      {/* GLOBAL SEARCH MODAL */}
+      <GlobalSearchModal 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
       />
     </>
   );
