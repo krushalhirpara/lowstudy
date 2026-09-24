@@ -20,7 +20,7 @@ export function getPlatformSettings() {
   return {
     adsEnabled: true,
     premiumGating: true,
-    adSensePublisherId: 'ca-pub-6428712390812345',
+    adSensePublisherId: 'ca-pub-4372092895969608',
     adSlots: {
       headerBanner: '1234567890',
       inArticle: '2345678901',

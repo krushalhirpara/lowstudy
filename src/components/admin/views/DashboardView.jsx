@@ -145,7 +145,7 @@ export default function DashboardView({ stats, onNavigate, onTriggerAlert }) {
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-between">
               <div>
                 <p className="font-semibold text-slate-200">AdSense Publisher ID</p>
-                <p className="text-[11px] text-slate-400 font-mono">{settings.adSensePublisherId || 'ca-pub-6428712390812345'}</p>
+                <p className="text-[11px] text-slate-400 font-mono">{settings.adSensePublisherId || 'ca-pub-4372092895969608'}</p>
               </div>
               <button
                 onClick={() => onNavigate('settings')}

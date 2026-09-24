@@ -137,6 +137,16 @@ export default function Navbar() {
     setActiveDropdown(activeDropdown === id ? null : id);
   };
 
+  const uniLabel = typeof selectedUni === 'object' && selectedUni !== null
+    ? (selectedUni.code || selectedUni.shortName || selectedUni.id || '').toUpperCase()
+    : typeof selectedUni === 'string'
+    ? selectedUni.toUpperCase()
+    : '';
+
+  const semLabel = typeof selectedSem === 'object' && selectedSem !== null
+    ? (selectedSem.num || selectedSem.number || selectedSem.id?.replace('sem', '') || 1)
+    : selectedSem || 1;
+
   return (
     <>
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md font-poppins border-b border-slate-200 shadow-sm">
@@ -263,10 +273,10 @@ export default function Navbar() {
               >
                 <Building2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 <span className="hidden sm:inline font-bold">
-                  {selectedUni ? `${selectedUni.toUpperCase()} Sem ${selectedSem || 1}` : 'Select University'}
+                  {uniLabel ? `${uniLabel} Sem ${semLabel}` : 'Select University'}
                 </span>
                 <span className="sm:hidden font-bold">
-                  {selectedUni ? selectedUni.toUpperCase() : 'Univ'}
+                  {uniLabel ? uniLabel : 'Univ'}
                 </span>
               </button>
 
@@ -369,9 +379,10 @@ export default function Navbar() {
       <SyllabusSelectorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSelect={(uni, sem) => {
-          setSelectedUni(uni);
-          setSelectedSem(sem);
+        onSelectComplete={() => {
+          MockDB.init();
+          setSelectedUni(MockDB.getSelectedUni());
+          setSelectedSem(MockDB.getSelectedSem());
         }}
       />
     </>

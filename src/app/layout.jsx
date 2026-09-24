@@ -3,6 +3,7 @@ import '@/app/tailwind-built.css';
 import '@/app/white-theme.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import AdSenseShield from '@/components/ads/AdSenseShield';
 import Link from 'next/link';
 import Script from 'next/script';
 import { Bot } from 'lucide-react';
@@ -44,6 +45,15 @@ export const metadata = {
   authors: [{ name: 'LowStudy Team', url: 'https://lowstudy.com' }],
   creator: 'LowStudy',
   publisher: 'LowStudy',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/icon.svg',
+  },
   alternates: {
     canonical: './',
   },
@@ -71,14 +81,17 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${poppins.variable} ${hindVadodara.variable}`}>
-      <body className={`${poppins.className} bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased`}>
-        {/* Google AdSense */}
-        <Script
+      <head>
+        {/* Official Google AdSense Global Async Loader (Native tag prevents data-script warnings) */}
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4372092895969608"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
+      </head>
+      <body className={`${poppins.className} bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased`}>
+        {/* Defensive AdSense runtime exception shield */}
+        <AdSenseShield />
 
         {/* Google Analytics */}
         <Script
