@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 /**
  * AdSenseShield provides a client-side defensive boundary for Google AdSense.
  * It ensures that unhandled runtime exceptions or script collisions from third-party
- * advertising scripts (e.g., adsbygoogle.js, toClass, n_div) can NEVER crash the React
+ * advertising scripts (e.g., adsbygoogle.js, toClass, no_div, TagError) can NEVER crash the React
  * application tree or trigger Next.js "Application error: a client-side exception has occurred".
  */
 export default function AdSenseShield() {
@@ -15,23 +15,36 @@ export default function AdSenseShield() {
     // Defensive initialization of adsbygoogle array
     window.adsbygoogle = window.adsbygoogle || [];
 
+    const isAdSenseError = (errorMsg = '', filename = '', stack = '') => {
+      const lowerMsg = String(errorMsg).toLowerCase();
+      const lowerFile = String(filename).toLowerCase();
+      const lowerStack = String(stack).toLowerCase();
+
+      return (
+        lowerFile.includes('adsbygoogle') ||
+        lowerFile.includes('pagead2') ||
+        lowerFile.includes('googlesyndication') ||
+        lowerFile.includes('doubleclick') ||
+        lowerMsg.includes('adsbygoogle') ||
+        lowerMsg.includes('no_div') ||
+        lowerMsg.includes('n_div') ||
+        lowerMsg.includes('toclass') ||
+        lowerMsg.includes('tagerror') ||
+        lowerMsg.includes('no slot size') ||
+        lowerMsg.includes('already have ads') ||
+        lowerMsg.includes('only one adsense') ||
+        lowerStack.includes('adsbygoogle') ||
+        lowerStack.includes('googlesyndication')
+      );
+    };
+
     const handleWindowError = (event) => {
       const errorMsg = event?.message || event?.error?.message || '';
       const filename = event?.filename || '';
+      const stack = event?.error?.stack || '';
 
-      const isAdSenseRelated =
-        filename.includes('adsbygoogle') ||
-        filename.includes('pagead2') ||
-        filename.includes('googlesyndication') ||
-        filename.includes('doubleclick') ||
-        errorMsg.includes('toClass') ||
-        errorMsg.includes('n_div') ||
-        errorMsg.includes('adsbygoogle') ||
-        errorMsg.includes('TagError');
-
-      if (isAdSenseRelated) {
-        // Prevent third-party ad error from crashing the application
-        console.warn('[AdSense Shield] Safely caught external ad exception:', errorMsg || 'Third-party script error');
+      if (isAdSenseError(errorMsg, filename, stack)) {
+        console.warn('[AdSense Shield] Safely caught external ad script error:', errorMsg || 'Third-party ad exception');
         if (typeof event.preventDefault === 'function') {
           event.preventDefault();
         }
@@ -43,14 +56,11 @@ export default function AdSenseShield() {
     };
 
     const handleUnhandledRejection = (event) => {
-      const reason = event?.reason?.message || String(event?.reason || '');
-      if (
-        reason.includes('adsbygoogle') ||
-        reason.includes('pagead2') ||
-        reason.includes('toClass') ||
-        reason.includes('n_div')
-      ) {
-        console.warn('[AdSense Shield] Safely caught external ad rejection:', reason);
+      const reasonMsg = event?.reason?.message || String(event?.reason || '');
+      const stack = event?.reason?.stack || '';
+
+      if (isAdSenseError(reasonMsg, '', stack)) {
+        console.warn('[AdSense Shield] Safely caught external ad rejection:', reasonMsg);
         if (typeof event.preventDefault === 'function') {
           event.preventDefault();
         }

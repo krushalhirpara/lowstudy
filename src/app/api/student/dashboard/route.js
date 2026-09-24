@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getStudentDashboardData, updateStudyPlanTarget } from '@/lib/services/studentDashboardService';
+import { getSessionFromRequest } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'usr-student-01';
+    const userId = searchParams.get('userId') || sessionPayload?.userId || 'usr-student-01';
+
+    const data = await getStudentDashboardData(userId);
 
     return NextResponse.json(
       { success: true, data },
@@ -27,8 +31,9 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await request.json();
-    const { userId = 'usr-student-01', targetId, isCompleted } = body;
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const body = await request.json().catch(() => ({}));
+    const { userId = sessionPayload?.userId || 'usr-student-01', targetId, isCompleted } = body;
 
     const result = await updateStudyPlanTarget({ userId, targetId, isCompleted });
     return NextResponse.json({ success: true, ...result });

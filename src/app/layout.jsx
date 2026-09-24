@@ -81,17 +81,16 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${poppins.variable} ${hindVadodara.variable}`}>
-      <head>
-        {/* Official Google AdSense Global Async Loader (Native tag prevents data-script warnings) */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4372092895969608"
-          crossOrigin="anonymous"
-        />
-      </head>
       <body className={`${poppins.className} bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased`}>
         {/* Defensive AdSense runtime exception shield */}
         <AdSenseShield />
+
+        {/* Official Google AdSense Global Async Loader (Runs after hydration to protect React DOM tree) */}
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4372092895969608"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
 
         {/* Google Analytics */}
         <Script

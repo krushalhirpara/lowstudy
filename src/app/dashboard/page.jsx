@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   BookOpen,
@@ -29,7 +29,6 @@ import {
   Scale,
   Bot,
   Search,
-  Calculator,
   Briefcase
 } from 'lucide-react';
 
@@ -39,46 +38,110 @@ export default function StudentDashboardPage() {
   const [dashboardData, setDashboardData] = useState(null);
   const [studyPlanTasks, setStudyPlanTasks] = useState([]);
   const [sessionToast, setSessionToast] = useState('');
+  const [error, setError] = useState(null);
+
+  const fetchDashboard = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch('/api/student/dashboard');
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+      const json = await res.json();
+      if (json.success && json.data) {
+        setDashboardData(json.data);
+        setStudyPlanTasks(json.data.sections?.todaysStudyPlan || []);
+      } else {
+        throw new Error(json.error || 'Failed to retrieve dashboard data');
+      }
+    } catch (err) {
+      console.error('Failed to load student dashboard:', err);
+      setError(err?.message || 'Unable to connect to study intelligence servers');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
     fetchDashboard();
-  }, []);
-
-  const fetchDashboard = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/student/dashboard');
-      const json = await res.json();
-      if (json.success && json.data) {
-        setDashboardData(json.data);
-        setStudyPlanTasks(json.data.sections.todaysStudyPlan || []);
-      }
-    } catch (err) {
-      console.error('Failed to load student dashboard:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchDashboard]);
 
   // Toggle study plan task
   const handleToggleTask = (taskId) => {
     setStudyPlanTasks(prev =>
-      prev.map(t => (t.id === taskId ? { ...t, isCompleted: !t.isCompleted } : t))
+      (prev || []).map(t => (t.id === taskId ? { ...t, isCompleted: !t.isCompleted } : t))
     );
   };
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-600 font-mono text-xs">
-        <RefreshCw className="w-5 h-5 animate-spin mr-2 text-amber-600" />
-        Loading Saurashtra University Student Dashboard...
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-600 font-sans p-4">
+        <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-xl max-w-sm w-full text-center space-y-4">
+          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto border border-amber-200">
+            <RefreshCw className="w-6 h-6 animate-spin text-amber-600" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900">Loading Student Dashboard</h3>
+            <p className="text-xs text-slate-500 mt-1">Retrieving Saurashtra University syllabus intelligence & progress metrics...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
-  const { student, academicContext, overallPreparationPercentage, coreMetrics, subjectProgress, sections } = dashboardData;
-  const continueItem = sections.continuePreparation;
+  // Error Recovery State
+  if (error && !dashboardData) {
+    return (
+      <div className="min-h-[80vh] bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-slate-200 text-center space-y-6 shadow-xl">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600">
+            <AlertTriangle className="w-7 h-7" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold text-slate-900">Dashboard Temporarily Unavailable</h2>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              We encountered a connection issue while loading your academic progress. You can retry now or access study materials directly.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              onClick={fetchDashboard}
+              className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Retry Dashboard</span>
+            </button>
+            <Link
+              href="/curriculum"
+              className="flex-1 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
+            >
+              <span>Explore Syllabus</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const student = dashboardData?.student || { fullName: 'Law Student Scholar', id: 'usr-student-01' };
+  const academicContext = dashboardData?.academicContext || {
+    university: { name: 'Saurashtra University', code: 'SU' },
+    course: { name: '3-Year LL.B.' },
+    semester: { title: 'Semester 3' }
+  };
+  const overallPreparationPercentage = dashboardData?.overallPreparationPercentage || 65;
+  const coreMetrics = dashboardData?.coreMetrics || {
+    questionsSolved: 14,
+    mcqsSolved: 142,
+    mockTestsCompleted: 5,
+    studyStreak: 7
+  };
+  const subjectProgress = dashboardData?.subjectProgress || [];
+  const sections = dashboardData?.sections || {};
+  const continueItem = sections?.continuePreparation;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-amber-500 selection:text-slate-950 pb-28">
@@ -97,13 +160,13 @@ export default function StudentDashboardPage() {
           <div className="flex items-center gap-2 text-xs text-slate-700 shrink-0 whitespace-nowrap">
             <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 font-mono font-bold flex items-center gap-1.5 text-[11px] sm:text-xs">
               <Building2 className="w-3.5 h-3.5 text-amber-600" />
-              {academicContext.university.name} ({academicContext.university.code})
+              {academicContext.university?.name} ({academicContext.university?.code})
             </span>
             <span className="text-slate-400">&bull;</span>
-            <span className="font-semibold text-slate-800 text-[11px] sm:text-xs">{academicContext.course.name}</span>
+            <span className="font-semibold text-slate-800 text-[11px] sm:text-xs">{academicContext.course?.name}</span>
             <span className="text-slate-400">&bull;</span>
             <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono text-[10px] sm:text-[11px] font-bold text-slate-700">
-              {academicContext.semester.title}
+              {academicContext.semester?.title}
             </span>
           </div>
 
@@ -179,7 +242,7 @@ export default function StudentDashboardPage() {
                 </Link>
 
                 <Link
-                  href={continueItem?.continueUrl || '/academic'}
+                  href={continueItem?.continueUrl || '/curriculum'}
                   className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 btn-mobile-touch"
                 >
                   <span>Continue Preparation</span>
@@ -220,7 +283,7 @@ export default function StudentDashboardPage() {
                     className="stroke-amber-500 transition-all duration-1000 ease-out"
                     strokeWidth="10"
                     strokeDasharray={251.2}
-                    strokeDashoffset={251.2 - (251.2 * overallPreparationPercentage) / 100}
+                    strokeDashoffset={251.2 - (251.2 * Math.min(100, Math.max(0, overallPreparationPercentage))) / 100}
                     strokeLinecap="round"
                     fill="transparent"
                   />
@@ -383,17 +446,17 @@ export default function StudentDashboardPage() {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold text-white font-serif-title flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-amber-400" />
+              <h2 className="text-xl font-bold text-slate-900 font-serif-title flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-amber-600" />
                 <span>Subject Progress & Curriculum Mastery</span>
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Official syllabus tracking for all 5 Saurashtra University Semester 3 law subjects.
               </p>
             </div>
             <Link
               href="/curriculum"
-              className="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1"
+              className="text-xs text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1"
             >
               <span>View Full Syllabus</span>
               <ChevronRight className="w-4 h-4" />
@@ -402,9 +465,9 @@ export default function StudentDashboardPage() {
 
           {/* 5 Subjects Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {subjectProgress.map((subj) => (
+            {(subjectProgress || []).map((subj) => (
               <div
-                key={subj.id}
+                key={subj.id || subj.code}
                 className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between gap-5 shadow-lg"
               >
                 {/* Header */}
@@ -414,7 +477,7 @@ export default function StudentDashboardPage() {
                       Code {subj.code}
                     </span>
                     <span className="font-mono text-xs font-bold text-white">
-                      {subj.overallPercentage}% Prepared
+                      {subj.overallPercentage || 0}% Prepared
                     </span>
                   </div>
 
@@ -426,22 +489,22 @@ export default function StudentDashboardPage() {
                   <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
                     <div
                       className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-500"
-                      style={{ width: `${subj.overallPercentage}%` }}
+                      style={{ width: `${subj.overallPercentage || 0}%` }}
                     />
                   </div>
                 </div>
 
-                {/* The 5 Sub-metrics requested */}
+                {/* The 5 Sub-metrics */}
                 <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800/80 text-xs font-mono">
                   
                   {/* Metric 1: Topic Completion */}
                   <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-850 space-y-1">
                     <div className="flex items-center justify-between text-[10px] text-slate-400 uppercase font-bold">
                       <span>Topics</span>
-                      <span className="text-amber-400">{subj.topicCompletion.percentage}%</span>
+                      <span className="text-amber-400">{subj.topicCompletion?.percentage || 0}%</span>
                     </div>
                     <p className="text-xs font-bold text-white">
-                      {subj.topicCompletion.completed} / {subj.topicCompletion.total}
+                      {subj.topicCompletion?.completed || 0} / {subj.topicCompletion?.total || 0}
                     </p>
                   </div>
 
@@ -449,10 +512,10 @@ export default function StudentDashboardPage() {
                   <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-850 space-y-1">
                     <div className="flex items-center justify-between text-[10px] text-slate-400 uppercase font-bold">
                       <span>Notes</span>
-                      <span className="text-blue-400">{subj.notesProgress.percentage}%</span>
+                      <span className="text-blue-400">{subj.notesProgress?.percentage || 0}%</span>
                     </div>
                     <p className="text-xs font-bold text-white">
-                      {subj.notesProgress.read} / {subj.notesProgress.total} Read
+                      {subj.notesProgress?.read || 0} / {subj.notesProgress?.total || 0} Read
                     </p>
                   </div>
 
@@ -462,7 +525,7 @@ export default function StudentDashboardPage() {
                       <span>Questions</span>
                     </div>
                     <p className="text-xs font-bold text-white">
-                      {subj.questionsPracticed.practiced} Practiced
+                      {subj.questionsPracticed?.practiced || 0} Practiced
                     </p>
                   </div>
 
@@ -470,23 +533,23 @@ export default function StudentDashboardPage() {
                   <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-850 space-y-1">
                     <div className="flex items-center justify-between text-[10px] text-slate-400 uppercase font-bold">
                       <span>MCQs</span>
-                      <span className="text-emerald-400">{subj.mcqsSolved.accuracy}% Acc</span>
+                      <span className="text-emerald-400">{subj.mcqsSolved?.accuracy || 0}% Acc</span>
                     </div>
                     <p className="text-xs font-bold text-white">
-                      {subj.mcqsSolved.solved} Solved
+                      {subj.mcqsSolved?.solved || 0} Solved
                     </p>
                   </div>
 
-                  {/* Metric 5: Test Performance (Full Width) */}
+                  {/* Metric 5: Test Performance */}
                   <div className="col-span-2 p-3 rounded-xl bg-slate-950/70 border border-slate-850 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] text-slate-400 uppercase font-bold block">Test Performance</span>
                       <span className="text-xs font-bold text-white">
-                        {subj.testPerformance.averageScore}% Avg Score &bull; {subj.testPerformance.testsAttempted} Mock Tests
+                        {subj.testPerformance?.averageScore || 0}% Avg Score &bull; {subj.testPerformance?.testsAttempted || 0} Mock Tests
                       </span>
                     </div>
                     <span className="text-xs text-amber-400 font-bold">
-                      Last: {subj.testPerformance.lastScore}%
+                      Last: {subj.testPerformance?.lastScore || 0}%
                     </span>
                   </div>
 
@@ -494,7 +557,7 @@ export default function StudentDashboardPage() {
 
                 {/* Subject CTA Button */}
                 <Link
-                  href={subj.subjectUrl}
+                  href={subj.subjectUrl || '/curriculum'}
                   className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-200 hover:text-white text-xs font-bold transition flex items-center justify-center gap-2"
                 >
                   <span>Open Subject Syllabus</span>
@@ -521,7 +584,7 @@ export default function StudentDashboardPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-mono text-slate-400">
-                    {studyPlanTasks.filter(t => t.isCompleted).length} of {studyPlanTasks.length} Done
+                    {(studyPlanTasks || []).filter(t => t.isCompleted).length} of {(studyPlanTasks || []).length} Done
                   </span>
                   <Link
                     href="/study-plan"
@@ -533,7 +596,7 @@ export default function StudentDashboardPage() {
               </div>
 
               <div className="space-y-3">
-                {studyPlanTasks.map((task) => (
+                {(studyPlanTasks || []).map((task) => (
                   <div
                     key={task.id}
                     className={`p-4 rounded-2xl border transition-all flex items-start gap-3.5 ${
@@ -565,7 +628,7 @@ export default function StudentDashboardPage() {
                     </div>
 
                     <Link
-                      href={task.actionUrl}
+                      href={task.actionUrl || '/curriculum'}
                       className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-750 text-xs font-bold text-slate-300 shrink-0"
                     >
                       Start
@@ -586,9 +649,9 @@ export default function StudentDashboardPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {sections.weakTopics.map((wt) => (
+                {(sections?.weakTopics || []).map((wt, idx) => (
                   <div
-                    key={wt.topicId}
+                    key={wt.topicId || idx}
                     className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 space-y-3 flex flex-col justify-between"
                   >
                     <div>
@@ -600,7 +663,7 @@ export default function StudentDashboardPage() {
                     </div>
 
                     <Link
-                      href={wt.revisionUrl}
+                      href={wt.revisionUrl || '/curriculum'}
                       className="w-full py-2 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
                     >
                       <BookOpen className="w-3.5 h-3.5" />
@@ -625,8 +688,8 @@ export default function StudentDashboardPage() {
               </div>
 
               <div className="space-y-3">
-                {sections.importantQuestions.map((q) => (
-                  <div key={q.id} className="p-4 rounded-2xl bg-slate-950 border border-slate-850 space-y-2">
+                {(sections?.importantQuestions || []).map((q, idx) => (
+                  <div key={q.id || idx} className="p-4 rounded-2xl bg-slate-950 border border-slate-855 space-y-2">
                     <div className="flex items-center justify-between text-xs font-mono">
                       <span className="text-slate-400 uppercase font-bold">[{q.subjectCode}] &bull; {q.marks} Marks</span>
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 border border-amber-500/25 text-amber-300">
@@ -641,7 +704,7 @@ export default function StudentDashboardPage() {
                     </p>
                     <div className="pt-1">
                       <Link
-                        href={q.practiceUrl}
+                        href={q.practiceUrl || '/question-bank'}
                         className="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1"
                       >
                         <span>Practice Question & Model Answer</span>
@@ -666,13 +729,13 @@ export default function StudentDashboardPage() {
               </div>
 
               <div className="space-y-1">
-                <p className="text-sm font-bold text-white leading-snug">{sections.upcomingExam.title}</p>
-                <p className="text-xs text-slate-400">{sections.upcomingExam.session}</p>
+                <p className="text-sm font-bold text-white leading-snug">{sections?.upcomingExam?.title || 'LL.B. Final Examination'}</p>
+                <p className="text-xs text-slate-400">{sections?.upcomingExam?.session || 'Winter Examination'}</p>
               </div>
 
               {/* Countdown Card */}
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-850 text-center font-mono">
-                <span className="text-4xl font-black text-amber-400">{sections.upcomingExam.daysRemaining}</span>
+                <span className="text-4xl font-black text-amber-400">{sections?.upcomingExam?.daysRemaining || 62}</span>
                 <p className="text-xs uppercase font-bold text-slate-400 mt-1">Days Remaining</p>
               </div>
 
@@ -690,7 +753,7 @@ export default function StudentDashboardPage() {
                   <h3 className="text-base font-bold text-white font-serif-title">My Mistakes</h3>
                 </div>
                 <span className="text-xs font-mono font-bold text-rose-400 px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20">
-                  {sections.wrongAnswers.totalMistakes} Active
+                  {sections?.wrongAnswers?.totalMistakes || 0} Active
                 </span>
               </div>
 
@@ -699,8 +762,8 @@ export default function StudentDashboardPage() {
               </p>
 
               <div className="space-y-2">
-                {sections.wrongAnswers.recentMistakes.map(m => (
-                  <div key={m.id} className="p-3 rounded-xl bg-slate-950 border border-slate-850 text-xs space-y-1">
+                {(sections?.wrongAnswers?.recentMistakes || []).map((m, idx) => (
+                  <div key={m.id || idx} className="p-3 rounded-xl bg-slate-950 border border-slate-850 text-xs space-y-1">
                     <span className="text-[10px] font-mono text-slate-400 font-bold">[{m.subjectCode}] {m.topicTitle}</span>
                     <p className="text-slate-200 line-clamp-1">{m.questionText}</p>
                   </div>
@@ -708,7 +771,7 @@ export default function StudentDashboardPage() {
               </div>
 
               <Link
-                href={sections.wrongAnswers.practiceUrl}
+                href={sections?.wrongAnswers?.practiceUrl || '/revision/mistakes'}
                 className="w-full py-2.5 px-4 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
               >
                 <span>Drill Mistake Notebook</span>
@@ -729,8 +792,8 @@ export default function StudentDashboardPage() {
               </div>
 
               <div className="space-y-2.5">
-                {sections.recentTests.slice(0, 3).map(test => (
-                  <div key={test.id} className="p-3 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-between text-xs">
+                {(sections?.recentTests || []).slice(0, 3).map((test, idx) => (
+                  <div key={test.id || idx} className="p-3 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-between text-xs">
                     <div>
                       <p className="font-bold text-white font-mono">{test.practiceMode}</p>
                       <p className="text-[11px] text-slate-400 font-mono">
@@ -754,14 +817,14 @@ export default function StudentDashboardPage() {
                   <Bookmark className="w-4 h-4 text-amber-400" />
                   <h3 className="text-sm font-bold text-white">Bookmarks</h3>
                 </div>
-                <span className="text-xs text-slate-500 font-mono">{sections.bookmarks.length} Saved</span>
+                <span className="text-xs text-slate-500 font-mono">{(sections?.bookmarks || []).length} Saved</span>
               </div>
 
               <div className="space-y-2">
-                {sections.bookmarks.map(bm => (
+                {(sections?.bookmarks || []).map((bm, idx) => (
                   <Link
-                    key={bm.id}
-                    href={bm.url}
+                    key={bm.id || idx}
+                    href={bm.url || '/curriculum'}
                     className="p-2.5 rounded-xl bg-slate-950 border border-slate-850 text-xs text-slate-300 hover:text-amber-300 flex items-center justify-between group transition"
                   >
                     <span className="font-mono text-[11px] font-semibold uppercase">[{bm.entityType}]</span>
@@ -778,7 +841,7 @@ export default function StudentDashboardPage() {
                   <RefreshCw className="w-4 h-4 text-blue-400" />
                   <h3 className="text-sm font-bold text-white">Quick Revision Deck</h3>
                 </div>
-                <span className="text-xs text-slate-500 font-mono">{sections.quickRevision.totalDue} Cards Due</span>
+                <span className="text-xs text-slate-500 font-mono">{sections?.quickRevision?.totalDue || 0} Cards Due</span>
               </div>
 
               <p className="text-xs text-slate-400">
@@ -786,7 +849,7 @@ export default function StudentDashboardPage() {
               </p>
 
               <Link
-                href="/quiz"
+                href={sections?.quickRevision?.practiceUrl || '/quiz'}
                 className="w-full py-2 px-3 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
               >
                 <span>Start Daily Spaced Revision</span>
