@@ -49,7 +49,7 @@ export default function SignupPage() {
 
     if (!isFirebaseConfigured()) {
       setErrorMsg(
-        'Firebase configuration is pending. Please configure NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN.'
+        'Google Sign-In requires NEXT_PUBLIC_FIREBASE_API_KEY to be configured in your environment variables.'
       );
       return;
     }
