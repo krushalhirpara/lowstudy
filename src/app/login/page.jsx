@@ -73,7 +73,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           action: 'google',
           firebaseUid: firebaseUser.uid,
-          email: firebaseUser.email,
+          email: firebaseUser.email.trim().toLowerCase(),
           fullName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
           photoURL: firebaseUser.photoURL || null,
         }),
@@ -128,8 +128,14 @@ export default function LoginPage() {
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!email) {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) {
       setErrorMsg('Please enter your email address.');
+      return;
+    }
+
+    if (!password) {
+      setErrorMsg('Please enter your password.');
       return;
     }
 
@@ -141,7 +147,7 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'login',
-          email,
+          email: trimmedEmail,
           password,
         }),
       });
@@ -149,7 +155,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Invalid credentials.');
+        throw new Error(data.error || 'Invalid email or password. Please try again.');
       }
 
       setSuccessMsg('Signed in successfully! Redirecting...');
@@ -159,7 +165,7 @@ export default function LoginPage() {
       }, 400);
 
     } catch (err) {
-      setErrorMsg(err.message || 'Unable to sign in. Please verify your credentials.');
+      setErrorMsg(err.message || 'Invalid email or password. Please try again.');
     } finally {
       setIsEmailLoading(false);
     }
@@ -259,6 +265,16 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        {/* Don't have an account link */}
+        <div className="text-center pt-0.5">
+          <p className="text-xs text-slate-400">
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" className="text-amber-400 hover:text-amber-300 font-semibold transition underline decoration-amber-400/40 underline-offset-2">
+              Create one
+            </Link>
+          </p>
+        </div>
 
         {/* ──────── OR ──────── Divider */}
         <div className="relative flex items-center justify-center">
