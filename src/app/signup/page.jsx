@@ -94,7 +94,7 @@ export default function SignupPage() {
       }, 400);
 
     } catch (err) {
-      console.warn('Google Sign-Up caught error:', err.code || err.message);
+      console.warn('Google Sign-Up error:', err.code || err.message);
 
       const code = err.code || '';
       if (code === 'auth/popup-closed-by-user') {
@@ -102,17 +102,17 @@ export default function SignupPage() {
       } else if (code === 'auth/cancelled-popup-request') {
         setErrorMsg('Google sign-in request was cancelled.');
       } else if (code === 'auth/popup-blocked') {
-        setErrorMsg('Popup was blocked by your browser. Please allow popups for LowStudy and try again.');
+        setErrorMsg('Google sign-in popup was blocked. Please allow popups and try again.');
       } else if (code === 'auth/network-request-failed') {
-        setErrorMsg('Network connection issue. Please check your internet connection.');
+        setErrorMsg('Network error. Please try again.');
       } else if (code === 'auth/account-exists-with-different-credential') {
         setErrorMsg(
           'An account already exists with this email using a different sign-in method. Please sign in with your email and password.'
         );
       } else if (code === 'auth/operation-not-allowed') {
-        setErrorMsg('Google provider is not enabled in Firebase Console. Please enable Google in Firebase Authentication.');
+        setErrorMsg('Google sign-in is currently unavailable.');
       } else if (code === 'auth/unauthorized-domain') {
-        setErrorMsg('This domain is not authorized in Firebase Console. Please add lowstudy.com to Authorized Domains.');
+        setErrorMsg('This domain is not authorized for authentication.');
       } else {
         setErrorMsg(err.message || 'Unable to sign in with Google. Please try again.');
       }

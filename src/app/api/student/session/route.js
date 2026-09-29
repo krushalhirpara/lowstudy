@@ -21,6 +21,63 @@ function isValidEmail(email) {
 }
 
 /**
+ * Safe student creation helper that gracefully handles foreign key defaults.
+ */
+async function createNewStudent({ email, fullName, avatar, firebaseUid, provider = 'google', passwordHash = null }) {
+  const baseData = {
+    email,
+    fullName,
+    avatar,
+    firebaseUid,
+    provider,
+    role: 'STUDENT',
+    xp: 100,
+    streakDays: 1,
+    coins: 50,
+    isActive: true,
+    ...(passwordHash ? { passwordHash } : {}),
+  };
+
+  const selectFields = {
+    id: true,
+    fullName: true,
+    email: true,
+    role: true,
+    avatar: true,
+    provider: true,
+    firebaseUid: true,
+    streakDays: true,
+    xp: true,
+    coins: true,
+    universityId: true,
+    courseId: true,
+    semesterId: true,
+    isActive: true,
+  };
+
+  // Attempt 1: Try with default Gujarat law academic path
+  try {
+    return await prisma.user.create({
+      data: {
+        ...baseData,
+        universityId: 'su',
+        collegeId: 'col-la-shah',
+        courseId: 'su-llb-3yr',
+        semesterId: 'su-llb-3yr-sem3',
+      },
+      select: selectFields,
+    });
+  } catch (fkError) {
+    // If foreign key constraint failed (e.g. unseeded database), create standalone student
+    console.warn('[Session Route] Creating student without academic FKs due to:', fkError?.code || fkError?.message);
+    return await prisma.user.create({
+      data: baseData,
+      select: selectFields,
+    });
+  }
+}
+
+/**
  * GET: Retrieve active student session from secure HttpOnly cookie or Bearer token.
  */
 export async function GET(request) {
@@ -68,7 +125,7 @@ export async function GET(request) {
       user,
     });
   } catch (error) {
-    console.error('Error in GET /api/student/session:', error);
+    console.error('Error in GET /api/student/session:', error?.message || error);
     return NextResponse.json(
       { success: false, authenticated: false, error: 'Session verification failed' },
       { status: 500 }
@@ -87,8 +144,8 @@ export async function POST(request) {
       request.headers.get('x-real-ip') || 
       'client-ip';
 
-    // Rate Limiting Protection (20 attempts per minute)
-    const rateLimit = checkRateLimit(`login-${clientIp}`, 20, 60000);
+    // Rate Limiting Protection (30 attempts per minute)
+    const rateLimit = checkRateLimit(`login-${clientIp}`, 30, 60000);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
@@ -108,6 +165,9 @@ export async function POST(request) {
     const body = await request.json().catch(() => ({}));
     const { action = 'login', userId, email, password, fullName, firebaseUid, photoURL } = body;
 
+    // Normalize email cleanly (lowercase + trim whitespace)
+    const normalizedEmail = typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : null;
+
     // Handle Logout
     if (action === 'logout') {
       const response = NextResponse.json({
@@ -122,16 +182,13 @@ export async function POST(request) {
         value: '',
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         path: '/',
         maxAge: 0,
       });
 
       return response;
     }
-
-    // Normalize email cleanly (lowercase + trim whitespace)
-    const normalizedEmail = typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : null;
 
     // =========================================================================
     // ACTION: SIGNUP / REGISTER
@@ -174,7 +231,7 @@ export async function POST(request) {
       let targetUser = null;
 
       if (existingUser) {
-        // If user exists and already has a password, update password and log in
+        // If user exists, update password hash and log in
         const { hash, salt } = hashPassword(password);
         targetUser = await prisma.user.update({
           where: { id: existingUser.id },
@@ -201,37 +258,11 @@ export async function POST(request) {
       } else {
         // Create new student account
         const { hash, salt } = hashPassword(password);
-        targetUser = await prisma.user.create({
-          data: {
-            email: normalizedEmail,
-            fullName: cleanFullName,
-            passwordHash: `${salt}:${hash}`,
-            provider: 'credentials',
-            role: 'STUDENT',
-            universityId: 'su',
-            collegeId: 'col-la-shah',
-            courseId: 'su-llb-3yr',
-            semesterId: 'su-llb-3yr-sem3',
-            xp: 100,
-            streakDays: 1,
-            coins: 50,
-            isActive: true,
-          },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            avatar: true,
-            provider: true,
-            streakDays: true,
-            xp: true,
-            coins: true,
-            universityId: true,
-            courseId: true,
-            semesterId: true,
-            isActive: true,
-          },
+        targetUser = await createNewStudent({
+          email: normalizedEmail,
+          fullName: cleanFullName,
+          provider: 'credentials',
+          passwordHash: `${salt}:${hash}`,
         });
       }
 
@@ -257,7 +288,7 @@ export async function POST(request) {
         value: sessionToken,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         path: '/',
         maxAge: 7 * 24 * 60 * 60,
       });
@@ -269,7 +300,7 @@ export async function POST(request) {
     // ACTION: GOOGLE SIGN-IN / ACCOUNT LINKING
     // =========================================================================
     if (action === 'google') {
-      const cleanUid = typeof firebaseUid === 'string' ? firebaseUid.trim() : null;
+      const cleanUid = typeof firebaseUid === 'string' && firebaseUid.trim() ? firebaseUid.trim() : null;
       const cleanName = typeof fullName === 'string' && fullName.trim() 
         ? sanitizeInput(fullName.trim(), { maxLength: 100 }) 
         : null;
@@ -284,14 +315,9 @@ export async function POST(request) {
         );
       }
 
-      // Check if user already exists by email OR by firebaseUid
-      let user = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { email: normalizedEmail },
-            { firebaseUid: cleanUid }
-          ]
-        },
+      // Check if user exists by email first, or by firebaseUid
+      let user = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
         select: {
           id: true,
           fullName: true,
@@ -311,6 +337,29 @@ export async function POST(request) {
         }
       });
 
+      if (!user && cleanUid) {
+        user = await prisma.user.findUnique({
+          where: { firebaseUid: cleanUid },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            role: true,
+            avatar: true,
+            provider: true,
+            firebaseUid: true,
+            passwordHash: true,
+            streakDays: true,
+            xp: true,
+            coins: true,
+            universityId: true,
+            courseId: true,
+            semesterId: true,
+            isActive: true,
+          }
+        });
+      }
+
       if (user) {
         // User exists: verify active status
         if (!user.isActive) {
@@ -320,10 +369,14 @@ export async function POST(request) {
           );
         }
 
-        // Account Linking: If user registered via email/password, link Google firebaseUid and avatar
+        // Account Linking: Link Google firebaseUid and avatar if missing
         const updateData = {};
-        if (!user.firebaseUid) {
-          updateData.firebaseUid = cleanUid;
+        if (!user.firebaseUid || user.firebaseUid !== cleanUid) {
+          // Check if cleanUid is already claimed by another user to avoid unique constraint conflict
+          const conflictingUser = await prisma.user.findUnique({ where: { firebaseUid: cleanUid } });
+          if (!conflictingUser || conflictingUser.id === user.id) {
+            updateData.firebaseUid = cleanUid;
+          }
         }
         if (!user.avatar && cleanPhoto) {
           updateData.avatar = cleanPhoto;
@@ -356,39 +409,12 @@ export async function POST(request) {
         }
       } else {
         // Create new user for first-time Google sign-in
-        user = await prisma.user.create({
-          data: {
-            email: normalizedEmail,
-            fullName: cleanName || normalizedEmail.split('@')[0],
-            avatar: cleanPhoto,
-            firebaseUid: cleanUid,
-            provider: 'google',
-            role: 'STUDENT',
-            universityId: 'su',
-            collegeId: 'col-la-shah',
-            courseId: 'su-llb-3yr',
-            semesterId: 'su-llb-3yr-sem3',
-            xp: 100,
-            streakDays: 1,
-            coins: 50,
-            isActive: true,
-          },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            avatar: true,
-            provider: true,
-            firebaseUid: true,
-            streakDays: true,
-            xp: true,
-            coins: true,
-            universityId: true,
-            courseId: true,
-            semesterId: true,
-            isActive: true,
-          }
+        user = await createNewStudent({
+          email: normalizedEmail,
+          fullName: cleanName || normalizedEmail.split('@')[0],
+          avatar: cleanPhoto,
+          firebaseUid: cleanUid,
+          provider: 'google',
         });
       }
 
@@ -410,13 +436,13 @@ export async function POST(request) {
         token: sessionToken,
       });
 
-      // Set Secure HttpOnly Session Cookie (7 days)
+      // Set Secure HttpOnly Session Cookie (7 days, SameSite=Lax)
       response.cookies.set({
         name: 'lowstudy_session',
         value: sessionToken,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         path: '/',
         maxAge: 7 * 24 * 60 * 60,
       });
@@ -489,7 +515,7 @@ export async function POST(request) {
       });
     }
 
-    // If user does not exist yet: Seamlessly create account and log in!
+    // If user does not exist yet: Seamlessly create account and log in
     if (!user) {
       if (!isValidEmail(normalizedEmail)) {
         return NextResponse.json(
@@ -499,37 +525,11 @@ export async function POST(request) {
       }
 
       const { hash, salt } = hashPassword(password);
-      user = await prisma.user.create({
-        data: {
-          email: normalizedEmail,
-          fullName: normalizedEmail.split('@')[0],
-          passwordHash: `${salt}:${hash}`,
-          provider: 'credentials',
-          role: 'STUDENT',
-          universityId: 'su',
-          collegeId: 'col-la-shah',
-          courseId: 'su-llb-3yr',
-          semesterId: 'su-llb-3yr-sem3',
-          xp: 100,
-          streakDays: 1,
-          coins: 50,
-          isActive: true,
-        },
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          role: true,
-          avatar: true,
-          provider: true,
-          streakDays: true,
-          xp: true,
-          coins: true,
-          universityId: true,
-          courseId: true,
-          semesterId: true,
-          isActive: true,
-        },
+      user = await createNewStudent({
+        email: normalizedEmail,
+        fullName: normalizedEmail.split('@')[0],
+        provider: 'credentials',
+        passwordHash: `${salt}:${hash}`,
       });
     } else {
       // User exists: check active status
@@ -550,7 +550,7 @@ export async function POST(request) {
           }, { status: 401 });
         }
       } else {
-        // User exists without password hash (e.g. seeded user or Google user adding password): save password hash
+        // User exists without password hash: save password hash
         const { hash, salt } = hashPassword(password);
         user = await prisma.user.update({
           where: { id: user.id },
@@ -562,7 +562,6 @@ export async function POST(request) {
             role: true,
             avatar: true,
             provider: true,
-            passwordHash: true,
             streakDays: true,
             xp: true,
             coins: true,
@@ -594,23 +593,28 @@ export async function POST(request) {
       token: sessionToken,
     });
 
-    // Set Secure HttpOnly Session Cookie
+    // Set Secure HttpOnly Session Cookie (7 days, SameSite=Lax)
     response.cookies.set({
       name: 'lowstudy_session',
       value: sessionToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: 7 * 24 * 60 * 60,
     });
 
     return response;
   } catch (error) {
-    console.error('Session management error:', error);
+    console.error('[POST /api/student/session] Error:', {
+      name: error?.name,
+      code: error?.code,
+      message: error?.message,
+    });
     return NextResponse.json(
       { success: false, error: 'Authentication service error. Please try again.' },
       { status: 500 }
     );
   }
 }
+

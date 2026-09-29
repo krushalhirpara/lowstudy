@@ -1,28 +1,63 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
+import fs from 'fs';
 
 const globalForPrisma = globalThis;
 
 /**
+ * Resolves SQLite file paths to valid absolute paths.
+ */
+function resolveDatabaseUrl(url) {
+  if (!url || typeof url !== 'string') {
+    const defaultDbPath = path.resolve(process.cwd(), 'prisma/dev.db');
+    return `file:${defaultDbPath}`;
+  }
+
+  if (url.startsWith('file:')) {
+    const rawPath = url.replace(/^file:/, '').trim();
+    if (!path.isAbsolute(rawPath)) {
+      // Check if file exists relative to cwd or inside prisma/
+      const cwdRelative = path.resolve(process.cwd(), rawPath);
+      const prismaRelative = path.resolve(process.cwd(), 'prisma', rawPath.replace(/^\.\//, ''));
+      
+      if (fs.existsSync(prismaRelative)) {
+        return `file:${prismaRelative}`;
+      }
+      if (fs.existsSync(cwdRelative)) {
+        return `file:${cwdRelative}`;
+      }
+      // Default to prisma/dev.db if file not found yet
+      const fallbackPrisma = path.resolve(process.cwd(), 'prisma/dev.db');
+      if (fs.existsSync(fallbackPrisma)) {
+        return `file:${fallbackPrisma}`;
+      }
+      return `file:${cwdRelative}`;
+    }
+  }
+
+  return url;
+}
+
+/**
  * Safe singleton PrismaClient instance getter.
  * Defers instantiation until runtime execution, ensuring seamless connection
- * locally and in production (e.g. Vercel) even if DATABASE_URL is not explicitly passed.
+ * locally and in production (e.g. Vercel) even if DATABASE_URL is relative.
  */
 function getPrismaInstance() {
   if (!globalForPrisma.prisma) {
-    const databaseUrl = process.env.DATABASE_URL || `file:${path.resolve(process.cwd(), 'prisma/dev.db')}`;
+    const resolvedUrl = resolveDatabaseUrl(process.env.DATABASE_URL);
 
     try {
       globalForPrisma.prisma = new PrismaClient({
         datasources: {
           db: {
-            url: databaseUrl,
+            url: resolvedUrl,
           },
         },
         log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
       });
     } catch (e) {
-      console.warn('Warning: PrismaClient initialization warning:', e?.message || e);
+      console.error('[Prisma] Initialization error:', e?.message || e);
       globalForPrisma.prisma = new PrismaClient();
     }
   }
@@ -50,3 +85,4 @@ export const prisma = new Proxy(
 );
 
 export default prisma;
+
