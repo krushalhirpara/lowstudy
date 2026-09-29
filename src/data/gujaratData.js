@@ -268,3 +268,47 @@ export const ACADEMIC_YEARS = [
   { id: "2025-26", name: "2025-26 (Previous Academic Batch)", isCurrent: false },
   { id: "2024-25", name: "2024-25 (Archived Batch)", isCurrent: false }
 ];
+
+export const GUJARAT_CITIES = [
+  "Ahmedabad",
+  "Surat",
+  "Rajkot",
+  "Vadodara",
+  "Bhavnagar",
+  "Jamnagar",
+  "Gandhinagar",
+  "Anand",
+  "Bharuch",
+  "Junagadh",
+  "Patan",
+  "Bhuj",
+  "Navsari",
+  "Mehsana",
+  "Porbandar",
+  "Morbi",
+  "Valsad",
+  "Surendranagar",
+  "Godhra",
+  "Amreli",
+  "Palanpur",
+  "Vapi",
+  "Nadiad",
+  "Himatnagar",
+  "Veraval",
+  "Botad",
+  "Dahod"
+];
+
+/**
+ * Normalizes city string: trims whitespace, compresses multiple spaces, title cases words
+ */
+export function normalizeCityName(city) {
+  if (!city || typeof city !== 'string') return null;
+  const trimmed = city.trim().replace(/\s+/g, ' ');
+  if (!trimmed) return null;
+  return trimmed
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+

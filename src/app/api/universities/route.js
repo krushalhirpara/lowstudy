@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GUJARAT_UNIVERSITIES, GUJARAT_COLLEGES } from '@/data/gujaratData';
+import { GUJARAT_UNIVERSITIES, GUJARAT_COLLEGES, GUJARAT_CITIES } from '@/data/gujaratData';
 import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -70,6 +70,7 @@ export async function GET(request) {
       success: true,
       count: universities.length,
       universities,
+      cities: GUJARAT_CITIES,
     });
   } catch (error) {
     console.error('[API /universities] Unexpected error:', error);

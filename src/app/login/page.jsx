@@ -7,6 +7,7 @@ import { Scale, Lock, Mail, User, ArrowRight, AlertCircle, Loader2, Sparkles, Ch
 import { signInWithPopup } from 'firebase/auth';
 import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import { getSafeRedirectUrl } from '@/lib/security';
+import CompleteProfileModal from '@/components/auth/CompleteProfileModal';
 
 function LoginForm() {
   const router = useRouter();
@@ -21,6 +22,10 @@ function LoginForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [modalUserEmail, setModalUserEmail] = useState('');
+  const [modalInitialCity, setModalInitialCity] = useState('');
+  const [modalInitialUniversityId, setModalInitialUniversityId] = useState('');
   const [mounted, setMounted] = useState(false);
 
   // Check if student already has an active session
@@ -33,7 +38,14 @@ function LoginForm() {
         const res = await fetch('/api/student/session');
         const data = await res.json();
         if (!isCancelled && data?.authenticated && data?.user) {
-          router.replace(targetDestination);
+          if (data.isProfileComplete) {
+            router.replace(targetDestination);
+          } else {
+            setModalUserEmail(data.user.email);
+            setModalInitialCity(data.user.city || '');
+            setModalInitialUniversityId(data.user.universityId || '');
+            setShowProfileModal(true);
+          }
         }
       } catch (err) {
         // Ignore session prefetch errors
@@ -89,6 +101,16 @@ function LoginForm() {
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to authenticate Google session with LowStudy.');
+      }
+
+      // Check if profile completion is required
+      if (!data.isProfileComplete && (!data.user?.city || !data.user?.universityId)) {
+        setModalUserEmail(firebaseUser.email);
+        setModalInitialCity(data.user?.city || '');
+        setModalInitialUniversityId(data.user?.universityId || '');
+        setShowProfileModal(true);
+        setSuccessMsg('Authenticated with Google! Please complete your student profile.');
+        return;
       }
 
       setSuccessMsg('Successfully signed in with Google! Redirecting...');
@@ -166,6 +188,16 @@ function LoginForm() {
         throw new Error(data.error || 'Invalid email or password. Please try again.');
       }
 
+      // Check if profile completion is needed
+      if (!data.isProfileComplete && (!data.user?.city || !data.user?.universityId)) {
+        setModalUserEmail(trimmedEmail);
+        setModalInitialCity(data.user?.city || '');
+        setModalInitialUniversityId(data.user?.universityId || '');
+        setShowProfileModal(true);
+        setSuccessMsg('Signed in! Please complete your student profile.');
+        return;
+      }
+
       setSuccessMsg('Signed in successfully! Redirecting...');
       router.refresh();
       setTimeout(() => {
@@ -179,8 +211,26 @@ function LoginForm() {
     }
   };
 
+  const handleProfileModalComplete = () => {
+    setShowProfileModal(false);
+    setSuccessMsg('Profile completed! Redirecting to dashboard...');
+    router.refresh();
+    setTimeout(() => {
+      router.push(targetDestination);
+    }, 400);
+  };
+
   return (
     <div className="min-h-[85vh] bg-slate-950 flex items-center justify-center p-4 font-poppins">
+      {/* Complete Profile Modal for users missing city or university */}
+      <CompleteProfileModal
+        isOpen={showProfileModal}
+        initialCity={modalInitialCity}
+        initialUniversityId={modalInitialUniversityId}
+        userEmail={modalUserEmail}
+        onComplete={handleProfileModalComplete}
+      />
+
       <div className="max-w-md w-full p-8 rounded-3xl bg-slate-900 border border-slate-800 text-slate-100 shadow-2xl animate-fade-in space-y-6">
         
         {/* Brand Header */}

@@ -25,6 +25,8 @@ export async function GET(request, { params }) {
         provider: true,
         role: true,
         isActive: true,
+        city: true,
+        universityId: true,
         createdAt: true,
         lastLoginAt: true,
         lastActiveAt: true,
@@ -32,6 +34,14 @@ export async function GET(request, { params }) {
         streakDays: true,
         xp: true,
         coins: true,
+        university: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            city: true,
+          },
+        },
       },
     });
 

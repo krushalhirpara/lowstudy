@@ -62,12 +62,21 @@ export async function GET(request) {
           id: true,
           fullName: true,
           email: true,
+          city: true,
+          universityId: true,
           provider: true,
           role: true,
           isActive: true,
           createdAt: true,
           lastLoginAt: true,
           lastActiveAt: true,
+          university: {
+            select: {
+              name: true,
+              code: true,
+              city: true,
+            },
+          },
         },
       }),
 

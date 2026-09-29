@@ -178,35 +178,50 @@ export async function getStudentDashboardData(userId = 'usr-student-01') {
   let subjects = [];
 
   try {
-    [user, university, course, semester, subjects] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          streakDays: true,
-          universityId: true,
-          courseId: true,
-          semesterId: true,
-          createdAt: true
-        }
-      }),
-      prisma.university.findUnique({
-        where: { id: 'su' },
-        select: { id: true, name: true, code: true, city: true, logo: true }
-      }),
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        streakDays: true,
+        city: true,
+        universityId: true,
+        courseId: true,
+        semesterId: true,
+        createdAt: true,
+        university: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            city: true,
+            logo: true,
+          },
+        },
+      },
+    });
+
+    const targetUniId = user?.universityId || 'su';
+
+    [university, course, semester, subjects] = await Promise.all([
+      user?.university
+        ? Promise.resolve(user.university)
+        : prisma.university.findUnique({
+            where: { id: targetUniId },
+            select: { id: true, name: true, code: true, city: true, logo: true },
+          }),
       prisma.course.findUnique({
         where: { id: 'su-llb-3yr' },
-        select: { id: true, name: true, code: true, totalSemesters: true }
+        select: { id: true, name: true, code: true, totalSemesters: true },
       }),
       prisma.semester.findUnique({
         where: { id: 'su-llb-3yr-sem3' },
-        select: { id: true, title: true, semesterNumber: true }
+        select: { id: true, title: true, semesterNumber: true },
       }),
       prisma.subject.findMany({
         where: {
-          semesterId: 'su-llb-3yr-sem3'
+          semesterId: 'su-llb-3yr-sem3',
         },
         orderBy: { shortCode: 'asc' },
         include: {
@@ -737,7 +752,10 @@ export async function getStudentDashboardData(userId = 'usr-student-01') {
       id: user?.id || userId || 'usr-student-01',
       fullName: user?.fullName || 'Law Student Scholar',
       email: user?.email || 'student@lowstudy.com',
-      streakDays: studyStreakDays
+      city: user?.city || null,
+      universityId: user?.universityId || null,
+      isProfileComplete: Boolean(user?.city && (user?.universityId || university)),
+      streakDays: studyStreakDays,
     },
     academicContext: {
       university: {

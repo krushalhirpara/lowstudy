@@ -3,10 +3,13 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Scale, Lock, Mail, User, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2, ShieldCheck, Check } from 'lucide-react';
+import { Scale, Lock, Mail, User, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2, ShieldCheck, MapPin, Building2 } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import { getSafeRedirectUrl } from '@/lib/security';
+import CitySelect from '@/components/auth/CitySelect';
+import UniversitySelect from '@/components/auth/UniversitySelect';
+import CompleteProfileModal from '@/components/auth/CompleteProfileModal';
 
 function SignupForm() {
   const router = useRouter();
@@ -18,10 +21,15 @@ function SignupForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [city, setCity] = useState('');
+  const [universityId, setUniversityId] = useState('');
+
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [googleUserEmail, setGoogleUserEmail] = useState('');
   const [mounted, setMounted] = useState(false);
 
   // Check if student already has an active session
@@ -34,7 +42,14 @@ function SignupForm() {
         const res = await fetch('/api/student/session');
         const data = await res.json();
         if (!isCancelled && data?.authenticated && data?.user) {
-          router.replace(targetDestination);
+          if (data.isProfileComplete) {
+            router.replace(targetDestination);
+          } else {
+            setShowProfileModal(true);
+            setGoogleUserEmail(data.user.email);
+            setCity(data.user.city || '');
+            setUniversityId(data.user.universityId || '');
+          }
         }
       } catch (err) {
         // Ignore session prefetch errors
@@ -82,6 +97,8 @@ function SignupForm() {
           email: firebaseUser.email.trim().toLowerCase(),
           fullName: fullName.trim() || firebaseUser.displayName || firebaseUser.email.split('@')[0],
           photoURL: firebaseUser.photoURL || null,
+          city: city.trim() || undefined,
+          universityId: universityId || undefined,
           redirectUrl: targetDestination,
         }),
       });
@@ -92,8 +109,15 @@ function SignupForm() {
         throw new Error(data.error || 'Failed to authenticate Google session with LowStudy.');
       }
 
+      // Check if profile completion is required
+      if (!data.isProfileComplete && (!data.user?.city || !data.user?.universityId)) {
+        setGoogleUserEmail(firebaseUser.email);
+        setShowProfileModal(true);
+        setSuccessMsg('Authenticated with Google! Please complete your student profile.');
+        return;
+      }
+
       setSuccessMsg('Successfully connected with Google! Setting up your student portal...');
-      
       router.refresh();
       setTimeout(() => {
         router.push(targetDestination);
@@ -133,6 +157,12 @@ function SignupForm() {
     setErrorMsg('');
     setSuccessMsg('');
 
+    const trimmedName = fullName.trim();
+    if (!trimmedName) {
+      setErrorMsg('Please enter your full name.');
+      return;
+    }
+
     const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail) {
       setErrorMsg('Please enter your email address.');
@@ -149,6 +179,17 @@ function SignupForm() {
       return;
     }
 
+    const trimmedCity = city.trim();
+    if (!trimmedCity || trimmedCity.length < 2) {
+      setErrorMsg('Please enter or select your City.');
+      return;
+    }
+
+    if (!universityId) {
+      setErrorMsg('Please select your College / University.');
+      return;
+    }
+
     try {
       setIsEmailLoading(true);
 
@@ -157,9 +198,11 @@ function SignupForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'signup',
-          fullName: fullName.trim() || undefined,
+          fullName: trimmedName,
           email: trimmedEmail,
           password,
+          city: trimmedCity,
+          universityId,
           redirectUrl: targetDestination,
         }),
       });
@@ -183,9 +226,28 @@ function SignupForm() {
     }
   };
 
+  // Handler when profile modal completes
+  const handleProfileModalComplete = () => {
+    setShowProfileModal(false);
+    setSuccessMsg('Profile completed! Redirecting to your dashboard...');
+    router.refresh();
+    setTimeout(() => {
+      router.push(targetDestination);
+    }, 400);
+  };
+
   return (
     <div className="min-h-[85vh] bg-slate-950 flex items-center justify-center p-4 font-poppins">
-      <div className="max-w-md w-full p-8 rounded-3xl bg-slate-900 border border-slate-800 text-slate-100 shadow-2xl animate-fade-in space-y-6">
+      {/* Google Sign-In Profile Completion Modal */}
+      <CompleteProfileModal
+        isOpen={showProfileModal}
+        initialCity={city}
+        initialUniversityId={universityId}
+        userEmail={googleUserEmail}
+        onComplete={handleProfileModalComplete}
+      />
+
+      <div className="max-w-md w-full p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 text-slate-100 shadow-2xl animate-fade-in space-y-6">
         
         {/* Brand Header */}
         <div className="text-center space-y-2">
@@ -227,13 +289,14 @@ function SignupForm() {
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-amber-400" />
               <span>Full Name</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">*</span>
             </label>
             <input
               type="text"
               id="signup-name-input"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="e.g. Arjun Sharma"
+              placeholder="e.g. Rahul Patel"
               required
               disabled={isEmailLoading || isGoogleLoading}
               className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
@@ -245,13 +308,14 @@ function SignupForm() {
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-amber-400" />
               <span>Email Address</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">*</span>
             </label>
             <input
               type="email"
               id="signup-email-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. arjun.sharma@law.in"
+              placeholder="e.g. rahul.patel@law.in"
               required
               disabled={isEmailLoading || isGoogleLoading}
               className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
@@ -263,6 +327,7 @@ function SignupForm() {
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5 text-amber-400" />
               <span>Password (min. 6 chars)</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">*</span>
             </label>
             <input
               type="password"
@@ -282,6 +347,7 @@ function SignupForm() {
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5 text-amber-400" />
               <span>Confirm Password</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">*</span>
             </label>
             <input
               type="password"
@@ -296,12 +362,52 @@ function SignupForm() {
             />
           </div>
 
+          {/* 5. City with Autocomplete & Custom Input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                <span>City</span>
+                <span className="text-[10px] text-amber-400/80 font-normal">*</span>
+              </span>
+              <span className="text-[10px] text-slate-500 font-normal">Select or type custom</span>
+            </label>
+            <CitySelect
+              id="signup-city-input"
+              value={city}
+              onChange={setCity}
+              disabled={isEmailLoading || isGoogleLoading}
+              placeholder="Start typing your city..."
+              required
+            />
+          </div>
+
+          {/* 6. College / University Searchable Dropdown */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-amber-400" />
+                <span>College / University</span>
+                <span className="text-[10px] text-amber-400/80 font-normal">*</span>
+              </span>
+              <span className="text-[10px] text-slate-500 font-normal">Gujarat Universities</span>
+            </label>
+            <UniversitySelect
+              id="signup-university-select"
+              value={universityId}
+              onChange={setUniversityId}
+              disabled={isEmailLoading || isGoogleLoading}
+              placeholder="Search university..."
+              required
+            />
+          </div>
+
           {/* Create Account Button */}
           <button
             type="submit"
             id="signup-submit-button"
             disabled={isEmailLoading || isGoogleLoading}
-            className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer pt-3"
+            className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer pt-3"
           >
             {isEmailLoading ? (
               <>
@@ -390,15 +496,15 @@ function SignupForm() {
           <div className="grid grid-cols-1 gap-1.5 pl-1">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-              <span>Gujarat & Saurashtra University Verified Syllabi</span>
+              <span>Gujarat, Saurashtra &amp; VNSGU Verified Syllabi</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-              <span>BNS 2023, BNSS & BSA Comparative Notes</span>
+              <span>BNS 2023, BNSS &amp; BSA Comparative Notes</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-              <span>5,200+ MCQs & Landmark Case Law Database</span>
+              <span>5,200+ MCQs &amp; Landmark Case Law Database</span>
             </div>
           </div>
         </div>
@@ -419,4 +525,5 @@ export default function SignupPage() {
     </Suspense>
   );
 }
+
 

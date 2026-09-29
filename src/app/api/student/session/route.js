@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rateLimiter';
+import { normalizeCityName } from '@/data/gujaratData';
 import { 
   createSessionToken, 
   getSessionFromRequest, 
@@ -42,17 +43,50 @@ async function recordLoginAudit({ userId = null, email, provider, success, ipAdd
   }
 }
 
+const USER_SELECT_FIELDS = {
+  id: true,
+  fullName: true,
+  email: true,
+  role: true,
+  avatar: true,
+  provider: true,
+  firebaseUid: true,
+  city: true,
+  universityId: true,
+  courseId: true,
+  semesterId: true,
+  streakDays: true,
+  xp: true,
+  coins: true,
+  isActive: true,
+  lastLoginAt: true,
+  lastActiveAt: true,
+  createdAt: true,
+  university: {
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      city: true,
+    },
+  },
+};
+
 /**
  * Safe student creation helper that gracefully handles foreign key defaults.
  */
-async function createNewStudent({ email, fullName, avatar, firebaseUid, provider = 'google', passwordHash = null }) {
+async function createNewStudent({ email, fullName, avatar, firebaseUid, provider = 'google', passwordHash = null, city = null, universityId = null }) {
   const now = new Date();
+  const normalizedCity = city ? normalizeCityName(city) : null;
+  const cleanUniId = universityId ? universityId.trim() : null;
+
   const baseData = {
     email,
     fullName,
     avatar,
     firebaseUid,
     provider,
+    city: normalizedCity,
     role: 'STUDENT',
     xp: 100,
     streakDays: 1,
@@ -63,26 +97,22 @@ async function createNewStudent({ email, fullName, avatar, firebaseUid, provider
     ...(passwordHash ? { passwordHash } : {}),
   };
 
-  const selectFields = {
-    id: true,
-    fullName: true,
-    email: true,
-    role: true,
-    avatar: true,
-    provider: true,
-    firebaseUid: true,
-    streakDays: true,
-    xp: true,
-    coins: true,
-    universityId: true,
-    courseId: true,
-    semesterId: true,
-    isActive: true,
-    lastLoginAt: true,
-    lastActiveAt: true,
-  };
+  // Attempt 1: Try with chosen university and defaults
+  if (cleanUniId) {
+    try {
+      return await prisma.user.create({
+        data: {
+          ...baseData,
+          universityId: cleanUniId,
+        },
+        select: USER_SELECT_FIELDS,
+      });
+    } catch (fkError) {
+      console.warn('[Session Route] Creating student with unlinked universityId due to:', fkError?.message);
+    }
+  }
 
-  // Attempt 1: Try with default Gujarat law academic path
+  // Attempt 2: Try with default Gujarat law academic path
   try {
     return await prisma.user.create({
       data: {
@@ -92,14 +122,14 @@ async function createNewStudent({ email, fullName, avatar, firebaseUid, provider
         courseId: 'su-llb-3yr',
         semesterId: 'su-llb-3yr-sem3',
       },
-      select: selectFields,
+      select: USER_SELECT_FIELDS,
     });
   } catch (fkError) {
     // If foreign key constraint failed (e.g. unseeded database), create standalone student
     console.warn('[Session Route] Creating student without academic FKs due to:', fkError?.code || fkError?.message);
     return await prisma.user.create({
       data: baseData,
-      select: selectFields,
+      select: USER_SELECT_FIELDS,
     });
   }
 }
@@ -122,23 +152,7 @@ export async function GET(request) {
 
     const user = await prisma.user.findUnique({
       where: { id: sessionPayload.userId },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        role: true,
-        avatar: true,
-        provider: true,
-        streakDays: true,
-        xp: true,
-        coins: true,
-        universityId: true,
-        courseId: true,
-        semesterId: true,
-        isActive: true,
-        lastLoginAt: true,
-        lastActiveAt: true,
-      },
+      select: USER_SELECT_FIELDS,
     });
 
     if (!user || !user.isActive) {
@@ -154,9 +168,12 @@ export async function GET(request) {
       data: { lastActiveAt: new Date() },
     }).catch(() => {});
 
+    const isProfileComplete = Boolean(user.city && (user.universityId || user.university));
+
     return NextResponse.json({
       success: true,
       authenticated: true,
+      isProfileComplete,
       user,
     });
   } catch (error) {
@@ -199,7 +216,7 @@ export async function POST(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { action = 'login', userId, email, password, fullName, firebaseUid, photoURL, redirectUrl } = body;
+    const { action = 'login', userId, email, password, fullName, firebaseUid, photoURL, redirectUrl, city, universityId } = body;
 
     // Normalize email cleanly (lowercase + trim whitespace)
     const normalizedEmail = typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : null;
@@ -228,6 +245,48 @@ export async function POST(request) {
     }
 
     // =========================================================================
+    // ACTION: UPDATE / COMPLETE PROFILE
+    // =========================================================================
+    if (action === 'update_profile' || action === 'complete_profile') {
+      const { user: sessionPayload } = getSessionFromRequest(request);
+      const targetUserId = sessionPayload?.userId || userId;
+
+      if (!targetUserId) {
+        return NextResponse.json(
+          { success: false, error: 'Authentication required to update profile.' },
+          { status: 401 }
+        );
+      }
+
+      const updateData = {};
+      if (fullName && typeof fullName === 'string' && fullName.trim()) {
+        updateData.fullName = sanitizeInput(fullName.trim(), { maxLength: 100 });
+      }
+      if (city && typeof city === 'string' && city.trim()) {
+        updateData.city = normalizeCityName(city);
+      }
+      if (universityId && typeof universityId === 'string' && universityId.trim()) {
+        updateData.universityId = universityId.trim();
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: targetUserId },
+        data: updateData,
+        select: USER_SELECT_FIELDS,
+      });
+
+      const isProfileComplete = Boolean(updatedUser.city && (updatedUser.universityId || updatedUser.university));
+
+      return NextResponse.json({
+        success: true,
+        action: 'update_profile',
+        message: 'Profile updated successfully.',
+        isProfileComplete,
+        user: updatedUser,
+      });
+    }
+
+    // =========================================================================
     // ACTION: SIGNUP / REGISTER
     // =========================================================================
     if (action === 'signup' || action === 'register') {
@@ -249,6 +308,22 @@ export async function POST(request) {
         ? sanitizeInput(fullName.trim(), { maxLength: 100 })
         : normalizedEmail.split('@')[0];
 
+      const normalizedCity = typeof city === 'string' && city.trim() ? normalizeCityName(city) : null;
+      if (!normalizedCity || normalizedCity.length < 2) {
+        return NextResponse.json(
+          { success: false, error: 'Please enter or select your City.' },
+          { status: 400 }
+        );
+      }
+
+      const cleanUniId = typeof universityId === 'string' && universityId.trim() ? universityId.trim() : null;
+      if (!cleanUniId) {
+        return NextResponse.json(
+          { success: false, error: 'Please select your College / University.' },
+          { status: 400 }
+        );
+      }
+
       // Check if account already exists with this email
       let existingUser = await prisma.user.findUnique({
         where: { email: normalizedEmail },
@@ -261,6 +336,7 @@ export async function POST(request) {
           provider: true,
           passwordHash: true,
           isActive: true,
+          city: true,
           universityId: true,
         },
       });
@@ -268,40 +344,28 @@ export async function POST(request) {
       let targetUser = null;
 
       if (existingUser) {
-        // If user exists, update password hash and log in
+        // If user exists, update password hash, city, universityId and log in
         const { hash, salt } = hashPassword(password);
         targetUser = await prisma.user.update({
           where: { id: existingUser.id },
           data: {
             passwordHash: `${salt}:${hash}`,
             fullName: existingUser.fullName || cleanFullName,
+            city: normalizedCity || existingUser.city,
+            universityId: cleanUniId || existingUser.universityId,
             lastLoginAt: new Date(),
             lastActiveAt: new Date(),
           },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            avatar: true,
-            provider: true,
-            streakDays: true,
-            xp: true,
-            coins: true,
-            universityId: true,
-            courseId: true,
-            semesterId: true,
-            isActive: true,
-            lastLoginAt: true,
-            lastActiveAt: true,
-          },
+          select: USER_SELECT_FIELDS,
         });
       } else {
-        // Create new student account
+        // Create new student account with city and university
         const { hash, salt } = hashPassword(password);
         targetUser = await createNewStudent({
           email: normalizedEmail,
           fullName: cleanFullName,
+          city: normalizedCity,
+          universityId: cleanUniId,
           provider: 'credentials',
           passwordHash: `${salt}:${hash}`,
         });
@@ -329,6 +393,7 @@ export async function POST(request) {
         success: true,
         action: 'signup',
         message: 'Account created successfully. Session established.',
+        isProfileComplete: Boolean(targetUser.city && (targetUser.universityId || targetUser.university)),
         user: targetUser,
         token: sessionToken,
         redirectUrl: safeRedirect,
@@ -359,6 +424,8 @@ export async function POST(request) {
       const cleanPhoto = photoURL && typeof photoURL === 'string' && photoURL.startsWith('http') 
         ? photoURL.trim().slice(0, 500) 
         : null;
+      const normalizedCity = typeof city === 'string' && city.trim() ? normalizeCityName(city) : null;
+      const cleanUniId = typeof universityId === 'string' && universityId.trim() ? universityId.trim() : null;
 
       if (!normalizedEmail || !cleanUid) {
         return NextResponse.json(
@@ -370,49 +437,13 @@ export async function POST(request) {
       // Check if user exists by email first, or by firebaseUid
       let user = await prisma.user.findUnique({
         where: { email: normalizedEmail },
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          role: true,
-          avatar: true,
-          provider: true,
-          firebaseUid: true,
-          passwordHash: true,
-          streakDays: true,
-          xp: true,
-          coins: true,
-          universityId: true,
-          courseId: true,
-          semesterId: true,
-          isActive: true,
-          lastLoginAt: true,
-          lastActiveAt: true,
-        }
+        select: USER_SELECT_FIELDS,
       });
 
       if (!user && cleanUid) {
         user = await prisma.user.findUnique({
           where: { firebaseUid: cleanUid },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            avatar: true,
-            provider: true,
-            firebaseUid: true,
-            passwordHash: true,
-            streakDays: true,
-            xp: true,
-            coins: true,
-            universityId: true,
-            courseId: true,
-            semesterId: true,
-            isActive: true,
-            lastLoginAt: true,
-            lastActiveAt: true,
-          }
+          select: USER_SELECT_FIELDS,
         });
       }
 
@@ -437,7 +468,7 @@ export async function POST(request) {
           );
         }
 
-        // Account Linking: Link Google firebaseUid, avatar, and update activity
+        // Account Linking: Link Google firebaseUid, avatar, city, university and update activity
         const updateData = {
           lastLoginAt: now,
           lastActiveAt: now,
@@ -454,28 +485,17 @@ export async function POST(request) {
         if (!user.fullName && cleanName) {
           updateData.fullName = cleanName;
         }
+        if (normalizedCity) {
+          updateData.city = normalizedCity;
+        }
+        if (cleanUniId) {
+          updateData.universityId = cleanUniId;
+        }
 
         user = await prisma.user.update({
           where: { id: user.id },
           data: updateData,
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            avatar: true,
-            provider: true,
-            firebaseUid: true,
-            streakDays: true,
-            xp: true,
-            coins: true,
-            universityId: true,
-            courseId: true,
-            semesterId: true,
-            isActive: true,
-            lastLoginAt: true,
-            lastActiveAt: true,
-          }
+          select: USER_SELECT_FIELDS,
         });
       } else {
         // Create new user for first-time Google sign-in
@@ -484,6 +504,8 @@ export async function POST(request) {
           fullName: cleanName || normalizedEmail.split('@')[0],
           avatar: cleanPhoto,
           firebaseUid: cleanUid,
+          city: normalizedCity,
+          universityId: cleanUniId,
           provider: 'google',
         });
       }
@@ -507,11 +529,13 @@ export async function POST(request) {
       });
 
       const { passwordHash: _, ...safeUser } = user;
+      const isProfileComplete = Boolean(user.city && (user.universityId || user.university));
 
       const response = NextResponse.json({
         success: true,
         action: 'google',
         message: 'Google Sign-In successful. Session established.',
+        isProfileComplete,
         user: safeUser,
         token: sessionToken,
         redirectUrl: safeRedirect,
@@ -558,40 +582,16 @@ export async function POST(request) {
       user = await prisma.user.findUnique({
         where: { id: cleanUserId },
         select: {
-          id: true,
-          fullName: true,
-          email: true,
-          role: true,
-          avatar: true,
-          provider: true,
+          ...USER_SELECT_FIELDS,
           passwordHash: true,
-          streakDays: true,
-          xp: true,
-          coins: true,
-          universityId: true,
-          courseId: true,
-          semesterId: true,
-          isActive: true,
         },
       });
     } else if (normalizedEmail) {
       user = await prisma.user.findUnique({
         where: { email: normalizedEmail },
         select: {
-          id: true,
-          fullName: true,
-          email: true,
-          role: true,
-          avatar: true,
-          provider: true,
+          ...USER_SELECT_FIELDS,
           passwordHash: true,
-          streakDays: true,
-          xp: true,
-          coins: true,
-          universityId: true,
-          courseId: true,
-          semesterId: true,
-          isActive: true,
         },
       });
     }
@@ -611,10 +611,15 @@ export async function POST(request) {
         ? sanitizeInput(fullName.trim(), { maxLength: 100 })
         : normalizedEmail.split('@')[0];
 
+      const normalizedCity = typeof city === 'string' && city.trim() ? normalizeCityName(city) : null;
+      const cleanUniId = typeof universityId === 'string' && universityId.trim() ? universityId.trim() : null;
+
       const { hash, salt } = hashPassword(password);
       user = await createNewStudent({
         email: normalizedEmail,
         fullName: cleanFullName,
+        city: normalizedCity,
+        universityId: cleanUniId,
         provider: 'credentials',
         passwordHash: `${salt}:${hash}`,
       });
@@ -669,23 +674,7 @@ export async function POST(request) {
         user = await prisma.user.update({
           where: { id: user.id },
           data: updateData,
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            avatar: true,
-            provider: true,
-            streakDays: true,
-            xp: true,
-            coins: true,
-            universityId: true,
-            courseId: true,
-            semesterId: true,
-            isActive: true,
-            lastLoginAt: true,
-            lastActiveAt: true,
-          },
+          select: USER_SELECT_FIELDS,
         });
       } else {
         // User exists without password hash: save password hash
@@ -697,23 +686,7 @@ export async function POST(request) {
             lastLoginAt: now,
             lastActiveAt: now,
           },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            avatar: true,
-            provider: true,
-            streakDays: true,
-            xp: true,
-            coins: true,
-            universityId: true,
-            courseId: true,
-            semesterId: true,
-            isActive: true,
-            lastLoginAt: true,
-            lastActiveAt: true,
-          },
+          select: USER_SELECT_FIELDS,
         });
       }
     }
@@ -738,11 +711,13 @@ export async function POST(request) {
 
     // Strip sensitive fields from response
     const { passwordHash: _, ...safeUser } = user;
+    const isProfileComplete = Boolean(user.city && (user.universityId || user.university));
 
     const response = NextResponse.json({
       success: true,
       action: 'login',
       message: 'Authenticated successfully. Session established.',
+      isProfileComplete,
       user: safeUser,
       token: sessionToken,
       redirectUrl: safeRedirect,
@@ -772,5 +747,6 @@ export async function POST(request) {
     );
   }
 }
+
 
 

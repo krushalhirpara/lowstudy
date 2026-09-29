@@ -20,6 +20,7 @@ model User {
   avatar         String?
   firebaseUid    String?   @unique
   provider       String    @default("credentials") // credentials, google
+  city           String?
   universityId   String?
   collegeId      String?
   courseId       String?
@@ -60,6 +61,7 @@ model User {
   @@index([email])
   @@index([role])
   @@index([universityId])
+  @@index([city])
 }
 
 // 2. Universities (Institutions)
