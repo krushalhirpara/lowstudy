@@ -67,6 +67,43 @@ function getIcon(name) {
   return Component;
 }
 
+// Protected Student Route Prefixes (Student Private Learning Areas)
+const PROTECTED_PREFIXES = [
+  '/dashboard',
+  '/subjects',
+  '/practice',
+  '/mock-test',
+  '/mock-tests',
+  '/quiz',
+  '/mcq',
+  '/notes',
+  '/case-laws',
+  '/bare-acts',
+  '/ai-tutor',
+  '/nyayaai',
+  '/ai',
+  '/drafting',
+  '/moot-court',
+  '/study-plan',
+  '/planner',
+  '/revision',
+  '/question-bank',
+  '/exam-mode',
+  '/research',
+  '/practice-writing',
+  '/curriculum',
+  '/previous-papers',
+  '/academic',
+];
+
+function isPathProtected(href) {
+  if (!href || typeof href !== 'string') return false;
+  if (href.includes('/llb/semester-')) return true;
+  return PROTECTED_PREFIXES.some(
+    prefix => href === prefix || href.startsWith(`${prefix}/`) || href.startsWith(`${prefix}?`)
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -123,6 +160,15 @@ export default function Navbar() {
     } catch (err) {
       console.error('Logout error:', err);
     }
+  };
+
+  // Helper to resolve route destination based on authentication
+  const resolveHref = (href) => {
+    if (currentUser) return href;
+    if (isPathProtected(href)) {
+      return `/signup?redirect=${encodeURIComponent(href)}`;
+    }
+    return href;
   };
 
   // Global Ctrl+K / Cmd+K keyboard shortcut for Search & Click Outside handling
@@ -230,7 +276,7 @@ export default function Navbar() {
                   return (
                     <Link
                       key={item.id}
-                      href={item.href}
+                      href={resolveHref(item.href)}
                       className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                         isActive
                           ? 'bg-amber-50 text-amber-900 border border-amber-200 font-bold'
@@ -300,7 +346,7 @@ export default function Navbar() {
                                     return (
                                       <Link
                                         key={subItem.name}
-                                        href={subItem.href}
+                                        href={resolveHref(subItem.href)}
                                         onClick={() => setActiveDropdown(null)}
                                         role="menuitem"
                                         className={`flex items-start gap-2.5 p-2 rounded-xl transition group ${
@@ -345,7 +391,7 @@ export default function Navbar() {
                               return (
                                 <Link
                                   key={subItem.name}
-                                  href={subItem.href}
+                                  href={resolveHref(subItem.href)}
                                   onClick={() => setActiveDropdown(null)}
                                   role="menuitem"
                                   className={`flex items-start gap-2.5 p-2 rounded-xl transition group ${
@@ -495,7 +541,7 @@ export default function Navbar() {
 
                   {/* Logged-out: Get Started Primary CTA */}
                   <Link
-                    href="/curriculum"
+                    href="/signup"
                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold transition shadow-sm hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                   >
                     <span>Get Started</span>
@@ -549,7 +595,7 @@ export default function Navbar() {
                   return (
                     <Link
                       key={item.id}
-                      href={item.href}
+                      href={resolveHref(item.href)}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`flex items-center justify-between p-3 rounded-xl text-xs font-bold transition border ${
                         isActive
@@ -594,7 +640,7 @@ export default function Navbar() {
                           return (
                             <Link
                               key={subItem.name}
-                              href={subItem.href}
+                              href={resolveHref(subItem.href)}
                               onClick={() => setMobileMenuOpen(false)}
                               className={`flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium transition ${
                                 isCurrent ? 'bg-amber-50 text-amber-900 font-bold' : 'text-slate-700 hover:bg-slate-50'
@@ -665,7 +711,7 @@ export default function Navbar() {
               ) : (
                 <>
                   <Link
-                    href="/curriculum"
+                    href="/signup"
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
                   >

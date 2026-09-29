@@ -15,11 +15,35 @@ import {
 import InstitutionalEnquiryModal from '@/components/pricing/InstitutionalEnquiryModal';
 
 function PricingInner() {
+  const [currentUser, setCurrentUser] = useState(null);
   const [billingCycle, setBillingCycle] = useState('semester'); // 'semester' | 'annual'
   const [openFaq, setOpenFaq] = useState(0);
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
   
   const searchParams = useSearchParams();
+
+  // Check active student session
+  useEffect(() => {
+    let isCancelled = false;
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/student/session');
+        const data = await res.json();
+        if (!isCancelled && data?.authenticated && data?.user) {
+          setCurrentUser(data.user);
+        }
+      } catch {}
+    }
+    checkSession();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const getProtectedPlanHref = (targetPath) => {
+    if (currentUser) return targetPath;
+    return `/signup?redirect=${encodeURIComponent(targetPath)}`;
+  };
 
   // Auto-open modal if URL has ?plan=college-institutional
   useEffect(() => {
@@ -41,7 +65,7 @@ function PricingInner() {
       period: "forever",
       desc: "Essential legal syllabus intelligence, Bare Acts and basic exam preparation for every law student in Gujarat.",
       ctaText: "Start Learning Free",
-      ctaHref: "/curriculum",
+      ctaHref: getProtectedPlanHref("/curriculum"),
       isEnquiry: false,
       highlight: false,
       features: [
@@ -60,7 +84,7 @@ function PricingInner() {
       period: billingCycle === 'semester' ? "per semester" : "per academic year",
       desc: "Comprehensive exam evaluation, unlimited AI legal drafting critique, timed 3-hour mock tests, and weak-topic revision.",
       ctaText: "Get Started Pro",
-      ctaHref: "/dashboard",
+      ctaHref: getProtectedPlanHref("/dashboard"),
       isEnquiry: false,
       highlight: true,
       features: [

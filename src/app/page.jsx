@@ -35,6 +35,7 @@ import JsonLd from '@/components/seo/JsonLd';
 import { getWebSiteJsonLd, getOrganizationJsonLd, getFaqJsonLd } from '@/utils/seo';
 
 export default function HomePage() {
+  const [currentUser, setCurrentUser] = useState(null);
   const [selectedUni, setSelectedUni] = useState('su');
   const [selectedSem, setSelectedSem] = useState(3);
   const [nyayaQuery, setNyayaQuery] = useState('What is Section 103(2) BNS on Mob Lynching?');
@@ -44,6 +45,38 @@ export default function HomePage() {
   const [isNyayaLoading, setIsNyayaLoading] = useState(false);
   const [bnsSearch, setBnsSearch] = useState('');
   const [openFaq, setOpenFaq] = useState(0);
+
+  // Check active student session
+  React.useEffect(() => {
+    let isCancelled = false;
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/student/session');
+        const data = await res.json();
+        if (!isCancelled && data?.authenticated && data?.user) {
+          setCurrentUser(data.user);
+        }
+      } catch {}
+    }
+    checkSession();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  // Safe protected action resolver
+  const getProtectedHref = (targetPath) => {
+    if (currentUser) return targetPath;
+    return `/signup?redirect=${encodeURIComponent(targetPath)}`;
+  };
+
+  // Resolve curriculum destination from selector
+  const getCurriculumTargetPath = () => {
+    if (selectedUni === 'su' && selectedSem === 3) {
+      return '/saurashtra-university/llb/semester-3';
+    }
+    return `/curriculum?university=${selectedUni}&semester=${selectedSem}`;
+  };
 
   const handleSimulateNyaya = (query, resp) => {
     setNyayaQuery(query);
@@ -127,7 +160,7 @@ export default function HomePage() {
               {/* CTAs */}
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Link
-                  href="/curriculum"
+                  href={getProtectedHref('/curriculum')}
                   className="inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs sm:text-sm font-bold transition shadow-md hover:shadow-lg"
                 >
                   <span>Start Learning Free</span>
@@ -227,7 +260,7 @@ export default function HomePage() {
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-amber-400" /> Daily Streak: 8 Days
                   </span>
-                  <Link href="/dashboard" className="text-amber-400 font-bold hover:underline flex items-center gap-0.5">
+                  <Link href={getProtectedHref('/dashboard')} className="text-amber-400 font-bold hover:underline flex items-center gap-0.5">
                     Launch OS Dashboard <ChevronRight className="w-3 h-3" />
                   </Link>
                 </div>
@@ -255,7 +288,7 @@ export default function HomePage() {
                   <span className="text-slate-400 font-mono">2026-27</span>
                 </div>
               ))}
-              <Link href="/curriculum" className="text-amber-400 font-bold hover:underline">
+              <Link href={getProtectedHref('/curriculum')} className="text-amber-400 font-bold hover:underline">
                 View All Sources →
               </Link>
             </div>
@@ -309,7 +342,7 @@ export default function HomePage() {
                 </select>
 
                 <Link
-                  href={selectedUni === 'su' && selectedSem === 3 ? '/saurashtra-university/llb/semester-3/' : `/curriculum?university=${selectedUni}&semester=${selectedSem}`}
+                  href={getProtectedHref(getCurriculumTargetPath())}
                   className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs sm:text-sm font-bold transition shadow-sm flex items-center gap-2"
                 >
                   <span>Open Curriculum</span>
@@ -351,7 +384,7 @@ export default function HomePage() {
               return (
                 <Link
                   key={idx}
-                  href={item.href}
+                  href={getProtectedHref(item.href)}
                   className="bg-white border border-slate-200 hover:border-amber-400 hover:shadow-md transition rounded-2xl p-5 space-y-3 group text-left"
                 >
                   <div className="flex items-center justify-between">
@@ -389,7 +422,7 @@ export default function HomePage() {
                 Everything Law Students Need to Excel
               </h2>
             </div>
-            <Link href="/curriculum" className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1">
+            <Link href={getProtectedHref('/curriculum')} className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1">
               Explore All Modules <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -407,7 +440,7 @@ export default function HomePage() {
                   Bharatiya Nyaya Sanhita, BNSS, BSA & CPC with simplified explanations, cross-references, and exam notes.
                 </p>
               </div>
-              <Link href="/bare-acts" className="text-xs font-bold text-amber-700 hover:underline flex items-center gap-1">
+              <Link href={getProtectedHref('/bare-acts')} className="text-xs font-bold text-amber-700 hover:underline flex items-center gap-1">
                 Browse Bare Acts →
               </Link>
             </div>
@@ -423,7 +456,7 @@ export default function HomePage() {
                   Draft Section 138 notices, bail applications, and plaints with instant AI scoring against model answers.
                 </p>
               </div>
-              <Link href="/practice/drafting" className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1">
+              <Link href={getProtectedHref('/practice/drafting')} className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1">
                 Open Drafting Lab →
               </Link>
             </div>
@@ -439,7 +472,7 @@ export default function HomePage() {
                   Build petitioner and respondent memorials, and face realistic oral cross-examination before an AI Judicial Bench.
                 </p>
               </div>
-              <Link href="/practice/moot-court" className="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1">
+              <Link href={getProtectedHref('/practice/moot-court')} className="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1">
                 Enter Moot Court →
               </Link>
             </div>
@@ -455,7 +488,7 @@ export default function HomePage() {
                   Supreme Court landmark judgments, ratio decidendi, facts, arguments, and exam citations.
                 </p>
               </div>
-              <Link href="/research" className="text-xs font-bold text-purple-700 hover:underline flex items-center gap-1">
+              <Link href={getProtectedHref('/research')} className="text-xs font-bold text-purple-700 hover:underline flex items-center gap-1">
                 Search Case Laws →
               </Link>
             </div>
@@ -548,7 +581,7 @@ export default function HomePage() {
                     Supported in English, Gujarati, Hindi & Hinglish
                   </span>
                   <Link
-                    href={`/ai-tutor?prompt=${encodeURIComponent(nyayaQuery)}`}
+                    href={getProtectedHref(`/ai-tutor?prompt=${encodeURIComponent(nyayaQuery)}`)}
                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition"
                   >
                     <span>Open Full AI Tutor</span>
@@ -684,7 +717,7 @@ export default function HomePage() {
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
-              href="/curriculum"
+              href="/signup"
               className="inline-flex items-center gap-2 px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-2xl text-xs sm:text-sm font-extrabold transition shadow-lg"
             >
               <span>Get Started Free</span>
@@ -692,7 +725,7 @@ export default function HomePage() {
             </Link>
 
             <Link
-              href="/dashboard"
+              href={getProtectedHref('/dashboard')}
               className="inline-flex items-center gap-2 px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-2xl text-xs sm:text-sm font-semibold transition"
             >
               <span>Open Student OS Dashboard</span>

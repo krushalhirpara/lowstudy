@@ -27,7 +27,19 @@ function parseEdgeSession(token) {
   }
 }
 
-// Protected Student Route Prefixes
+/**
+ * Edge-compatible safe redirect sanitizer
+ */
+function getSafeRedirect(targetUrl, fallback = '/dashboard') {
+  if (!targetUrl || typeof targetUrl !== 'string') return fallback;
+  const trimmed = targetUrl.trim().replace(/[\r\n\0]/g, '');
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//') || trimmed.startsWith('/\\')) return fallback;
+  if (trimmed.startsWith('/login') || trimmed.startsWith('/signup') || trimmed.startsWith('/ceoadmin')) return fallback;
+  if (trimmed.toLowerCase().includes('javascript:') || trimmed.toLowerCase().includes('data:')) return fallback;
+  return trimmed;
+}
+
+// Protected Student Route Prefixes (Student Private Learning Areas)
 const PROTECTED_STUDENT_ROUTES = [
   '/dashboard',
   '/subjects',
@@ -41,6 +53,7 @@ const PROTECTED_STUDENT_ROUTES = [
   '/bare-acts',
   '/ai-tutor',
   '/nyayaai',
+  '/ai',
   '/drafting',
   '/moot-court',
   '/study-plan',
@@ -50,7 +63,9 @@ const PROTECTED_STUDENT_ROUTES = [
   '/exam-mode',
   '/research',
   '/practice-writing',
-  '/career/private',
+  '/curriculum',
+  '/previous-papers',
+  '/academic',
 ];
 
 export function middleware(request) {
@@ -96,25 +111,26 @@ export function middleware(request) {
   }
 
   // 4. Student Protected Routes Check
-  const isProtectedStudentRoute = PROTECTED_STUDENT_ROUTES.some(
+  // Check static list + semester curriculum learning routes (e.g. /saurashtra-university/llb/semester-3)
+  const isSemesterCurriculum = pathname.includes('/llb/semester-');
+  const isProtectedStudentRoute = isSemesterCurriculum || PROTECTED_STUDENT_ROUTES.some(
     prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 
   if (isProtectedStudentRoute) {
     if (!isAuthenticated) {
       const redirectTarget = `${pathname}${search || ''}`;
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', redirectTarget);
-      return NextResponse.redirect(loginUrl);
+      const signupUrl = new URL('/signup', request.url);
+      signupUrl.searchParams.set('redirect', redirectTarget);
+      return NextResponse.redirect(signupUrl);
     }
   }
 
-  // 5. If already logged in and visiting /login or /signup, redirect to dashboard if no custom redirect
+  // 5. If already logged in and visiting /login or /signup, redirect to target or dashboard
   if ((pathname === '/login' || pathname === '/signup') && isAuthenticated) {
     const redirectParam = request.nextUrl.searchParams.get('redirect');
-    if (!redirectParam) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
+    const safeTarget = getSafeRedirect(redirectParam, '/dashboard');
+    return NextResponse.redirect(new URL(safeTarget, request.url));
   }
 
   return NextResponse.next();

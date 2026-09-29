@@ -21,24 +21,64 @@ export async function POST(request) {
 
     // Get current authenticated user session if present
     const { user } = getSessionFromRequest(request);
-    const userId = user?.userId || null;
+    let userId = user?.userId || null;
+
+    // Verify userId actually exists in User table to avoid FK constraint violation
+    if (userId) {
+      try {
+        const userExists = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true },
+        });
+        if (!userExists) {
+          userId = null;
+        }
+      } catch {
+        userId = null;
+      }
+    }
 
     const cleanTitle = pageTitle ? sanitizeInput(String(pageTitle).slice(0, 200)) : null;
     const cleanReferrer = referrer ? sanitizeInput(String(referrer).slice(0, 300)) : null;
     const cleanDevice = deviceType && ['desktop', 'mobile', 'tablet'].includes(deviceType) ? deviceType : 'desktop';
     const cleanSessionId = sessionId ? sanitizeInput(String(sessionId).slice(0, 100)) : null;
 
-    // Record page view in background / safely
-    const pageView = await prisma.pageView.create({
-      data: {
-        userId,
-        sessionId: cleanSessionId,
-        path: cleanPath,
-        pageTitle: cleanTitle,
-        referrer: cleanReferrer,
-        deviceType: cleanDevice,
-      },
-    });
+    let pageViewId = null;
+
+    try {
+      const pageView = await prisma.pageView.create({
+        data: {
+          userId,
+          sessionId: cleanSessionId,
+          path: cleanPath,
+          pageTitle: cleanTitle,
+          referrer: cleanReferrer,
+          deviceType: cleanDevice,
+        },
+      });
+      pageViewId = pageView.id;
+    } catch (pvErr) {
+      // If failed (e.g. FK constraint or DB lock), retry inserting without userId (anonymous)
+      if (userId) {
+        try {
+          const fallbackPv = await prisma.pageView.create({
+            data: {
+              userId: null,
+              sessionId: cleanSessionId,
+              path: cleanPath,
+              pageTitle: cleanTitle,
+              referrer: cleanReferrer,
+              deviceType: cleanDevice,
+            },
+          });
+          pageViewId = fallbackPv.id;
+        } catch (anonErr) {
+          console.warn('[Analytics Track] Fallback write error:', anonErr?.message);
+        }
+      } else {
+        console.warn('[Analytics Track] Non-fatal DB write error:', pvErr?.message);
+      }
+    }
 
     // Touch user lastActiveAt if logged in
     if (userId) {
@@ -48,9 +88,12 @@ export async function POST(request) {
       }).catch(() => {});
     }
 
-    return NextResponse.json({ success: true, id: pageView.id });
+    // Analytics always succeeds gracefully
+    return NextResponse.json({ success: true, recorded: Boolean(pageViewId), id: pageViewId }, { status: 200 });
   } catch (err) {
     console.warn('[Analytics Track] Non-fatal tracking error:', err?.message);
-    return NextResponse.json({ success: false, error: 'Tracking failed' }, { status: 500 });
+    // CRITICAL: Analytics should NEVER return 500 or break client rendering / auth
+    return NextResponse.json({ success: true, recorded: false, error: 'Non-fatal tracking error' }, { status: 200 });
   }
 }
+

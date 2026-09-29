@@ -213,11 +213,14 @@ function SignupForm() {
         throw new Error(data.error || 'Failed to create account.');
       }
 
-      setSuccessMsg('Account created successfully! Redirecting to your dashboard...');
-      router.refresh();
+      setSuccessMsg('Your LowStudy account has been created. Redirecting to sign in...');
+      const loginRedirectTarget = redirectParam
+        ? `/login?redirect=${encodeURIComponent(targetDestination)}&created=true&email=${encodeURIComponent(trimmedEmail)}`
+        : `/login?created=true&email=${encodeURIComponent(trimmedEmail)}`;
+
       setTimeout(() => {
-        router.push(targetDestination);
-      }, 400);
+        router.push(loginRedirectTarget);
+      }, 500);
 
     } catch (err) {
       setErrorMsg(err.message || 'Unable to create account. Please try again.');
@@ -226,10 +229,10 @@ function SignupForm() {
     }
   };
 
-  // Handler when profile modal completes
+  // Handler when profile modal completes (Google Sign-Up)
   const handleProfileModalComplete = () => {
     setShowProfileModal(false);
-    setSuccessMsg('Profile completed! Redirecting to your dashboard...');
+    setSuccessMsg('Profile completed! Redirecting to your destination...');
     router.refresh();
     setTimeout(() => {
       router.push(targetDestination);

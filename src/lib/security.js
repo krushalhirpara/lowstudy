@@ -378,6 +378,18 @@ export function getSafeRedirectUrl(targetUrl, fallback = '/dashboard') {
     return fallback;
   }
 
+  // Prevent redirect loops to login, signup, or admin login
+  if (
+    trimmed === '/login' ||
+    trimmed.startsWith('/login?') ||
+    trimmed === '/signup' ||
+    trimmed.startsWith('/signup?') ||
+    trimmed === '/ceoadmin' ||
+    trimmed === '/ceoadmin/'
+  ) {
+    return fallback;
+  }
+
   // Block protocol schemes (e.g. /http: or javascript: or data:)
   if (trimmed.includes(':') && !trimmed.includes('?')) {
     const beforeQuery = trimmed.split('?')[0];

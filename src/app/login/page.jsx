@@ -13,15 +13,19 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
+  const createdParam = searchParams.get('created') === 'true' || searchParams.get('registered') === 'true';
+  const initialEmailParam = searchParams.get('email') || '';
   const targetDestination = getSafeRedirectUrl(redirectParam, '/dashboard');
 
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialEmailParam);
   const [password, setPassword] = useState('');
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState(
+    createdParam ? 'Your LowStudy account has been created. Please sign in to continue.' : ''
+  );
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [modalUserEmail, setModalUserEmail] = useState('');
   const [modalInitialCity, setModalInitialCity] = useState('');

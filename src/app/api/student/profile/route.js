@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionFromRequest, sanitizeInput } from '@/lib/security';
 import { normalizeCityName } from '@/data/gujaratData';
+import { verifyAndEnsureUniversity } from '@/lib/universityHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,7 +108,14 @@ export async function PATCH(request) {
     }
 
     if (typeof universityId === 'string' && universityId.trim()) {
-      dataToUpdate.universityId = universityId.trim();
+      const verifiedUniId = await verifyAndEnsureUniversity(universityId);
+      if (!verifiedUniId) {
+        return NextResponse.json(
+          { success: false, error: 'Please select a valid college / university.' },
+          { status: 400 }
+        );
+      }
+      dataToUpdate.universityId = verifiedUniId;
     }
 
     if (Object.keys(dataToUpdate).length === 0) {
@@ -132,6 +140,12 @@ export async function PATCH(request) {
       user: updatedUser,
     });
   } catch (err) {
+    if (err?.code === 'P2003') {
+      return NextResponse.json(
+        { success: false, error: 'Please select a valid college / university.' },
+        { status: 400 }
+      );
+    }
     console.error('[PATCH /api/student/profile] Error:', err);
     return NextResponse.json(
       { success: false, error: 'Failed to update student profile.' },
@@ -139,3 +153,4 @@ export async function PATCH(request) {
     );
   }
 }
+
