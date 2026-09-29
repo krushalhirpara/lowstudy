@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import { GUJARAT_UNIVERSITIES } from '@/data/gujaratData';
 import { LANDMARK_CASES, IPC_VS_BNS_MAP } from '@/data/legalData';
+import JsonLd from '@/components/seo/JsonLd';
+import { getWebSiteJsonLd, getOrganizationJsonLd, getFaqJsonLd } from '@/utils/seo';
 
 export default function HomePage() {
   const [selectedUni, setSelectedUni] = useState('su');
@@ -77,8 +79,16 @@ export default function HomePage() {
     }
   ];
 
+  const websiteJsonLd = getWebSiteJsonLd();
+  const orgJsonLd = getOrganizationJsonLd();
+  const faqJsonLd = getFaqJsonLd(faqs.map(f => ({ question: f.q, answer: f.a })));
+
   return (
     <div className="min-h-screen bg-slate-50 font-poppins text-slate-900 selection:bg-amber-100 selection:text-amber-900">
+      {/* Search Engine Structured Data Schemas */}
+      <JsonLd data={websiteJsonLd} />
+      <JsonLd data={orgJsonLd} />
+      <JsonLd data={faqJsonLd} />
       
       {/* 1. HERO SECTION */}
       <section className="relative overflow-hidden bg-white border-b border-slate-200 pt-12 pb-16 lg:pt-20 lg:pb-24">
@@ -104,7 +114,7 @@ export default function HomePage() {
               {/* Main Headline */}
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
                 Learn Law. Practice Daily. <br className="hidden sm:inline" />
-                <span className="bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 bg-clip-text text-transparent">
+                <span className="text-slate-900">
                   Crack Every Exam.
                 </span>
               </h1>

@@ -12,30 +12,38 @@ export default async function sitemap() {
   const baseUrl = 'https://lowstudy.com';
   const currentDate = new Date().toISOString();
 
-  // 1. Core Public Static Pages
+  // 1. Core Public Static Hub Pages
   const staticRoutes = [
     '',
+    '/universities',
+    '/colleges',
     '/gujarat-law-colleges',
     '/subjects',
     '/bare-acts',
     '/case-laws',
+    '/bns-vs-ipc',
     '/quiz',
+    '/mock-test',
     '/dictionary',
     '/ai-tutor',
-    '/bns-vs-ipc',
+    '/career',
+    '/pricing',
+    '/tools',
     '/blog',
-    '/mock-test',
+    '/previous-papers',
     '/question-bank',
     '/revision',
-    '/previous-papers',
     '/study-plan',
     '/practice-writing',
     '/exam-mode',
+    '/curriculum',
+    '/syllabus/history',
+    '/academic',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
     changeFrequency: route === '' ? 'daily' : 'weekly',
-    priority: route === '' ? 1.0 : 0.8,
+    priority: route === '' ? 1.0 : 0.85,
   }));
 
   // 2. Saurashtra University Complete Technical SEO Hierarchy
@@ -118,7 +126,7 @@ export default async function sitemap() {
     console.error('Error querying Saurashtra University sitemap data:', err);
   }
 
-  // 3. Gujarat University Pages
+  // 3. Gujarat University Detail Pages
   const universityRoutes = GUJARAT_UNIVERSITIES.map((uni) => ({
     url: `${baseUrl}/universities/${uni.id}`,
     lastModified: uni.lastVerified || currentDate,
@@ -126,15 +134,15 @@ export default async function sitemap() {
     priority: 0.9,
   }));
 
-  // 4. Affiliated Gujarat Law College Pages
+  // 4. Affiliated Gujarat Law College Detail Pages
   const collegeRoutes = GUJARAT_COLLEGES.map((college) => ({
     url: `${baseUrl}/colleges/${college.id}`,
     lastModified: currentDate,
     changeFrequency: 'monthly',
-    priority: 0.7,
+    priority: 0.75,
   }));
 
-  // 5. Subjects Pages (General)
+  // 5. Subject Detail Pages (General LL.B. Subjects)
   const subjectIds = Array.from(new Set([
     ...SUBJECTS_DATA.map(s => s.id),
     ...ALL_SYLLABUS_SUBJECTS.map(s => s.id)
@@ -144,19 +152,19 @@ export default async function sitemap() {
     url: `${baseUrl}/subjects/${subId}`,
     lastModified: currentDate,
     changeFrequency: 'weekly',
-    priority: 0.8,
+    priority: 0.85,
   }));
 
-  // 6. BNS Topic Pages
+  // 6. BNS Specific Topic Pages
   const bnsTopics = ['murder', 'cheating', 'criminal-conspiracy', 'defamation', 'theft', 'robbery'];
   const bnsRoutes = bnsTopics.map((topic) => ({
     url: `${baseUrl}/bns/${topic}`,
     lastModified: currentDate,
     changeFrequency: 'monthly',
-    priority: 0.7,
+    priority: 0.8,
   }));
 
-  // 7. Blog Articles
+  // 7. Law Blog & Exam Preparation Articles
   const blogSlugs = [
     'gujarat-university-llb-exam-preparation-guide',
     'bns-vs-ipc-key-differences-for-law-students',
@@ -167,7 +175,7 @@ export default async function sitemap() {
     url: `${baseUrl}/blog/${slug}`,
     lastModified: currentDate,
     changeFrequency: 'monthly',
-    priority: 0.7,
+    priority: 0.75,
   }));
 
   return [
