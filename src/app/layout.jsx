@@ -4,6 +4,7 @@ import '@/app/white-theme.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AdSenseShield from '@/components/ads/AdSenseShield';
+import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import Link from 'next/link';
 import Script from 'next/script';
 import { Bot } from 'lucide-react';
@@ -92,6 +93,9 @@ export default function RootLayout({ children }) {
       <body className={`${poppins.className} bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased`}>
         {/* Defensive AdSense runtime exception shield */}
         <AdSenseShield />
+
+        {/* First-Party User Activity Analytics Tracker */}
+        <AnalyticsTracker />
 
         {/* Google Analytics */}
         <Script

@@ -28,6 +28,8 @@ model User {
   streakDays     Int       @default(0)
   coins          Int       @default(0)
   isActive       Boolean   @default(true)
+  lastLoginAt    DateTime?
+  lastActiveAt   DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -52,6 +54,8 @@ model User {
   verifiedSyllabi         SyllabusVersion[] @relation("SyllabusVerifier")
   reviewedSyllabusChanges SyllabusChange[]  @relation("SyllabusChangeReviewer")
   auditLogs               AuditLog[]
+  pageViews               PageView[]
+  loginEvents             LoginEvent[]
 
   @@index([email])
   @@index([role])
@@ -1086,3 +1090,42 @@ model CollegeInstitutionalEnquiry {
   @@index([status])
   @@index([createdAt])
 }
+
+// 33. Analytics: User Page Views
+model PageView {
+  id          String    @id @default(cuid())
+  userId      String?
+  sessionId   String?
+  path        String
+  pageTitle   String?
+  referrer    String?
+  deviceType  String?   @default("desktop") // desktop, mobile, tablet
+  createdAt   DateTime  @default(now())
+
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([path])
+  @@index([createdAt])
+}
+
+// 34. Analytics: Login Events
+model LoginEvent {
+  id            String    @id @default(cuid())
+  userId        String?
+  email         String
+  provider      String    @default("credentials") // credentials, google, admin
+  success       Boolean   @default(true)
+  ipAddress     String?
+  userAgent     String?
+  failureReason String?
+  createdAt     DateTime  @default(now())
+
+  user          User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([email])
+  @@index([provider])
+  @@index([createdAt])
+}
+

@@ -1,15 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Scale, Lock, Mail, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Scale, Lock, Mail, User, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '@/lib/firebase';
+import { getSafeRedirectUrl } from '@/lib/security';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+  const targetDestination = getSafeRedirectUrl(redirectParam, '/dashboard');
 
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -28,7 +33,7 @@ export default function LoginPage() {
         const res = await fetch('/api/student/session');
         const data = await res.json();
         if (!isCancelled && data?.authenticated && data?.user) {
-          router.replace('/dashboard');
+          router.replace(targetDestination);
         }
       } catch (err) {
         // Ignore session prefetch errors
@@ -39,7 +44,7 @@ export default function LoginPage() {
     return () => {
       isCancelled = true;
     };
-  }, [router]);
+  }, [router, targetDestination]);
 
   // Handle Firebase Google Sign-In
   const handleGoogleSignIn = async () => {
@@ -74,8 +79,9 @@ export default function LoginPage() {
           action: 'google',
           firebaseUid: firebaseUser.uid,
           email: firebaseUser.email.trim().toLowerCase(),
-          fullName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          fullName: fullName.trim() || firebaseUser.displayName || firebaseUser.email.split('@')[0],
           photoURL: firebaseUser.photoURL || null,
+          redirectUrl: targetDestination,
         }),
       });
 
@@ -85,12 +91,12 @@ export default function LoginPage() {
         throw new Error(data.error || 'Failed to authenticate Google session with LowStudy.');
       }
 
-      setSuccessMsg('Successfully signed in with Google! Redirecting to dashboard...');
+      setSuccessMsg('Successfully signed in with Google! Redirecting...');
       
       // Refresh router so header catches session cookie
       router.refresh();
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push(targetDestination);
       }, 400);
 
     } catch (err) {
@@ -147,8 +153,10 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'login',
+          fullName: fullName.trim() || undefined,
           email: trimmedEmail,
           password,
+          redirectUrl: targetDestination,
         }),
       });
 
@@ -161,7 +169,7 @@ export default function LoginPage() {
       setSuccessMsg('Signed in successfully! Redirecting...');
       router.refresh();
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push(targetDestination);
       }, 400);
 
     } catch (err) {
@@ -210,6 +218,25 @@ export default function LoginPage() {
 
         {/* Email & Password Form */}
         <form onSubmit={handleEmailLogin} className="space-y-4">
+          {/* 1. Full Name (Placed ABOVE Email Address as required) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-amber-400" />
+              <span>Full Name</span>
+              <span className="text-[10px] text-slate-500 font-normal">(Optional for login)</span>
+            </label>
+            <input
+              type="text"
+              id="login-name-input"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="e.g. Arjun Sharma"
+              disabled={isEmailLoading || isGoogleLoading}
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
+            />
+          </div>
+
+          {/* 2. Email Address */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-amber-400" />
@@ -227,6 +254,7 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* 3. Password */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
@@ -240,6 +268,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              required
               disabled={isEmailLoading || isGoogleLoading}
               className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
             />
@@ -270,7 +299,10 @@ export default function LoginPage() {
         <div className="text-center pt-0.5">
           <p className="text-xs text-slate-400">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-amber-400 hover:text-amber-300 font-semibold transition underline decoration-amber-400/40 underline-offset-2">
+            <Link 
+              href={redirectParam ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : '/signup'} 
+              className="text-amber-400 hover:text-amber-300 font-semibold transition underline decoration-amber-400/40 underline-offset-2"
+            >
               Create one
             </Link>
           </p>
@@ -345,3 +377,16 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[85vh] bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
+  );
+}
+

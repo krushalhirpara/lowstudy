@@ -1,18 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Scale, Lock, Mail, User, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Scale, Lock, Mail, User, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2, ShieldCheck, Check } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '@/lib/firebase';
+import { getSafeRedirectUrl } from '@/lib/security';
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+  const targetDestination = getSafeRedirectUrl(redirectParam, '/dashboard');
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -29,7 +34,7 @@ export default function SignupPage() {
         const res = await fetch('/api/student/session');
         const data = await res.json();
         if (!isCancelled && data?.authenticated && data?.user) {
-          router.replace('/dashboard');
+          router.replace(targetDestination);
         }
       } catch (err) {
         // Ignore session prefetch errors
@@ -40,7 +45,7 @@ export default function SignupPage() {
     return () => {
       isCancelled = true;
     };
-  }, [router]);
+  }, [router, targetDestination]);
 
   // Handle Firebase Google Sign-Up / Sign-In
   const handleGoogleSignUp = async () => {
@@ -75,8 +80,9 @@ export default function SignupPage() {
           action: 'google',
           firebaseUid: firebaseUser.uid,
           email: firebaseUser.email.trim().toLowerCase(),
-          fullName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          fullName: fullName.trim() || firebaseUser.displayName || firebaseUser.email.split('@')[0],
           photoURL: firebaseUser.photoURL || null,
+          redirectUrl: targetDestination,
         }),
       });
 
@@ -90,7 +96,7 @@ export default function SignupPage() {
       
       router.refresh();
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push(targetDestination);
       }, 400);
 
     } catch (err) {
@@ -138,6 +144,11 @@ export default function SignupPage() {
       return;
     }
 
+    if (password !== confirmPassword) {
+      setErrorMsg('Passwords do not match. Please verify your password confirmation.');
+      return;
+    }
+
     try {
       setIsEmailLoading(true);
 
@@ -149,6 +160,7 @@ export default function SignupPage() {
           fullName: fullName.trim() || undefined,
           email: trimmedEmail,
           password,
+          redirectUrl: targetDestination,
         }),
       });
 
@@ -161,7 +173,7 @@ export default function SignupPage() {
       setSuccessMsg('Account created successfully! Redirecting to your dashboard...');
       router.refresh();
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push(targetDestination);
       }, 400);
 
     } catch (err) {
@@ -209,7 +221,8 @@ export default function SignupPage() {
         )}
 
         {/* Email & Password Registration Form */}
-        <form onSubmit={handleEmailSignUp} className="space-y-4">
+        <form onSubmit={handleEmailSignUp} className="space-y-3.5">
+          {/* 1. Full Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-amber-400" />
@@ -221,11 +234,13 @@ export default function SignupPage() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="e.g. Arjun Sharma"
+              required
               disabled={isEmailLoading || isGoogleLoading}
               className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
             />
           </div>
 
+          {/* 2. Email Address */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-amber-400" />
@@ -243,13 +258,12 @@ export default function SignupPage() {
             />
           </div>
 
+          {/* 3. Password */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-amber-400" />
-                <span>Password (min. 6 chars)</span>
-              </label>
-            </div>
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-amber-400" />
+              <span>Password (min. 6 chars)</span>
+            </label>
             <input
               type="password"
               id="signup-password-input"
@@ -263,12 +277,31 @@ export default function SignupPage() {
             />
           </div>
 
+          {/* 4. Confirm Password */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-amber-400" />
+              <span>Confirm Password</span>
+            </label>
+            <input
+              type="password"
+              id="signup-confirm-password-input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              minLength={6}
+              disabled={isEmailLoading || isGoogleLoading}
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
+            />
+          </div>
+
           {/* Create Account Button */}
           <button
             type="submit"
             id="signup-submit-button"
             disabled={isEmailLoading || isGoogleLoading}
-            className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer pt-3"
           >
             {isEmailLoading ? (
               <>
@@ -277,7 +310,7 @@ export default function SignupPage() {
               </>
             ) : (
               <>
-                <span>Create Free Student Account</span>
+                <span>Create Student Account</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -288,7 +321,10 @@ export default function SignupPage() {
         <div className="text-center pt-0.5">
           <p className="text-xs text-slate-400">
             Already have an account?{' '}
-            <Link href="/login" className="text-amber-400 hover:text-amber-300 font-semibold transition underline decoration-amber-400/40 underline-offset-2">
+            <Link 
+              href={redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login'} 
+              className="text-amber-400 hover:text-amber-300 font-semibold transition underline decoration-amber-400/40 underline-offset-2"
+            >
               Sign In
             </Link>
           </p>
@@ -371,3 +407,16 @@ export default function SignupPage() {
     </div>
   );
 }
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[85vh] bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
+  );
+}
+

@@ -357,3 +357,40 @@ export function validateUrlSafe(urlString) {
     return { valid: false, error: 'Invalid URL format: ' + err.message };
   }
 }
+
+/**
+ * Validate and sanitize redirect URLs to strictly prevent Open Redirect vulnerabilities.
+ * Only allows relative internal paths starting with a single '/' and blocks '//', scheme injections, or control chars.
+ * 
+ * @param {string | null | undefined} targetUrl 
+ * @param {string} fallback 
+ * @returns {string} Safe relative internal path
+ */
+export function getSafeRedirectUrl(targetUrl, fallback = '/dashboard') {
+  if (!targetUrl || typeof targetUrl !== 'string') {
+    return fallback;
+  }
+
+  const trimmed = targetUrl.trim().replace(/[\r\n\0]/g, '');
+
+  // Must start with exactly one '/' and not '//' or '/\'
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//') || trimmed.startsWith('/\\')) {
+    return fallback;
+  }
+
+  // Block protocol schemes (e.g. /http: or javascript: or data:)
+  if (trimmed.includes(':') && !trimmed.includes('?')) {
+    const beforeQuery = trimmed.split('?')[0];
+    if (beforeQuery.includes(':')) {
+      return fallback;
+    }
+  }
+
+  // Block dangerous substrings
+  if (trimmed.toLowerCase().includes('javascript:') || trimmed.toLowerCase().includes('data:')) {
+    return fallback;
+  }
+
+  return trimmed;
+}
+

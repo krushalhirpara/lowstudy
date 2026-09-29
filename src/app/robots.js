@@ -11,6 +11,8 @@ export default function robots() {
         disallow: [
           '/admin',
           '/admin/*',
+          '/ceoadmin',
+          '/ceoadmin/*',
           '/api/',
           '/api/*',
           '/dashboard',

@@ -6,7 +6,8 @@ import {
   getSessionFromRequest, 
   verifyPassword, 
   hashPassword,
-  sanitizeInput 
+  sanitizeInput,
+  getSafeRedirectUrl
 } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
@@ -21,9 +22,31 @@ function isValidEmail(email) {
 }
 
 /**
+ * Helper to record login events defensively.
+ */
+async function recordLoginAudit({ userId = null, email, provider, success, ipAddress, userAgent, failureReason = null }) {
+  try {
+    await prisma.loginEvent.create({
+      data: {
+        userId,
+        email: email ? email.toLowerCase() : 'unknown',
+        provider: provider || 'credentials',
+        success,
+        ipAddress: ipAddress ? ipAddress.slice(0, 100) : null,
+        userAgent: userAgent ? userAgent.slice(0, 300) : null,
+        failureReason: failureReason ? failureReason.slice(0, 200) : null,
+      },
+    });
+  } catch (err) {
+    console.warn('[LoginEvent] Non-fatal login audit error:', err?.message);
+  }
+}
+
+/**
  * Safe student creation helper that gracefully handles foreign key defaults.
  */
 async function createNewStudent({ email, fullName, avatar, firebaseUid, provider = 'google', passwordHash = null }) {
+  const now = new Date();
   const baseData = {
     email,
     fullName,
@@ -35,6 +58,8 @@ async function createNewStudent({ email, fullName, avatar, firebaseUid, provider
     streakDays: 1,
     coins: 50,
     isActive: true,
+    lastLoginAt: now,
+    lastActiveAt: now,
     ...(passwordHash ? { passwordHash } : {}),
   };
 
@@ -53,6 +78,8 @@ async function createNewStudent({ email, fullName, avatar, firebaseUid, provider
     courseId: true,
     semesterId: true,
     isActive: true,
+    lastLoginAt: true,
+    lastActiveAt: true,
   };
 
   // Attempt 1: Try with default Gujarat law academic path
@@ -109,6 +136,8 @@ export async function GET(request) {
         courseId: true,
         semesterId: true,
         isActive: true,
+        lastLoginAt: true,
+        lastActiveAt: true,
       },
     });
 
@@ -118,6 +147,12 @@ export async function GET(request) {
         { status: 401 }
       );
     }
+
+    // Touch lastActiveAt asynchronously
+    prisma.user.update({
+      where: { id: user.id },
+      data: { lastActiveAt: new Date() },
+    }).catch(() => {});
 
     return NextResponse.json({
       success: true,
@@ -143,6 +178,7 @@ export async function POST(request) {
       request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 
       request.headers.get('x-real-ip') || 
       'client-ip';
+    const userAgent = request.headers.get('user-agent') || '';
 
     // Rate Limiting Protection (30 attempts per minute)
     const rateLimit = checkRateLimit(`login-${clientIp}`, 30, 60000);
@@ -163,10 +199,11 @@ export async function POST(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { action = 'login', userId, email, password, fullName, firebaseUid, photoURL } = body;
+    const { action = 'login', userId, email, password, fullName, firebaseUid, photoURL, redirectUrl } = body;
 
     // Normalize email cleanly (lowercase + trim whitespace)
     const normalizedEmail = typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : null;
+    const safeRedirect = getSafeRedirectUrl(redirectUrl, '/dashboard');
 
     // Handle Logout
     if (action === 'logout') {
@@ -238,6 +275,8 @@ export async function POST(request) {
           data: {
             passwordHash: `${salt}:${hash}`,
             fullName: existingUser.fullName || cleanFullName,
+            lastLoginAt: new Date(),
+            lastActiveAt: new Date(),
           },
           select: {
             id: true,
@@ -253,6 +292,8 @@ export async function POST(request) {
             courseId: true,
             semesterId: true,
             isActive: true,
+            lastLoginAt: true,
+            lastActiveAt: true,
           },
         });
       } else {
@@ -265,6 +306,16 @@ export async function POST(request) {
           passwordHash: `${salt}:${hash}`,
         });
       }
+
+      // Record Login Event Audit
+      await recordLoginAudit({
+        userId: targetUser.id,
+        email: targetUser.email,
+        provider: 'credentials',
+        success: true,
+        ipAddress: clientIp,
+        userAgent,
+      });
 
       // Issue Tamper-Proof HMAC-SHA256 Signed Session Token
       const sessionToken = createSessionToken({
@@ -280,6 +331,7 @@ export async function POST(request) {
         message: 'Account created successfully. Session established.',
         user: targetUser,
         token: sessionToken,
+        redirectUrl: safeRedirect,
       });
 
       // Set Secure HttpOnly Session Cookie (7 days)
@@ -334,6 +386,8 @@ export async function POST(request) {
           courseId: true,
           semesterId: true,
           isActive: true,
+          lastLoginAt: true,
+          lastActiveAt: true,
         }
       });
 
@@ -356,23 +410,39 @@ export async function POST(request) {
             courseId: true,
             semesterId: true,
             isActive: true,
+            lastLoginAt: true,
+            lastActiveAt: true,
           }
         });
       }
 
+      const now = new Date();
+
       if (user) {
         // User exists: verify active status
         if (!user.isActive) {
+          await recordLoginAudit({
+            userId: user.id,
+            email: normalizedEmail,
+            provider: 'google',
+            success: false,
+            failureReason: 'ACCOUNT_DEACTIVATED',
+            ipAddress: clientIp,
+            userAgent,
+          });
+
           return NextResponse.json(
             { success: false, error: 'This account has been deactivated. Please contact support.' },
             { status: 403 }
           );
         }
 
-        // Account Linking: Link Google firebaseUid and avatar if missing
-        const updateData = {};
+        // Account Linking: Link Google firebaseUid, avatar, and update activity
+        const updateData = {
+          lastLoginAt: now,
+          lastActiveAt: now,
+        };
         if (!user.firebaseUid || user.firebaseUid !== cleanUid) {
-          // Check if cleanUid is already claimed by another user to avoid unique constraint conflict
           const conflictingUser = await prisma.user.findUnique({ where: { firebaseUid: cleanUid } });
           if (!conflictingUser || conflictingUser.id === user.id) {
             updateData.firebaseUid = cleanUid;
@@ -385,28 +455,28 @@ export async function POST(request) {
           updateData.fullName = cleanName;
         }
 
-        if (Object.keys(updateData).length > 0) {
-          user = await prisma.user.update({
-            where: { id: user.id },
-            data: updateData,
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              role: true,
-              avatar: true,
-              provider: true,
-              firebaseUid: true,
-              streakDays: true,
-              xp: true,
-              coins: true,
-              universityId: true,
-              courseId: true,
-              semesterId: true,
-              isActive: true,
-            }
-          });
-        }
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: updateData,
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            role: true,
+            avatar: true,
+            provider: true,
+            firebaseUid: true,
+            streakDays: true,
+            xp: true,
+            coins: true,
+            universityId: true,
+            courseId: true,
+            semesterId: true,
+            isActive: true,
+            lastLoginAt: true,
+            lastActiveAt: true,
+          }
+        });
       } else {
         // Create new user for first-time Google sign-in
         user = await createNewStudent({
@@ -417,6 +487,16 @@ export async function POST(request) {
           provider: 'google',
         });
       }
+
+      // Record successful Google Login Event
+      await recordLoginAudit({
+        userId: user.id,
+        email: user.email,
+        provider: 'google',
+        success: true,
+        ipAddress: clientIp,
+        userAgent,
+      });
 
       // Issue Tamper-Proof HMAC-SHA256 Signed Session Token
       const sessionToken = createSessionToken({
@@ -434,6 +514,7 @@ export async function POST(request) {
         message: 'Google Sign-In successful. Session established.',
         user: safeUser,
         token: sessionToken,
+        redirectUrl: safeRedirect,
       });
 
       // Set Secure HttpOnly Session Cookie (7 days, SameSite=Lax)
@@ -515,6 +596,8 @@ export async function POST(request) {
       });
     }
 
+    const now = new Date();
+
     // If user does not exist yet: Seamlessly create account and log in
     if (!user) {
       if (!isValidEmail(normalizedEmail)) {
@@ -524,16 +607,30 @@ export async function POST(request) {
         );
       }
 
+      const cleanFullName = typeof fullName === 'string' && fullName.trim()
+        ? sanitizeInput(fullName.trim(), { maxLength: 100 })
+        : normalizedEmail.split('@')[0];
+
       const { hash, salt } = hashPassword(password);
       user = await createNewStudent({
         email: normalizedEmail,
-        fullName: normalizedEmail.split('@')[0],
+        fullName: cleanFullName,
         provider: 'credentials',
         passwordHash: `${salt}:${hash}`,
       });
     } else {
       // User exists: check active status
       if (!user.isActive) {
+        await recordLoginAudit({
+          userId: user.id,
+          email: normalizedEmail || user.email,
+          provider: 'credentials',
+          success: false,
+          failureReason: 'ACCOUNT_DEACTIVATED',
+          ipAddress: clientIp,
+          userAgent,
+        });
+
         return NextResponse.json(
           { success: false, error: 'This account has been deactivated. Please contact support.' },
           { status: 403 }
@@ -544,17 +641,34 @@ export async function POST(request) {
       if (user.passwordHash) {
         const [salt, hash] = user.passwordHash.split(':');
         if (!salt || !hash || !verifyPassword(password, hash, salt)) {
+          await recordLoginAudit({
+            userId: user.id,
+            email: normalizedEmail || user.email,
+            provider: 'credentials',
+            success: false,
+            failureReason: 'INVALID_PASSWORD',
+            ipAddress: clientIp,
+            userAgent,
+          });
+
           return NextResponse.json({ 
             success: false, 
             error: 'Incorrect password. Please check your password or continue with Google.' 
           }, { status: 401 });
         }
-      } else {
-        // User exists without password hash: save password hash
-        const { hash, salt } = hashPassword(password);
+
+        // Update activity timestamps and full name if provided
+        const updateData = {
+          lastLoginAt: now,
+          lastActiveAt: now,
+        };
+        if (fullName && typeof fullName === 'string' && fullName.trim() && !user.fullName) {
+          updateData.fullName = sanitizeInput(fullName.trim(), { maxLength: 100 });
+        }
+
         user = await prisma.user.update({
           where: { id: user.id },
-          data: { passwordHash: `${salt}:${hash}` },
+          data: updateData,
           select: {
             id: true,
             fullName: true,
@@ -569,10 +683,50 @@ export async function POST(request) {
             courseId: true,
             semesterId: true,
             isActive: true,
+            lastLoginAt: true,
+            lastActiveAt: true,
+          },
+        });
+      } else {
+        // User exists without password hash: save password hash
+        const { hash, salt } = hashPassword(password);
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { 
+            passwordHash: `${salt}:${hash}`,
+            lastLoginAt: now,
+            lastActiveAt: now,
+          },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            role: true,
+            avatar: true,
+            provider: true,
+            streakDays: true,
+            xp: true,
+            coins: true,
+            universityId: true,
+            courseId: true,
+            semesterId: true,
+            isActive: true,
+            lastLoginAt: true,
+            lastActiveAt: true,
           },
         });
       }
     }
+
+    // Record Successful Login Event
+    await recordLoginAudit({
+      userId: user.id,
+      email: user.email,
+      provider: 'credentials',
+      success: true,
+      ipAddress: clientIp,
+      userAgent,
+    });
 
     // Issue Tamper-Proof HMAC-SHA256 Signed Session Token
     const sessionToken = createSessionToken({
@@ -591,6 +745,7 @@ export async function POST(request) {
       message: 'Authenticated successfully. Session established.',
       user: safeUser,
       token: sessionToken,
+      redirectUrl: safeRedirect,
     });
 
     // Set Secure HttpOnly Session Cookie (7 days, SameSite=Lax)
@@ -617,4 +772,5 @@ export async function POST(request) {
     );
   }
 }
+
 
