@@ -21,6 +21,8 @@ model User {
   firebaseUid    String?   @unique
   provider       String    @default("credentials") // credentials, google
   city           String?
+  phoneNumber    String?
+  profileCompleted Boolean @default(false)
   universityId   String?
   collegeId      String?
   courseId       String?
@@ -59,6 +61,7 @@ model User {
   loginEvents             LoginEvent[]
 
   @@index([email])
+  @@index([phoneNumber])
   @@index([role])
   @@index([universityId])
   @@index([city])

@@ -1,27 +1,53 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Scale, Sparkles, Building2, MapPin, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Scale, Sparkles, Building2, MapPin, Phone, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import CitySelect from './CitySelect';
 import UniversitySelect from './UniversitySelect';
+import { isValidIndianPhoneNumber, normalizePhoneNumber } from '@/lib/phoneUtils';
 
 export default function CompleteProfileModal({
   isOpen,
+  initialFullName = '',
   initialCity = '',
   initialUniversityId = '',
+  initialPhoneNumber = '',
   userEmail = '',
+  firebaseUid = null,
+  photoURL = null,
   onComplete,
 }) {
+  const [fullName, setFullName] = useState(initialFullName || '');
+  const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber || '');
   const [city, setCity] = useState(initialCity || '');
   const [universityId, setUniversityId] = useState(initialUniversityId || '');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (initialFullName) setFullName(initialFullName);
+    if (initialCity) setCity(initialCity);
+    if (initialUniversityId) setUniversityId(initialUniversityId);
+    if (initialPhoneNumber) setPhoneNumber(initialPhoneNumber);
+  }, [initialFullName, initialCity, initialUniversityId, initialPhoneNumber]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
+
+    const cleanName = (fullName || '').trim();
+    if (!cleanName || cleanName.length < 2) {
+      setErrorMsg('Please enter your Full Name.');
+      return;
+    }
+
+    const normPhone = normalizePhoneNumber(phoneNumber);
+    if (!normPhone || !isValidIndianPhoneNumber(normPhone)) {
+      setErrorMsg('Please enter a valid 10-digit Indian contact number.');
+      return;
+    }
 
     const trimmedCity = (city || '').trim();
     if (!trimmedCity || trimmedCity.length < 2) {
@@ -36,13 +62,19 @@ export default function CompleteProfileModal({
 
     try {
       setLoading(true);
+      const action = firebaseUid ? 'google_signup' : 'complete_profile';
       const res = await fetch('/api/student/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'complete_profile',
+          action,
+          fullName: cleanName,
+          email: userEmail,
+          phoneNumber: normPhone,
           city: trimmedCity,
           universityId,
+          firebaseUid: firebaseUid || undefined,
+          photoURL: photoURL || undefined,
         }),
       });
 
@@ -55,7 +87,7 @@ export default function CompleteProfileModal({
         onComplete(data.user);
       }
     } catch (err) {
-      setErrorMsg(err.message || 'Unable to update profile. Please try again.');
+      setErrorMsg(err.message || 'Unable to complete registration. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -63,7 +95,7 @@ export default function CompleteProfileModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in font-poppins">
-      <div className="max-w-md w-full p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 text-slate-100 shadow-2xl space-y-6">
+      <div className="max-w-md w-full p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 text-slate-100 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-600 to-amber-700 p-0.5 mx-auto shadow-lg shadow-amber-500/20">
@@ -76,11 +108,11 @@ export default function CompleteProfileModal({
             <span>Complete Your Student Profile</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-            Select City &amp; University
+            Complete Student Profile
           </h2>
           <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
-            {userEmail ? `For ${userEmail}: ` : ''}
-            Tailor your legal syllabus, question bank, and exam schedules to your university.
+            {userEmail ? <span className="font-mono text-amber-400/90 block mb-0.5">{userEmail}</span> : null}
+            Please complete your details to finish creating your LowStudy account.
           </p>
         </div>
 
@@ -93,8 +125,46 @@ export default function CompleteProfileModal({
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* 1. City */}
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {/* 1. Full Name */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-amber-400" />
+              <span>Full Name</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">*Required</span>
+            </label>
+            <input
+              type="text"
+              id="complete-profile-fullname"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="e.g. Arjun Patel"
+              required
+              disabled={loading}
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
+            />
+          </div>
+
+          {/* 2. Contact Number */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-amber-400" />
+              <span>Contact Number</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">*10-Digit Mobile</span>
+            </label>
+            <input
+              type="tel"
+              id="complete-profile-phone"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="e.g. 9876543210"
+              required
+              disabled={loading}
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
+            />
+          </div>
+
+          {/* 3. City */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-amber-400" />
@@ -111,7 +181,7 @@ export default function CompleteProfileModal({
             />
           </div>
 
-          {/* 2. College / University */}
+          {/* 4. College / University */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5 text-amber-400" />
@@ -139,11 +209,11 @@ export default function CompleteProfileModal({
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Saving Profile...</span>
+                <span>Completing Registration...</span>
               </>
             ) : (
               <>
-                <span>Save Profile &amp; Continue</span>
+                <span>Complete Registration</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

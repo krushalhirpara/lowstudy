@@ -169,6 +169,8 @@ export default function StudentDashboardPage() {
       {/* Complete Profile Modal */}
       <CompleteProfileModal
         isOpen={showProfileModal}
+        initialFullName={student.fullName || ''}
+        initialPhoneNumber={student.phoneNumber || ''}
         initialCity={student.city || ''}
         initialUniversityId={student.universityId || academicContext.university?.id || ''}
         userEmail={student.email || ''}

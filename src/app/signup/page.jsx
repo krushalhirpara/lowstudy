@@ -3,10 +3,11 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Scale, Lock, Mail, User, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2, ShieldCheck, MapPin, Building2 } from 'lucide-react';
+import { Scale, Lock, Mail, User, Phone, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2, ShieldCheck, MapPin, Building2 } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import { getSafeRedirectUrl } from '@/lib/security';
+import { isValidIndianPhoneNumber, normalizePhoneNumber } from '@/lib/phoneUtils';
 import CitySelect from '@/components/auth/CitySelect';
 import UniversitySelect from '@/components/auth/UniversitySelect';
 import CompleteProfileModal from '@/components/auth/CompleteProfileModal';
@@ -16,11 +17,13 @@ function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
+  const isGoogleRedirect = searchParams.get('google') === '1';
   const targetDestination = getSafeRedirectUrl(redirectParam, '/');
   const { setUser, refreshUser } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [city, setCity] = useState('');
@@ -28,10 +31,18 @@ function SignupForm() {
 
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState(
+    isGoogleRedirect ? 'No LowStudy account found. Please sign up first to continue.' : ''
+  );
   const [successMsg, setSuccessMsg] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
+  
+  // Google sign up temp profile state
   const [googleUserEmail, setGoogleUserEmail] = useState('');
+  const [googleUserName, setGoogleUserName] = useState('');
+  const [googleUserUid, setGoogleUserUid] = useState('');
+  const [googleUserPhoto, setGoogleUserPhoto] = useState('');
+  
   const [mounted, setMounted] = useState(false);
 
   // Check if student already has an active session
@@ -48,7 +59,9 @@ function SignupForm() {
             router.replace(targetDestination);
           } else {
             setShowProfileModal(true);
-            setGoogleUserEmail(data.user.email);
+            setGoogleUserEmail(data.user.email || '');
+            setGoogleUserName(data.user.fullName || '');
+            setPhoneNumber(data.user.phoneNumber || '');
             setCity(data.user.city || '');
             setUniversityId(data.user.universityId || '');
           }
@@ -64,7 +77,7 @@ function SignupForm() {
     };
   }, [router, targetDestination]);
 
-  // Handle Firebase Google Sign-Up / Sign-In
+  // Handle Firebase Google Sign-Up
   const handleGoogleSignUp = async () => {
     setErrorMsg('');
     setSuccessMsg('');
@@ -89,47 +102,51 @@ function SignupForm() {
         throw new Error('No email found in Google account profile.');
       }
 
-      // Send authenticated Firebase profile to backend session route
+      const normGoogleEmail = firebaseUser.email.trim().toLowerCase();
+      const googleDisplayName = fullName.trim() || firebaseUser.displayName || normGoogleEmail.split('@')[0];
+
+      // Check with backend if Google user exists
       const response = await fetch('/api/student/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'google',
           firebaseUid: firebaseUser.uid,
-          email: firebaseUser.email.trim().toLowerCase(),
-          fullName: fullName.trim() || firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          email: normGoogleEmail,
+          fullName: googleDisplayName,
           photoURL: firebaseUser.photoURL || null,
-          city: city.trim() || undefined,
-          universityId: universityId || undefined,
           redirectUrl: targetDestination,
         }),
       });
 
       const data = await response.json();
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to authenticate Google session with LowStudy.');
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to authenticate with Google.');
       }
 
-      // Check if profile completion is required
-      if (!data.isProfileComplete && (!data.user?.city || !data.user?.universityId)) {
-        setGoogleUserEmail(firebaseUser.email);
-        setShowProfileModal(true);
-        setSuccessMsg('Authenticated with Google! Please complete your student profile.');
+      // If user already exists and profile is complete, log them in
+      if (data.success && data.isProfileComplete && data.user) {
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          await refreshUser();
+        }
+        setSuccessMsg('Welcome back! Setting up your student portal...');
+        router.refresh();
+        setTimeout(() => {
+          router.push(targetDestination);
+        }, 400);
         return;
       }
 
-      if (data.user) {
-        setUser(data.user);
-      } else {
-        await refreshUser();
-      }
-
-      setSuccessMsg('Successfully connected with Google! Setting up your student portal...');
-      router.refresh();
-      setTimeout(() => {
-        router.push(targetDestination);
-      }, 400);
+      // New Google User or Incomplete Profile: Open Complete Profile Modal
+      setGoogleUserEmail(normGoogleEmail);
+      setGoogleUserName(googleDisplayName);
+      setGoogleUserUid(firebaseUser.uid);
+      setGoogleUserPhoto(firebaseUser.photoURL || '');
+      setShowProfileModal(true);
+      setSuccessMsg('Google connected! Please complete your student profile.');
 
     } catch (err) {
       console.warn('Google Sign-Up error:', err.code || err.message);
@@ -166,7 +183,7 @@ function SignupForm() {
     setSuccessMsg('');
 
     const trimmedName = fullName.trim();
-    if (!trimmedName) {
+    if (!trimmedName || trimmedName.length < 2) {
       setErrorMsg('Please enter your full name.');
       return;
     }
@@ -174,6 +191,12 @@ function SignupForm() {
     const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail) {
       setErrorMsg('Please enter your email address.');
+      return;
+    }
+
+    const normPhone = normalizePhoneNumber(phoneNumber);
+    if (!normPhone || !isValidIndianPhoneNumber(normPhone)) {
+      setErrorMsg('Please enter a valid 10-digit Indian contact number.');
       return;
     }
 
@@ -208,6 +231,7 @@ function SignupForm() {
           action: 'signup',
           fullName: trimmedName,
           email: trimmedEmail,
+          phoneNumber: normPhone,
           password,
           city: trimmedCity,
           universityId,
@@ -245,7 +269,7 @@ function SignupForm() {
       refreshUser();
     }
     setShowProfileModal(false);
-    setSuccessMsg('Profile completed! Redirecting to your destination...');
+    setSuccessMsg('Registration completed! Setting up your student portal...');
     router.refresh();
     setTimeout(() => {
       router.push(targetDestination);
@@ -257,9 +281,13 @@ function SignupForm() {
       {/* Google Sign-In Profile Completion Modal */}
       <CompleteProfileModal
         isOpen={showProfileModal}
+        initialFullName={googleUserName || fullName}
+        initialPhoneNumber={phoneNumber}
         initialCity={city}
         initialUniversityId={universityId}
         userEmail={googleUserEmail}
+        firebaseUid={googleUserUid}
+        photoURL={googleUserPhoto}
         onComplete={handleProfileModalComplete}
       />
 
@@ -338,7 +366,26 @@ function SignupForm() {
             />
           </div>
 
-          {/* 3. Password */}
+          {/* 3. Contact Number */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-amber-400" />
+              <span>Contact Number</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">*10-Digit Mobile</span>
+            </label>
+            <input
+              type="tel"
+              id="signup-phone-input"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="e.g. 9876543210"
+              required
+              disabled={isEmailLoading || isGoogleLoading}
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
+            />
+          </div>
+
+          {/* 4. Password */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5 text-amber-400" />
@@ -358,7 +405,7 @@ function SignupForm() {
             />
           </div>
 
-          {/* 4. Confirm Password */}
+          {/* 5. Confirm Password */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5 text-amber-400" />
@@ -378,7 +425,7 @@ function SignupForm() {
             />
           </div>
 
-          {/* 5. City with Autocomplete & Custom Input */}
+          {/* 6. City with Autocomplete & Custom Input */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
@@ -398,7 +445,7 @@ function SignupForm() {
             />
           </div>
 
-          {/* 6. College / University Searchable Dropdown */}
+          {/* 7. College / University Searchable Dropdown */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
@@ -543,5 +590,3 @@ export default function SignupPage() {
     </Suspense>
   );
 }
-
-

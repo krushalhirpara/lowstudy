@@ -12,6 +12,8 @@ const USER_SAFE_FIELDS = {
   avatar: true,
   provider: true,
   city: true,
+  phoneNumber: true,
+  profileCompleted: true,
   universityId: true,
   courseId: true,
   semesterId: true,
@@ -100,7 +102,9 @@ export async function GET(request) {
       data: { lastActiveAt: new Date() },
     }).catch(() => {});
 
-    const isProfileComplete = Boolean(user.city && (user.universityId || user.university));
+    const isProfileComplete = Boolean(
+      user.profileCompleted || (user.city && (user.universityId || user.university) && user.phoneNumber)
+    );
 
     return NextResponse.json(
       {

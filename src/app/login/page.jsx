@@ -3,10 +3,11 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Scale, Lock, Mail, User, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
-import { signInWithPopup } from 'firebase/auth';
+import { Scale, Lock, Mail, User, Phone, ArrowRight, AlertCircle, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { signInWithPopup, signOut } from 'firebase/auth';
 import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import { getSafeRedirectUrl } from '@/lib/security';
+import { isValidIndianPhoneNumber, normalizePhoneNumber } from '@/lib/phoneUtils';
 import CompleteProfileModal from '@/components/auth/CompleteProfileModal';
 import { useAuth } from '@/context/AuthContext';
 
@@ -21,6 +22,7 @@ function LoginForm() {
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState(initialEmailParam);
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -32,6 +34,9 @@ function LoginForm() {
   const [modalUserEmail, setModalUserEmail] = useState('');
   const [modalInitialCity, setModalInitialCity] = useState('');
   const [modalInitialUniversityId, setModalInitialUniversityId] = useState('');
+  const [modalInitialPhone, setModalInitialPhone] = useState('');
+  const [modalFirebaseUid, setModalFirebaseUid] = useState('');
+  const [modalPhotoURL, setModalPhotoURL] = useState('');
   const [mounted, setMounted] = useState(false);
 
   // Check if student already has an active session
@@ -50,6 +55,7 @@ function LoginForm() {
             setModalUserEmail(data.user.email);
             setModalInitialCity(data.user.city || '');
             setModalInitialUniversityId(data.user.universityId || '');
+            setModalInitialPhone(data.user.phoneNumber || '');
             setShowProfileModal(true);
           }
         }
@@ -64,7 +70,7 @@ function LoginForm() {
     };
   }, [router, targetDestination]);
 
-  // Handle Firebase Google Sign-In
+  // Handle Direct Google Login from /login page (EXISTING USERS ONLY)
   const handleGoogleSignIn = async () => {
     setErrorMsg('');
     setSuccessMsg('');
@@ -89,12 +95,12 @@ function LoginForm() {
         throw new Error('No email found in Google account profile.');
       }
 
-      // Send authenticated Firebase profile to backend session route
+      // Send to backend with action: 'google_login' (MUST NOT AUTO-CREATE ACCOUNT)
       const response = await fetch('/api/student/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'google',
+          action: 'google_login',
           firebaseUid: firebaseUser.uid,
           email: firebaseUser.email.trim().toLowerCase(),
           fullName: fullName.trim() || firebaseUser.displayName || firebaseUser.email.split('@')[0],
@@ -105,15 +111,37 @@ function LoginForm() {
 
       const data = await response.json();
 
+      // If user does not exist in LowStudy database
+      if (response.status === 404 || data.notFound) {
+        // Clear temporary Firebase auth state
+        try {
+          await signOut(auth);
+        } catch {}
+
+        // Redirect to Signup with notice
+        const signupTarget = redirectParam 
+          ? `/signup?google=1&redirect=${encodeURIComponent(redirectParam)}`
+          : '/signup?google=1';
+        
+        setErrorMsg('No LowStudy account found. Redirecting to sign up...');
+        setTimeout(() => {
+          router.push(signupTarget);
+        }, 500);
+        return;
+      }
+
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to authenticate Google session with LowStudy.');
       }
 
-      // Check if profile completion is required
-      if (!data.isProfileComplete && (!data.user?.city || !data.user?.universityId)) {
+      // If profile is incomplete, prompt completion
+      if (!data.isProfileComplete && (!data.user?.city || !data.user?.universityId || !data.user?.phoneNumber)) {
         setModalUserEmail(firebaseUser.email);
         setModalInitialCity(data.user?.city || '');
         setModalInitialUniversityId(data.user?.universityId || '');
+        setModalInitialPhone(data.user?.phoneNumber || '');
+        setModalFirebaseUid(firebaseUser.uid);
+        setModalPhotoURL(firebaseUser.photoURL || '');
         setShowProfileModal(true);
         setSuccessMsg('Authenticated with Google! Please complete your student profile.');
         return;
@@ -126,8 +154,6 @@ function LoginForm() {
       }
 
       setSuccessMsg('Successfully signed in with Google! Redirecting...');
-      
-      // Refresh router so header catches session cookie
       router.refresh();
       setTimeout(() => {
         router.push(targetDestination);
@@ -136,7 +162,6 @@ function LoginForm() {
     } catch (err) {
       console.warn('Google Sign-In error:', err.code || err.message);
 
-      // Map Firebase error codes to friendly, non-technical messages
       const code = err.code || '';
       if (code === 'auth/popup-closed-by-user') {
         setErrorMsg('Google sign-in was cancelled.');
@@ -162,7 +187,7 @@ function LoginForm() {
     }
   };
 
-  // Handle Standard Email/Password Login
+  // Handle Standard Email/Phone/Password Login
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -171,6 +196,12 @@ function LoginForm() {
     const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail) {
       setErrorMsg('Please enter your email address.');
+      return;
+    }
+
+    const normPhone = normalizePhoneNumber(phoneNumber);
+    if (!normPhone || !isValidIndianPhoneNumber(normPhone)) {
+      setErrorMsg('Please enter a valid 10-digit Indian contact number.');
       return;
     }
 
@@ -189,6 +220,7 @@ function LoginForm() {
           action: 'login',
           fullName: fullName.trim() || undefined,
           email: trimmedEmail,
+          phoneNumber: normPhone,
           password,
           redirectUrl: targetDestination,
         }),
@@ -197,14 +229,15 @@ function LoginForm() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Invalid email or password. Please try again.');
+        throw new Error(data.error || 'Invalid email, phone number, or password. Please try again.');
       }
 
       // Check if profile completion is needed
-      if (!data.isProfileComplete && (!data.user?.city || !data.user?.universityId)) {
+      if (!data.isProfileComplete && (!data.user?.city || !data.user?.universityId || !data.user?.phoneNumber)) {
         setModalUserEmail(trimmedEmail);
         setModalInitialCity(data.user?.city || '');
         setModalInitialUniversityId(data.user?.universityId || '');
+        setModalInitialPhone(normPhone);
         setShowProfileModal(true);
         setSuccessMsg('Signed in! Please complete your student profile.');
         return;
@@ -245,12 +278,16 @@ function LoginForm() {
 
   return (
     <div className="min-h-[85vh] bg-slate-950 flex items-center justify-center p-4 font-poppins">
-      {/* Complete Profile Modal for users missing city or university */}
+      {/* Complete Profile Modal for users missing city, university, or phone */}
       <CompleteProfileModal
         isOpen={showProfileModal}
+        initialFullName={fullName}
         initialCity={modalInitialCity}
         initialUniversityId={modalInitialUniversityId}
+        initialPhoneNumber={modalInitialPhone || phoneNumber}
         userEmail={modalUserEmail}
+        firebaseUid={modalFirebaseUid}
+        photoURL={modalPhotoURL}
         onComplete={handleProfileModalComplete}
       />
 
@@ -277,7 +314,19 @@ function LoginForm() {
         {errorMsg && (
           <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs animate-shake">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
-            <div className="leading-snug">{errorMsg}</div>
+            <div className="leading-snug">
+              {errorMsg}
+              {errorMsg.includes('No LowStudy account found') && (
+                <div className="mt-1.5">
+                  <Link 
+                    href={redirectParam ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : '/signup'}
+                    className="underline text-amber-400 font-bold hover:text-amber-300"
+                  >
+                    Create a new account here →
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -291,7 +340,7 @@ function LoginForm() {
 
         {/* Email & Password Form */}
         <form onSubmit={handleEmailLogin} className="space-y-4">
-          {/* 1. Full Name (Placed ABOVE Email Address as required) */}
+          {/* 1. Full Name (Placed ABOVE Email Address) */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-amber-400" />
@@ -314,6 +363,7 @@ function LoginForm() {
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-amber-400" />
               <span>Email Address</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">*</span>
             </label>
             <input
               type="email"
@@ -327,12 +377,32 @@ function LoginForm() {
             />
           </div>
 
-          {/* 3. Password */}
+          {/* 3. Contact Number */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-amber-400" />
+              <span>Contact Number</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">*</span>
+            </label>
+            <input
+              type="tel"
+              id="login-phone-input"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="e.g. 9876543210"
+              required
+              disabled={isEmailLoading || isGoogleLoading}
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white text-xs outline-none transition disabled:opacity-50"
+            />
+          </div>
+
+          {/* 4. Password */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-amber-400" />
                 <span>Password</span>
+                <span className="text-[10px] text-amber-400/80 font-normal">*</span>
               </label>
             </div>
             <input
@@ -361,7 +431,7 @@ function LoginForm() {
               </>
             ) : (
               <>
-                <span>Login with Email</span>
+                <span>Login with Email &amp; Phone</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -462,4 +532,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-

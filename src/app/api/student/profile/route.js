@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getSessionFromRequest, sanitizeInput } from '@/lib/security';
 import { normalizeCityName } from '@/data/gujaratData';
 import { verifyAndEnsureUniversity, isUniversityValidForCity } from '@/lib/universityHelper';
+import { normalizePhoneNumber, isValidIndianPhoneNumber } from '@/lib/phoneUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,8 @@ const PROFILE_SELECT_FIELDS = {
   avatar: true,
   provider: true,
   city: true,
+  phoneNumber: true,
+  profileCompleted: true,
   universityId: true,
   courseId: true,
   semesterId: true,
@@ -92,12 +95,23 @@ export async function PATCH(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { fullName, city, universityId } = body;
+    const { fullName, city, universityId, phoneNumber } = body;
 
     const dataToUpdate = {};
 
     if (typeof fullName === 'string' && fullName.trim()) {
       dataToUpdate.fullName = sanitizeInput(fullName.trim(), { maxLength: 100 });
+    }
+
+    if (typeof phoneNumber === 'string' && phoneNumber.trim()) {
+      const normalizedPhone = normalizePhoneNumber(phoneNumber);
+      if (!normalizedPhone || !isValidIndianPhoneNumber(normalizedPhone)) {
+        return NextResponse.json(
+          { success: false, error: 'Please enter a valid 10-digit Indian contact number.' },
+          { status: 400 }
+        );
+      }
+      dataToUpdate.phoneNumber = normalizedPhone;
     }
 
     if (typeof city === 'string' && city.trim()) {
@@ -146,13 +160,30 @@ export async function PATCH(request) {
       }
     }
 
+    // Check if full profile requirements are met to mark profileCompleted = true
+    const currentUser = await prisma.user.findUnique({
+      where: { id: sessionPayload.userId },
+      select: { city: true, universityId: true, phoneNumber: true, fullName: true },
+    });
+
+    const finalName = dataToUpdate.fullName || currentUser?.fullName;
+    const finalPhone = dataToUpdate.phoneNumber || currentUser?.phoneNumber;
+    const finalCity = dataToUpdate.city || currentUser?.city;
+    const finalUni = dataToUpdate.universityId || currentUser?.universityId;
+
+    if (finalName && finalPhone && finalCity && finalUni) {
+      dataToUpdate.profileCompleted = true;
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: sessionPayload.userId },
       data: dataToUpdate,
       select: PROFILE_SELECT_FIELDS,
     });
 
-    const isProfileComplete = Boolean(updatedUser.city && (updatedUser.universityId || updatedUser.university));
+    const isProfileComplete = Boolean(
+      updatedUser.profileCompleted || (updatedUser.city && updatedUser.universityId && updatedUser.phoneNumber)
+    );
 
     return NextResponse.json({
       success: true,

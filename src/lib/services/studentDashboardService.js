@@ -75,6 +75,8 @@ export async function getStudentDashboardData(userId) {
       fullName: true,
       email: true,
       city: true,
+      phoneNumber: true,
+      profileCompleted: true,
       universityId: true,
       courseId: true,
       semesterId: true,
