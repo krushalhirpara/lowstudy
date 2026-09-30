@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionFromRequest, sanitizeInput } from '@/lib/security';
 import { normalizeCityName } from '@/data/gujaratData';
-import { verifyAndEnsureUniversity } from '@/lib/universityHelper';
+import { verifyAndEnsureUniversity, isUniversityValidForCity } from '@/lib/universityHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -123,6 +123,27 @@ export async function PATCH(request) {
         { success: false, error: 'No valid profile updates provided.' },
         { status: 400 }
       );
+    }
+
+    // Validate consistency if city or university is being changed
+    if (dataToUpdate.city !== undefined || dataToUpdate.universityId !== undefined) {
+      const currentUser = await prisma.user.findUnique({
+        where: { id: sessionPayload.userId },
+        select: { city: true, universityId: true },
+      });
+
+      const finalCity = dataToUpdate.city !== undefined ? dataToUpdate.city : currentUser?.city;
+      const finalUniId = dataToUpdate.universityId !== undefined ? dataToUpdate.universityId : currentUser?.universityId;
+
+      if (finalCity && finalUniId) {
+        const isValid = await isUniversityValidForCity(finalUniId, finalCity);
+        if (!isValid) {
+          return NextResponse.json(
+            { success: false, error: 'Please select a university that matches your selected city.' },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     const updatedUser = await prisma.user.update({

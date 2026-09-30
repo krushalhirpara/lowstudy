@@ -312,3 +312,118 @@ export function normalizeCityName(city) {
     .join(' ');
 }
 
+/**
+ * Returns all normalized cities served by a university (main campus + affiliated colleges + district).
+ * 
+ * @param {string} universityId
+ * @returns {string[]}
+ */
+export function getUniversityMappedCities(universityId) {
+  if (!universityId || typeof universityId !== 'string') return [];
+  const cleanId = universityId.trim().toLowerCase();
+  const uni = GUJARAT_UNIVERSITIES.find(
+    (u) => u.id.toLowerCase() === cleanId || u.code.toLowerCase() === cleanId
+  );
+  if (!uni) return [];
+
+  const citiesSet = new Set();
+  if (uni.city) {
+    const norm = normalizeCityName(uni.city);
+    if (norm) citiesSet.add(norm);
+  }
+  if (uni.district) {
+    const norm = normalizeCityName(uni.district);
+    if (norm) citiesSet.add(norm);
+  }
+
+  // Affiliated colleges in other/same cities
+  const colleges = GUJARAT_COLLEGES.filter((c) => c.universityId.toLowerCase() === uni.id.toLowerCase());
+  colleges.forEach((c) => {
+    if (c.city) {
+      const norm = normalizeCityName(c.city);
+      if (norm) citiesSet.add(norm);
+    }
+    if (c.district) {
+      const norm = normalizeCityName(c.district);
+      if (norm) citiesSet.add(norm);
+    }
+  });
+
+  return Array.from(citiesSet);
+}
+
+// Populate mappedCities property on each university in GUJARAT_UNIVERSITIES
+GUJARAT_UNIVERSITIES.forEach((uni) => {
+  uni.mappedCities = getUniversityMappedCities(uni.id);
+});
+
+/**
+ * Retrieves all universities mapped to a given city.
+ * If city is empty or not provided, returns all active universities.
+ * 
+ * @param {string} [cityName]
+ * @returns {typeof GUJARAT_UNIVERSITIES}
+ */
+export function getUniversitiesForCity(cityName) {
+  if (!cityName || typeof cityName !== 'string' || !cityName.trim()) {
+    return GUJARAT_UNIVERSITIES;
+  }
+  const normCity = normalizeCityName(cityName);
+  if (!normCity) return GUJARAT_UNIVERSITIES;
+
+  const targetLower = normCity.toLowerCase();
+  return GUJARAT_UNIVERSITIES.filter((uni) => {
+    const mapped = uni.mappedCities || getUniversityMappedCities(uni.id);
+    return mapped.some((c) => c.toLowerCase() === targetLower);
+  });
+}
+
+/**
+ * Checks whether a given city has any officially mapped universities in LowStudy registry.
+ * 
+ * @param {string} cityName
+ * @returns {boolean}
+ */
+export function isCityWithMappedUniversities(cityName) {
+  if (!cityName || typeof cityName !== 'string' || !cityName.trim()) return false;
+  return getUniversitiesForCity(cityName).length > 0;
+}
+
+/**
+ * Validates whether a university selection is valid for the specified city.
+ * 
+ * - If city is blank: any valid active university is accepted.
+ * - If city has mapped universities: selected university MUST be in the mapped list.
+ * - If city has no mapped universities (custom city): any valid active university is accepted.
+ * 
+ * @param {string} universityId
+ * @param {string} [cityName]
+ * @returns {boolean}
+ */
+export function isUniversityValidForCity(universityId, cityName) {
+  if (!universityId || typeof universityId !== 'string' || !universityId.trim()) {
+    return false;
+  }
+  const cleanUniId = universityId.trim().toLowerCase();
+  
+  // Verify university exists in registry
+  const uni = GUJARAT_UNIVERSITIES.find(
+    (u) => u.id.toLowerCase() === cleanUniId || u.code.toLowerCase() === cleanUniId
+  );
+  if (!uni) return false;
+
+  // If no city provided, all active universities are valid
+  if (!cityName || typeof cityName !== 'string' || !cityName.trim()) {
+    return true;
+  }
+
+  const matchingUnis = getUniversitiesForCity(cityName);
+  // If city is custom / has 0 mapped universities, allow signup without blocking
+  if (matchingUnis.length === 0) {
+    return true;
+  }
+
+  return matchingUnis.some((u) => u.id.toLowerCase() === uni.id.toLowerCase());
+}
+
+

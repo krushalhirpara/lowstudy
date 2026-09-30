@@ -122,6 +122,8 @@ export default function CompleteProfileModal({
               id="complete-profile-university"
               value={universityId}
               onChange={setUniversityId}
+              selectedCity={city}
+              onClearCity={() => setCity('')}
               disabled={loading}
               placeholder="Search and select university..."
               required

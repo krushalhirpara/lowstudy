@@ -1,5 +1,19 @@
 import prisma from './prisma.js';
-import { GUJARAT_UNIVERSITIES } from '../data/gujaratData.js';
+import { 
+  GUJARAT_UNIVERSITIES, 
+  GUJARAT_COLLEGES,
+  normalizeCityName, 
+  getUniversityMappedCities as getStaticMappedCities,
+  getUniversitiesForCity as getStaticUniversitiesForCity,
+  isUniversityValidForCity as isStaticUniversityValidForCity,
+  isCityWithMappedUniversities as isStaticCityWithMappedUniversities
+} from '../data/gujaratData.js';
+
+export { 
+  getStaticMappedCities as getUniversityMappedCities,
+  getStaticUniversitiesForCity as getUniversitiesForCity,
+  isStaticCityWithMappedUniversities as isCityWithMappedUniversities
+};
 
 /**
  * Verifies university existence in DB and auto-ensures from authoritative registry if needed.
@@ -68,3 +82,63 @@ export async function verifyAndEnsureUniversity(universityId) {
 
   return null;
 }
+
+/**
+ * Validates whether a university is valid for the specified city.
+ * Checks DB if available, falling back to authoritative static dataset.
+ * 
+ * @param {string} universityId
+ * @param {string} [city]
+ * @returns {Promise<boolean>}
+ */
+export async function isUniversityValidForCity(universityId, city) {
+  if (!universityId || typeof universityId !== 'string' || !universityId.trim()) {
+    return false;
+  }
+
+  const cleanUniId = universityId.trim().toLowerCase();
+
+  // If no city specified, check if university is valid
+  if (!city || typeof city !== 'string' || !city.trim()) {
+    const validUni = await verifyAndEnsureUniversity(cleanUniId);
+    return Boolean(validUni);
+  }
+
+  const normCity = normalizeCityName(city);
+  if (!normCity) return true;
+
+  try {
+    // 1. Check DB for matching university or affiliated colleges in that city
+    const dbUni = await prisma.university.findFirst({
+      where: {
+        AND: [
+          {
+            OR: [
+              { id: cleanUniId },
+              { code: cleanUniId.toUpperCase() }
+            ]
+          },
+          {
+            OR: [
+              { city: { equals: normCity } },
+              { district: { equals: normCity } },
+              { colleges: { some: { city: { equals: normCity } } } },
+              { colleges: { some: { district: { equals: normCity } } } }
+            ]
+          }
+        ]
+      },
+      select: { id: true }
+    });
+
+    if (dbUni) {
+      return true;
+    }
+  } catch (err) {
+    // Fall back to static dataset verification
+  }
+
+  // 2. Authoritative static fallback
+  return isStaticUniversityValidForCity(cleanUniId, normCity);
+}
+

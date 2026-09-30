@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rateLimiter';
 import { normalizeCityName } from '@/data/gujaratData';
-import { verifyAndEnsureUniversity } from '@/lib/universityHelper';
+import { verifyAndEnsureUniversity, isUniversityValidForCity } from '@/lib/universityHelper';
 import { 
   createSessionToken, 
   getSessionFromRequest, 
@@ -107,6 +107,12 @@ async function createNewStudent({
   let validUniId = null;
   if (universityId) {
     validUniId = await verifyAndEnsureUniversity(universityId);
+    if (validUniId && normalizedCity) {
+      const isValid = await isUniversityValidForCity(validUniId, normalizedCity);
+      if (!isValid) {
+        throw new Error('Please select a university that matches your selected city.');
+      }
+    }
   }
 
   const baseData = {
@@ -257,14 +263,26 @@ export async function POST(request) {
         );
       }
 
+      const existingRecord = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { city: true, universityId: true },
+      });
+
       const updateData = {};
       if (fullName && typeof fullName === 'string' && fullName.trim()) {
         updateData.fullName = sanitizeInput(fullName.trim(), { maxLength: 100 });
       }
+
+      let newCity = existingRecord?.city || null;
       if (city && typeof city === 'string' && city.trim()) {
         const normCity = normalizeCityName(city);
-        if (normCity) updateData.city = normCity;
+        if (normCity) {
+          updateData.city = normCity;
+          newCity = normCity;
+        }
       }
+
+      let newUniId = existingRecord?.universityId || null;
       if (universityId && typeof universityId === 'string' && universityId.trim()) {
         const verifiedUniId = await verifyAndEnsureUniversity(universityId);
         if (!verifiedUniId) {
@@ -274,6 +292,18 @@ export async function POST(request) {
           );
         }
         updateData.universityId = verifiedUniId;
+        newUniId = verifiedUniId;
+      }
+
+      // Validate city-to-university consistency
+      if (newCity && newUniId) {
+        const isValid = await isUniversityValidForCity(newUniId, newCity);
+        if (!isValid) {
+          return NextResponse.json(
+            { success: false, error: 'Please select a university that matches your selected city.' },
+            { status: 400 }
+          );
+        }
       }
 
       const updatedUser = await prisma.user.update({
@@ -336,6 +366,15 @@ export async function POST(request) {
       if (!verifiedUniId) {
         return NextResponse.json(
           { success: false, error: 'Please select a valid university.' },
+          { status: 400 }
+        );
+      }
+
+      // Server verification: University must match the selected city mapping
+      const isMatchedWithCity = await isUniversityValidForCity(verifiedUniId, normalizedCity);
+      if (!isMatchedWithCity) {
+        return NextResponse.json(
+          { success: false, error: 'Please select a university that matches your selected city.' },
           { status: 400 }
         );
       }
@@ -444,6 +483,21 @@ export async function POST(request) {
       let verifiedUniId = null;
       if (cleanUniInput) {
         verifiedUniId = await verifyAndEnsureUniversity(cleanUniInput);
+        if (!verifiedUniId) {
+          return NextResponse.json(
+            { success: false, error: 'Please select a valid university.' },
+            { status: 400 }
+          );
+        }
+        if (normalizedCity) {
+          const isValid = await isUniversityValidForCity(verifiedUniId, normalizedCity);
+          if (!isValid) {
+            return NextResponse.json(
+              { success: false, error: 'Please select a university that matches your selected city.' },
+              { status: 400 }
+            );
+          }
+        }
       }
 
       // Check if user exists by email first, or by firebaseUid
@@ -729,28 +783,50 @@ export async function POST(request) {
 
     return response;
   } catch (error) {
-    // Handle Prisma specific constraint error codes
+    // 1. Prisma unique constraint violation (duplicate email or UID)
     if (error?.code === 'P2002') {
       return NextResponse.json(
         { success: false, error: 'An account with this email address already exists. Please sign in.' },
-        { status: 400 }
+        { status: 409 }
       );
     }
-    if (error?.code === 'P2003') {
+
+    // 2. Prisma foreign key or record not found constraints
+    if (error?.code === 'P2003' || error?.code === 'P2025') {
       return NextResponse.json(
         { success: false, error: 'Please select a valid college / university.' },
         { status: 400 }
       );
     }
 
-    console.error('[POST /api/student/session] Error:', {
+    // 3. User-facing validation errors
+    const errorMessage = error?.message || '';
+    if (
+      errorMessage.startsWith('Please ') ||
+      errorMessage.includes('university') ||
+      errorMessage.includes('city') ||
+      errorMessage.includes('password') ||
+      errorMessage.includes('email') ||
+      errorMessage.includes('required')
+    ) {
+      return NextResponse.json(
+        { success: false, error: errorMessage },
+        { status: error?.status || 400 }
+      );
+    }
+
+    // 4. Log full context for true unexpected server errors
+    console.error('[POST /api/student/session] Unexpected Error:', {
       name: error?.name,
       code: error?.code,
       message: error?.message,
+      stack: error?.stack,
     });
+
     return NextResponse.json(
       { success: false, error: 'Authentication service error. Please try again.' },
       { status: 500 }
     );
   }
 }
+

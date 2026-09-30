@@ -399,6 +399,8 @@ function SignupForm() {
               id="signup-university-select"
               value={universityId}
               onChange={setUniversityId}
+              selectedCity={city}
+              onClearCity={() => setCity('')}
               disabled={isEmailLoading || isGoogleLoading}
               placeholder="Search university..."
               required
