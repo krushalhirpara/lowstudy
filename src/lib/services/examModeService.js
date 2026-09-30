@@ -16,7 +16,7 @@ export const REVISION_HORIZONS = {
 /**
  * Returns complete Exam Mode dashboard metrics and curated modules data
  */
-export async function getExamModeDashboardData(userId = 'usr-student-01') {
+export async function getExamModeDashboardData(userId = null) {
   // Target Exam Date: Defaults to 45 days in future unless user has a custom date in active study plan
   let examDate = new Date(Date.now() + 45 * 86400000);
   const activePlan = await prisma.studyPlan.findFirst({
@@ -396,7 +396,7 @@ export async function getExamModeDashboardData(userId = 'usr-student-01') {
  * 6. Mock Tests
  */
 export async function generateExamRevisionSchedule({
-  userId = 'usr-student-01',
+  userId = null,
   horizon = 'SEVEN_DAY',
   subjects = null,
   studyProgressMap = null,

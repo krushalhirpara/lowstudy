@@ -1,14 +1,28 @@
 import { NextResponse } from 'next/server';
 import { getStudentStudyPlan, generateAdaptiveStudyPlan } from '@/lib/services/studyPlanService';
+import { getSessionFromRequest } from '@/lib/security';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'usr-student-01';
     const horizon = searchParams.get('horizon') || 'SEVEN_DAY';
 
     const plan = await getStudentStudyPlan(userId, horizon);
-    return NextResponse.json({ success: true, plan });
+    return NextResponse.json({ success: true, plan }, {
+      headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' }
+    });
   } catch (error) {
     console.error('Error fetching study plan:', error);
     return NextResponse.json(
@@ -20,9 +34,18 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
-      userId = 'usr-student-01',
       targetExamDate,
       dailyHours = 2.5,
       horizon = 'SEVEN_DAY'

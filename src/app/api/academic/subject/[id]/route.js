@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionFromRequest } from '@/lib/security';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request, { params }) {
   try {
     const subjectId = params.id;
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'usr-student-01';
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId || null;
 
     // 1. Fetch Subject with full relational tree
     const subject = await prisma.subject.findUnique({
@@ -37,22 +40,27 @@ export async function GET(request, { params }) {
     // 2. Fetch Progress & Bookmarks for this subject's topics
     const topicIds = subject.units.flatMap(u => u.topics.map(t => t.id));
 
-    const studyProgress = await prisma.studyProgress.findMany({
-      where: {
-        userId,
-        topicId: { in: topicIds }
-      }
-    });
-    const completedTopicIds = new Set(studyProgress.filter(sp => sp.isCompleted).map(sp => sp.topicId));
+    let completedTopicIds = new Set();
+    let bookmarkedTopicIds = new Set();
 
-    const bookmarks = await prisma.bookmark.findMany({
-      where: {
-        userId,
-        entityType: 'TOPIC',
-        entityId: { in: topicIds }
-      }
-    });
-    const bookmarkedTopicIds = new Set(bookmarks.map(b => b.entityId));
+    if (userId) {
+      const studyProgress = await prisma.studyProgress.findMany({
+        where: {
+          userId,
+          topicId: { in: topicIds }
+        }
+      });
+      completedTopicIds = new Set(studyProgress.filter(sp => sp.isCompleted).map(sp => sp.topicId));
+
+      const bookmarks = await prisma.bookmark.findMany({
+        where: {
+          userId,
+          entityType: 'TOPIC',
+          entityId: { in: topicIds }
+        }
+      });
+      bookmarkedTopicIds = new Set(bookmarks.map(b => b.entityId));
+    }
 
     // 3. Find Adjacent Subjects for Prev / Next navigation
     const allSubjectsInSem = await prisma.subject.findMany({

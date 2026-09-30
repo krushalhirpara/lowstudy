@@ -67,7 +67,7 @@ export const TEST_TYPES = {
  * Retrieves mock test metadata, available academic subjects, units,
  * previous papers, and test presets.
  */
-export async function getMockTestMetadata() {
+export async function getMockTestMetadata(userId = null) {
   const [subjects, previousPapers, existingMockTests, totalMcqs, totalMistakes] = await Promise.all([
     prisma.subject.findMany({
       where: { isActive: true },
@@ -127,7 +127,7 @@ export async function getMockTestMetadata() {
       }
     }),
     prisma.mcq.count({ where: { status: 'PUBLISHED' } }),
-    prisma.wrongAnswer.count({ where: { userId: 'usr-student-01', isResolved: false } })
+    userId ? prisma.wrongAnswer.count({ where: { userId, isResolved: false } }) : 0
   ]);
 
   return {
@@ -153,7 +153,7 @@ export async function generateMockTestSession({
   paperId = null,
   mockTestId = null,
   customConfig = {},
-  userId = 'usr-student-01'
+  userId = null
 }) {
   const typeConfig = TEST_TYPES[testType] || TEST_TYPES.CUSTOM_TEST;
 
@@ -419,7 +419,7 @@ export async function submitMockTestAttempt({
   answers = {}, // { [mcqId]: 'A' | 'B' | 'C' | 'D' }
   timeSpentSeconds = 0,
   testConfig = {},
-  userId = 'usr-student-01'
+  userId = null
 }) {
   // Prevent duplicate submissions
   if (attemptId) {
@@ -778,7 +778,10 @@ export async function submitMockTestAttempt({
  * Retrieves a past mock test attempt with its multi-dimensional performance
  * analytics and full review answers.
  */
-export async function getMockTestAttempt({ attemptId, userId = 'usr-student-01' }) {
+export async function getMockTestAttempt({ attemptId, userId = null }) {
+  if (!userId) {
+    throw new Error('User ID is required to retrieve mock test attempt');
+  }
   const attempt = await prisma.testAttempt.findFirst({
     where: { id: attemptId, userId },
     include: {

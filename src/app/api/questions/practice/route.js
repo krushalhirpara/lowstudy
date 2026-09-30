@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server';
 import { toggleQuestionPracticed } from '@/lib/services/questionBankService';
+import { getSessionFromRequest } from '@/lib/security';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
-    const { questionId, userId = 'usr-student-01' } = body;
+    const { questionId } = body;
 
     if (!questionId) {
       return NextResponse.json({ error: 'questionId is required' }, { status: 400 });

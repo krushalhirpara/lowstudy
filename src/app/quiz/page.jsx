@@ -265,8 +265,7 @@ export default function McqPracticePage() {
         topicId: selectedTopicId || null,
         answers: userAnswers,
         timeSpentSeconds: secondsElapsed,
-        useNegativeMarking,
-        userId: 'usr-student-01'
+        useNegativeMarking
       };
 
       const res = await fetch('/api/mcq/practice', {
@@ -300,7 +299,7 @@ export default function McqPracticePage() {
       const res = await fetch('/api/mcq/practice/revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mcqId, userId: 'usr-student-01' })
+        body: JSON.stringify({ mcqId })
       });
       const data = await res.json();
       if (data.success) {

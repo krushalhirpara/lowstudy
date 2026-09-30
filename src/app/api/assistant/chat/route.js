@@ -29,7 +29,10 @@ export async function POST(request) {
 
     // 2. Request Validation
     const body = await request.json().catch(() => ({}));
-    const { query, capability = CAPABILITIES.EXPLAIN_SIMPLE, userId = 'usr-student-01', topicId, subjectId, mcqId } = body;
+    const { query, capability = CAPABILITIES.EXPLAIN_SIMPLE, topicId, subjectId, mcqId } = body;
+
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId || null;
 
     if (!query || typeof query !== 'string' || !query.trim()) {
       return NextResponse.json(

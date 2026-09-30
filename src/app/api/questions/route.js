@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getQuestionsList, getQuestionBankFilters } from '@/lib/services/questionBankService';
+import { getSessionFromRequest } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +14,9 @@ export async function GET(request) {
       return NextResponse.json({ success: true, filters });
     }
 
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId || null;
+
     const subjectId = searchParams.get('subjectId');
     const unitId = searchParams.get('unitId');
     const topicId = searchParams.get('topicId');
@@ -24,7 +28,6 @@ export async function GET(request) {
     const search = searchParams.get('search');
     const page = searchParams.get('page') || '1';
     const limit = searchParams.get('limit') || '20';
-    const userId = searchParams.get('userId') || 'usr-student-01';
 
     const result = await getQuestionsList({
       subjectId,
@@ -44,6 +47,8 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       ...result
+    }, {
+      headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' }
     });
   } catch (error) {
     console.error('Error fetching questions:', error);

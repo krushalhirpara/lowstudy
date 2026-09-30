@@ -1,19 +1,31 @@
 import { NextResponse } from 'next/server';
 import { getBookmarksData } from '@/lib/services/revisionService';
 import prisma from '@/lib/prisma';
+import { getSessionFromRequest } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'usr-student-01';
     const category = searchParams.get('category') || 'ALL';
     const entityType = searchParams.get('entityType') || 'ALL';
     const search = searchParams.get('search') || '';
 
     const data = await getBookmarksData({ userId, category, entityType, search });
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data }, {
+      headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' }
+    });
   } catch (error) {
     console.error('Error in GET /api/revision/bookmarks:', error);
     return NextResponse.json(
@@ -25,8 +37,18 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
-    const { userId = 'usr-student-01', entityType, entityId, notes } = body;
+    const { entityType, entityId, notes } = body;
 
     if (!entityType || !entityId) {
       return NextResponse.json(

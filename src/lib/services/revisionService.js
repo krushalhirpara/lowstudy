@@ -74,7 +74,8 @@ export function calculateProgression({ currentReviewCount = 0, currentCorrectCou
  * 5. Important Sections
  * 6. Important Case Laws
  */
-export async function autoCollectRevisionAssets(userId = 'usr-student-01') {
+export async function autoCollectRevisionAssets(userId) {
+  if (!userId) return;
   try {
     // 1. Collect Wrong Answers from TestAnswer table if any are missing from WrongAnswer table
     const incorrectTestAnswers = await prisma.testAnswer.findMany({
@@ -291,7 +292,7 @@ export async function autoCollectRevisionAssets(userId = 'usr-student-01') {
  * categorized filters (Need Revision, Review Again, Mastered),
  * and resolved entity payloads.
  */
-export async function getRevisionHubData({ userId = 'usr-student-01', category = 'ALL', entityType = 'ALL', search = '' }) {
+export async function getRevisionHubData({ userId, category = 'ALL', entityType = 'ALL', search = '' }) {
   await autoCollectRevisionAssets(userId);
 
   const revisionItems = await prisma.revisionItem.findMany({
@@ -464,7 +465,7 @@ export async function getRevisionHubData({ userId = 'usr-student-01', category =
  * Retrieves the Mistake Notebook data.
  * Displays: Question, Student Answer, Correct Answer, Explanation, Related Topic, Revise Topic, Try Again.
  */
-export async function getMyMistakesData({ userId = 'usr-student-01', category = 'ALL', search = '', subjectId = null }) {
+export async function getMyMistakesData({ userId, category = 'ALL', search = '', subjectId = null }) {
   await autoCollectRevisionAssets(userId);
 
   const wrongAnswers = await prisma.wrongAnswer.findMany({
@@ -583,7 +584,7 @@ export async function getMyMistakesData({ userId = 'usr-student-01', category = 
  * - Advances to REVIEW_AGAIN on 1st/2nd correct attempt
  * - Marks MASTERED only after 3 consecutive correct reviews
  */
-export async function reAttemptMistake({ userId = 'usr-student-01', wrongAnswerId, selectedKey }) {
+export async function reAttemptMistake({ userId, wrongAnswerId, selectedKey }) {
   const wrongAnswer = await prisma.wrongAnswer.findFirst({
     where: { id: wrongAnswerId, userId },
     include: {
@@ -672,7 +673,7 @@ export async function reAttemptMistake({ userId = 'usr-student-01', wrongAnswerI
 /**
  * Retrieves student Bookmarks categorized with revision tracking.
  */
-export async function getBookmarksData({ userId = 'usr-student-01', category = 'ALL', entityType = 'ALL', search = '' }) {
+export async function getBookmarksData({ userId, category = 'ALL', entityType = 'ALL', search = '' }) {
   await autoCollectRevisionAssets(userId);
 
   const bookmarks = await prisma.bookmark.findMany({
@@ -829,7 +830,7 @@ export async function getBookmarksData({ userId = 'usr-student-01', category = '
  * 4. Sections
  * 5. Case Laws
  */
-export async function generateRevisionSession({ userId = 'usr-student-01', category = 'NEED_REVISION', types = [], count = 10 }) {
+export async function generateRevisionSession({ userId, category = 'NEED_REVISION', types = [], count = 10 }) {
   await autoCollectRevisionAssets(userId);
 
   const selectedTypes = types.length > 0 ? types : ['NOTE', 'QUESTION', 'MCQ', 'LEGAL_SECTION', 'CASE_LAW'];
@@ -1001,7 +1002,7 @@ export async function generateRevisionSession({ userId = 'usr-student-01', categ
  * Submits student evaluation for an item during a Revision Session.
  * Updates review count, consecutive correct count, SM-2 interval, and status.
  */
-export async function submitRevisionReview({ userId = 'usr-student-01', revisionItemId, isCorrect = false }) {
+export async function submitRevisionReview({ userId, revisionItemId, isCorrect = false }) {
   const revItem = await prisma.revisionItem.findFirst({
     where: { id: revisionItemId, userId }
   });

@@ -32,9 +32,11 @@ import {
   Edit3
 } from 'lucide-react';
 import CompleteProfileModal from '@/components/auth/CompleteProfileModal';
+import { useAuth } from '@/context/AuthContext';
 
 export default function StudentDashboardPage() {
   const router = useRouter();
+  const { user: authUser, refreshUser } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
@@ -75,9 +77,12 @@ export default function StudentDashboardPage() {
     fetchDashboard();
   }, [fetchDashboard]);
 
-  const handleProfileUpdated = () => {
+  const handleProfileUpdated = async () => {
     setShowProfileModal(false);
     setSessionToast('Profile updated successfully!');
+    if (refreshUser) {
+      await refreshUser();
+    }
     fetchDashboard();
     setTimeout(() => {
       setSessionToast('');
@@ -142,7 +147,7 @@ export default function StudentDashboardPage() {
     );
   }
 
-  const student = dashboardData?.student || { fullName: 'Law Student', id: '' };
+  const student = dashboardData?.student || authUser || { fullName: '', email: '', id: '', city: null, universityId: null };
   const academicContext = dashboardData?.academicContext || {
     university: { name: 'Gujarat Public Law University', code: 'GU' },
     course: { name: '3-Year LL.B.' },
@@ -217,10 +222,10 @@ export default function StudentDashboardPage() {
 
             <div className="flex items-center gap-2 text-xs">
               <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-amber-600">
-                {student.fullName ? student.fullName.charAt(0).toUpperCase() : 'U'}
+                {student.fullName ? student.fullName.charAt(0).toUpperCase() : student.email ? student.email.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="hidden md:block text-left font-mono">
-                <p className="text-[11px] font-bold text-slate-900 leading-tight">{student.fullName}</p>
+                <p className="text-[11px] font-bold text-slate-900 leading-tight">{student.fullName || student.email || 'Student'}</p>
                 <p className="text-[9px] text-slate-500">{student.email}</p>
               </div>
             </div>

@@ -13,32 +13,15 @@ import {
   Building2 
 } from 'lucide-react';
 import InstitutionalEnquiryModal from '@/components/pricing/InstitutionalEnquiryModal';
+import { useAuth } from '@/context/AuthContext';
 
 function PricingInner() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser } = useAuth();
   const [billingCycle, setBillingCycle] = useState('semester'); // 'semester' | 'annual'
   const [openFaq, setOpenFaq] = useState(0);
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
   
   const searchParams = useSearchParams();
-
-  // Check active student session
-  useEffect(() => {
-    let isCancelled = false;
-    async function checkSession() {
-      try {
-        const res = await fetch('/api/student/session');
-        const data = await res.json();
-        if (!isCancelled && data?.authenticated && data?.user) {
-          setCurrentUser(data.user);
-        }
-      } catch {}
-    }
-    checkSession();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
 
   const getProtectedPlanHref = (targetPath) => {
     if (currentUser) return targetPath;

@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 import { reportQuestionContent } from '@/lib/services/questionBankService';
+import { getSessionFromRequest } from '@/lib/security';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId || null;
+
     const body = await request.json();
-    const { questionId, issueType, notes, userId = 'usr-student-01' } = body;
+    const { questionId, issueType, notes } = body;
 
     if (!questionId) {
       return NextResponse.json({ error: 'questionId is required' }, { status: 400 });

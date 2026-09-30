@@ -4,13 +4,25 @@ import {
   savePracticeAttempt,
   getQuestionPracticeHistory
 } from '@/lib/services/answerPracticeService';
+import { getSessionFromRequest } from '@/lib/security';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request, { params }) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const questionId = params.id;
     const body = await request.json();
     const {
-      userId = 'usr-student-01',
       studentAnswer = '',
       timeSpentSecs = 0,
       saveAttempt = true
@@ -69,9 +81,17 @@ export async function POST(request, { params }) {
 
 export async function GET(request, { params }) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const questionId = params.id;
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'usr-student-01';
 
     if (!questionId) {
       return NextResponse.json(
@@ -85,6 +105,8 @@ export async function GET(request, { params }) {
     return NextResponse.json({
       success: true,
       history
+    }, {
+      headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' }
     });
   } catch (error) {
     console.error('Error fetching question practice history:', error);

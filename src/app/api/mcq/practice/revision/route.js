@@ -1,12 +1,23 @@
 import { NextResponse } from 'next/server';
 import { addMcqToRevision } from '@/lib/services/mcqPracticeService';
+import { getSessionFromRequest } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
-    const { mcqId, userId = 'usr-student-01' } = body;
+    const { mcqId } = body;
 
     if (!mcqId) {
       return NextResponse.json(

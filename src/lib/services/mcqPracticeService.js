@@ -21,7 +21,7 @@ export async function getPracticeQuestions({
   topicId = null,
   count = 10,
   difficulty = null,
-  userId = 'usr-student-01',
+  userId = null,
   isExamMode = false
 }) {
   const takeCount = Math.min(50, Math.max(5, parseInt(count, 10) || 10));
@@ -179,7 +179,7 @@ export async function submitPracticeSession({
   answers = {}, // { [mcqId]: 'A' | 'B' | 'C' | 'D' }
   timeSpentSeconds = 0,
   useNegativeMarking = true,
-  userId = 'usr-student-01'
+  userId = null
 }) {
   // Prevent duplicate submissions: check if attemptId already exists
   if (attemptId) {
@@ -427,7 +427,8 @@ export async function submitPracticeSession({
 /**
  * Adds an MCQ to student's spaced repetition schedule.
  */
-export async function addMcqToRevision({ userId = 'usr-student-01', mcqId }) {
+export async function addMcqToRevision({ userId = null, mcqId }) {
+  if (!userId) throw new Error('userId is required');
   if (!mcqId) throw new Error('mcqId is required');
 
   const existing = await prisma.revisionItem.findFirst({
@@ -466,7 +467,11 @@ export async function addMcqToRevision({ userId = 'usr-student-01', mcqId }) {
 /**
  * Retrieves all mistakes for the student from the WrongAnswer table.
  */
-export async function getMyMistakes({ userId = 'usr-student-01' }) {
+export async function getMyMistakes({ userId = null }) {
+  if (!userId) {
+    return { totalMistakes: 0, mistakes: [] };
+  }
+
   const mistakes = await prisma.wrongAnswer.findMany({
     where: {
       userId,
@@ -521,7 +526,9 @@ export async function getMyMistakes({ userId = 'usr-student-01' }) {
 /**
  * Marks a mistake as resolved.
  */
-export async function resolveMistake({ userId = 'usr-student-01', mcqId }) {
+export async function resolveMistake({ userId = null, mcqId }) {
+  if (!userId) throw new Error('userId is required');
+
   const updated = await prisma.wrongAnswer.updateMany({
     where: {
       userId,
@@ -538,7 +545,7 @@ export async function resolveMistake({ userId = 'usr-student-01', mcqId }) {
 /**
  * Fetches academic hierarchy with counts for practice mode selector.
  */
-export async function getPracticeHierarchyMetadata() {
+export async function getPracticeHierarchyMetadata(userId = null) {
   const [subjects, totalMcqs, totalMistakes] = await Promise.all([
     prisma.subject.findMany({
       where: { isActive: true },
@@ -567,7 +574,7 @@ export async function getPracticeHierarchyMetadata() {
       }
     }),
     prisma.mcq.count({ where: { status: 'PUBLISHED' } }),
-    prisma.wrongAnswer.count({ where: { userId: 'usr-student-01', isResolved: false } })
+    userId ? prisma.wrongAnswer.count({ where: { userId, isResolved: false } }) : 0
   ]);
 
   return {

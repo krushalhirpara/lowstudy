@@ -1,11 +1,23 @@
 import { NextResponse } from 'next/server';
 import { updatePlanTaskAction } from '@/lib/services/studyPlanService';
+import { getSessionFromRequest } from '@/lib/security';
+
+export const dynamic = 'force-dynamic';
 
 export async function PATCH(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
-      userId = 'usr-student-01',
       planId,
       taskId,
       action, // 'ACCEPT' | 'COMPLETE' | 'SKIP' | 'RESCHEDULE'

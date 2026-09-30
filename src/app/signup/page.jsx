@@ -10,12 +10,14 @@ import { getSafeRedirectUrl } from '@/lib/security';
 import CitySelect from '@/components/auth/CitySelect';
 import UniversitySelect from '@/components/auth/UniversitySelect';
 import CompleteProfileModal from '@/components/auth/CompleteProfileModal';
+import { useAuth } from '@/context/AuthContext';
 
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
   const targetDestination = getSafeRedirectUrl(redirectParam, '/');
+  const { setUser, refreshUser } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -115,6 +117,12 @@ function SignupForm() {
         setShowProfileModal(true);
         setSuccessMsg('Authenticated with Google! Please complete your student profile.');
         return;
+      }
+
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        await refreshUser();
       }
 
       setSuccessMsg('Successfully connected with Google! Setting up your student portal...');
@@ -230,7 +238,12 @@ function SignupForm() {
   };
 
   // Handler when profile modal completes (Google Sign-Up)
-  const handleProfileModalComplete = () => {
+  const handleProfileModalComplete = (updatedUser) => {
+    if (updatedUser) {
+      setUser(updatedUser);
+    } else {
+      refreshUser();
+    }
     setShowProfileModal(false);
     setSuccessMsg('Profile completed! Redirecting to your destination...');
     router.refresh();

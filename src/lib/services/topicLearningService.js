@@ -4,7 +4,7 @@ import prisma from '../prisma.js';
  * Service to retrieve and assemble the complete 15-section Topic Learning System data.
  * All content is strictly verified, aligned with syllabus topics and statutory provisions.
  */
-export async function getTopicLearningData(topicId, userId = 'usr-student-01') {
+export async function getTopicLearningData(topicId, userId = null) {
   const topic = await prisma.topic.findUnique({
     where: { id: topicId },
     include: {

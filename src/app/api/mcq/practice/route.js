@@ -1,18 +1,21 @@
 import { NextResponse } from 'next/server';
 import { getPracticeQuestions, submitPracticeSession } from '@/lib/services/mcqPracticeService';
+import { getSessionFromRequest } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId || null;
+
     const mode = searchParams.get('mode') || 'RANDOM';
     const subjectId = searchParams.get('subjectId') || null;
     const unitId = searchParams.get('unitId') || null;
     const topicId = searchParams.get('topicId') || null;
     const count = parseInt(searchParams.get('count') || '10', 10);
     const difficulty = searchParams.get('difficulty') || null;
-    const userId = searchParams.get('userId') || 'usr-student-01';
     const isExamMode = searchParams.get('isExamMode') === 'true' || mode === 'TIMED_QUIZ';
 
     const sessionData = await getPracticeQuestions({
@@ -29,6 +32,8 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       data: sessionData
+    }, {
+      headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' }
     });
   } catch (error) {
     console.error('Error fetching practice questions:', error);
@@ -41,6 +46,16 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       attemptId,
@@ -50,8 +65,7 @@ export async function POST(request) {
       topicId = null,
       answers = {},
       timeSpentSeconds = 0,
-      useNegativeMarking = true,
-      userId = 'usr-student-01'
+      useNegativeMarking = true
     } = body;
 
     const result = await submitPracticeSession({

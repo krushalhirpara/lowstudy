@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionFromRequest } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +10,8 @@ export async function GET(request) {
     const universityCode = (searchParams.get('university') || searchParams.get('uni') || 'SU').toUpperCase();
     const courseCode = searchParams.get('course') || 'LLB-3Y';
     const semesterNum = parseInt(searchParams.get('semester') || searchParams.get('sem') || '3', 10);
-    const userId = searchParams.get('userId') || 'usr-student-01';
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId || null;
 
     // 1. Find University
     const university = await prisma.university.findFirst({
@@ -77,26 +79,31 @@ export async function GET(request) {
     // 5. Fetch Student StudyProgress & Bookmarks for this user
     const allTopicIds = subjects.flatMap(s => s.units.flatMap(u => u.topics.map(t => t.id)));
     
-    const studyProgressRecords = await prisma.studyProgress.findMany({
-      where: {
-        userId,
-        topicId: { in: allTopicIds }
-      }
-    });
+    let completedTopicIds = new Set();
+    let bookmarkedTopicIds = new Set();
 
-    const completedTopicIds = new Set(
-      studyProgressRecords.filter(sp => sp.isCompleted).map(sp => sp.topicId)
-    );
+    if (userId) {
+      const studyProgressRecords = await prisma.studyProgress.findMany({
+        where: {
+          userId,
+          topicId: { in: allTopicIds }
+        }
+      });
 
-    const bookmarks = await prisma.bookmark.findMany({
-      where: {
-        userId,
-        entityType: 'TOPIC',
-        entityId: { in: allTopicIds }
-      }
-    });
+      completedTopicIds = new Set(
+        studyProgressRecords.filter(sp => sp.isCompleted).map(sp => sp.topicId)
+      );
 
-    const bookmarkedTopicIds = new Set(bookmarks.map(b => b.entityId));
+      const bookmarks = await prisma.bookmark.findMany({
+        where: {
+          userId,
+          entityType: 'TOPIC',
+          entityId: { in: allTopicIds }
+        }
+      });
+
+      bookmarkedTopicIds = new Set(bookmarks.map(b => b.entityId));
+    }
 
     // 6. Calculate Progress & Enhance Structure
     let totalSemesterTopics = 0;

@@ -136,8 +136,7 @@ Select a capability below or ask any legal doubt to begin!`,
     const payload = {
       query: queryToSend,
       capability: capToSend,
-      subjectId: selectedSubjectId || undefined,
-      userId: 'usr-student-01'
+      subjectId: selectedSubjectId || undefined
     };
     setLastQueryData(payload);
 

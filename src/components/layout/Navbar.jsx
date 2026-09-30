@@ -36,6 +36,7 @@ import {
   LogOut,
   LayoutDashboard
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { NAV_ITEMS } from '@/data/navConfig';
 import GlobalSearchModal from '@/components/navigation/GlobalSearchModal';
 
@@ -107,59 +108,22 @@ function isPathProtected(href) {
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user: currentUser, isLoading: authLoading, logout } = useAuth();
 
   const [activeDropdown, setActiveDropdown] = useState(null); // 'learn' | 'practice' | 'syllabus' | 'career' | null
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileAccordion, setMobileAccordion] = useState({}); // { [id]: boolean }
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const navContainerRef = useRef(null);
   const userMenuRef = useRef(null);
 
-  // Check active student session
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function checkSession() {
-      try {
-        const res = await fetch('/api/student/session');
-        const data = await res.json();
-        if (!isCancelled) {
-          if (data?.authenticated && data?.user) {
-            setCurrentUser(data.user);
-          } else {
-            setCurrentUser(null);
-          }
-        }
-      } catch {
-        if (!isCancelled) setCurrentUser(null);
-      }
-    }
-
-    checkSession();
-    return () => {
-      isCancelled = true;
-    };
-  }, [pathname]);
-
   const handleLogout = async () => {
-    try {
-      await fetch('/api/student/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'logout' }),
-      });
-      setCurrentUser(null);
-      setUserMenuOpen(false);
-      setMobileMenuOpen(false);
-      router.push('/login');
-      router.refresh();
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
+    setUserMenuOpen(false);
+    setMobileMenuOpen(false);
+    await logout('/login');
   };
 
   // Helper to resolve route destination based on authentication
@@ -451,7 +415,12 @@ export default function Navbar() {
               </button>
 
               {/* Authentication-dependent actions */}
-              {mounted && currentUser ? (
+              {!mounted || authLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-20 rounded-xl bg-slate-100 animate-pulse" />
+                  <div className="h-8 w-24 rounded-xl bg-slate-100 animate-pulse" />
+                </div>
+              ) : currentUser ? (
                 <>
                   {/* Dashboard Quick Link */}
                   <Link
@@ -474,16 +443,16 @@ export default function Navbar() {
                       {currentUser.avatar ? (
                         <img
                           src={currentUser.avatar}
-                          alt={currentUser.fullName || 'User'}
+                          alt={currentUser.fullName || currentUser.email || 'User'}
                           className="w-5 h-5 rounded-full object-cover"
                         />
                       ) : (
                         <div className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-[10px]">
-                          {currentUser.fullName ? currentUser.fullName[0].toUpperCase() : 'U'}
+                          {currentUser.fullName ? currentUser.fullName[0].toUpperCase() : currentUser.email ? currentUser.email[0].toUpperCase() : 'U'}
                         </div>
                       )}
-                      <span className="hidden sm:inline max-w-[100px] truncate text-slate-800">
-                        {currentUser.fullName || currentUser.email?.split('@')[0]}
+                      <span className="hidden sm:inline max-w-[120px] truncate text-slate-800">
+                        {currentUser.fullName || currentUser.email}
                       </span>
                       <ChevronDown
                         className={`w-3 h-3 text-slate-400 transition-transform ${
@@ -493,12 +462,12 @@ export default function Navbar() {
                     </button>
 
                     {userMenuOpen && (
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                      <div className="absolute right-0 top-full mt-2 w-60 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                         <div className="px-3 py-2 border-b border-slate-100">
                           <p className="text-xs font-bold text-slate-900 truncate">
-                            {currentUser.fullName || 'Law Student'}
+                            {currentUser.fullName || 'Student'}
                           </p>
-                          <p className="text-[11px] text-slate-500 truncate">
+                          <p className="text-[11px] text-slate-500 truncate font-mono">
                             {currentUser.email}
                           </p>
                           <div className="mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[9px] font-bold uppercase tracking-wider">
@@ -665,25 +634,29 @@ export default function Navbar() {
 
             {/* Mobile Actions Footer */}
             <div className="pt-3 border-t border-slate-200 space-y-2">
-              {mounted && currentUser ? (
+              {!mounted || authLoading ? (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl animate-pulse">
+                  <div className="h-10 bg-slate-200/70 rounded-xl" />
+                </div>
+              ) : currentUser ? (
                 <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-3">
                   <div className="flex items-center gap-3">
                     {currentUser.avatar ? (
                       <img
                         src={currentUser.avatar}
-                        alt={currentUser.fullName || 'User'}
+                        alt={currentUser.fullName || currentUser.email || 'User'}
                         className="w-9 h-9 rounded-full object-cover shrink-0"
                       />
                     ) : (
                       <div className="w-9 h-9 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-sm shrink-0">
-                        {currentUser.fullName ? currentUser.fullName[0].toUpperCase() : 'U'}
+                        {currentUser.fullName ? currentUser.fullName[0].toUpperCase() : currentUser.email ? currentUser.email[0].toUpperCase() : 'U'}
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold text-slate-900 truncate">
-                        {currentUser.fullName || 'Law Student'}
+                        {currentUser.fullName || 'Student'}
                       </p>
-                      <p className="text-[11px] text-slate-500 truncate">
+                      <p className="text-[11px] text-slate-500 truncate font-mono">
                         {currentUser.email}
                       </p>
                     </div>

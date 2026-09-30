@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionFromRequest } from '@/lib/security';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'usr-student-01';
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json({
+        success: true,
+        completedTopicIds: [],
+        bookmarkedTopicIds: []
+      }, {
+        headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' }
+      });
+    }
 
     const studyProgress = await prisma.studyProgress.findMany({
       where: { userId, isCompleted: true },
@@ -20,6 +33,8 @@ export async function GET(request) {
       success: true,
       completedTopicIds: studyProgress.map(sp => sp.topicId),
       bookmarkedTopicIds: bookmarks.map(b => b.entityId)
+    }, {
+      headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' }
     });
   } catch (error) {
     console.error('Error fetching student progress:', error);
@@ -29,8 +44,18 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
-    const { topicId, isCompleted, action = 'toggleCompletion', userId = 'usr-student-01' } = body;
+    const { topicId, isCompleted, action = 'toggleCompletion' } = body;
 
     if (!topicId) {
       return NextResponse.json({ error: 'topicId is required' }, { status: 400 });

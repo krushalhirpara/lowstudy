@@ -87,7 +87,7 @@ export default function StudyPlanPage() {
   const fetchPlan = async (horizonKey = selectedHorizon) => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/study-plan?userId=usr-student-01&horizon=${horizonKey}`);
+      const res = await fetch(`/api/study-plan?horizon=${horizonKey}`);
       const data = await res.json();
       if (data.success && data.plan) {
         setPlan(data.plan);
@@ -116,7 +116,6 @@ export default function StudyPlanPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'usr-student-01',
           targetExamDate: examDate,
           dailyHours: Number(dailyHours),
           horizon: selectedHorizon
@@ -143,7 +142,6 @@ export default function StudyPlanPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'usr-student-01',
           planId: plan.id,
           taskId,
           action,

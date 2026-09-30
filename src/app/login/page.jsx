@@ -8,6 +8,7 @@ import { signInWithPopup } from 'firebase/auth';
 import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import { getSafeRedirectUrl } from '@/lib/security';
 import CompleteProfileModal from '@/components/auth/CompleteProfileModal';
+import { useAuth } from '@/context/AuthContext';
 
 function LoginForm() {
   const router = useRouter();
@@ -16,6 +17,7 @@ function LoginForm() {
   const createdParam = searchParams.get('created') === 'true' || searchParams.get('registered') === 'true';
   const initialEmailParam = searchParams.get('email') || '';
   const targetDestination = getSafeRedirectUrl(redirectParam, '/');
+  const { setUser, refreshUser } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState(initialEmailParam);
@@ -117,6 +119,12 @@ function LoginForm() {
         return;
       }
 
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        await refreshUser();
+      }
+
       setSuccessMsg('Successfully signed in with Google! Redirecting...');
       
       // Refresh router so header catches session cookie
@@ -202,6 +210,12 @@ function LoginForm() {
         return;
       }
 
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        await refreshUser();
+      }
+
       setSuccessMsg('Signed in successfully! Redirecting...');
       router.refresh();
       setTimeout(() => {
@@ -215,7 +229,12 @@ function LoginForm() {
     }
   };
 
-  const handleProfileModalComplete = () => {
+  const handleProfileModalComplete = (updatedUser) => {
+    if (updatedUser) {
+      setUser(updatedUser);
+    } else {
+      refreshUser();
+    }
     setShowProfileModal(false);
     setSuccessMsg('Profile completed! Redirecting...');
     router.refresh();

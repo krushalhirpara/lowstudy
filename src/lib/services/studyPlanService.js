@@ -76,7 +76,7 @@ function calculateTopicUrgency(topic, studyProgressMap, wrongAnswerCounts, pyqCo
  * Generates an adaptive study plan for a student based on live database metrics
  */
 export async function generateAdaptiveStudyPlan({
-  userId = 'usr-student-01',
+  userId,
   targetExamDate = null,
   dailyHours = 2.5,
   horizon = 'SEVEN_DAY'
@@ -483,7 +483,7 @@ function formatStudyPlanResponse(planRecord) {
 /**
  * Retrieves the student's active plan, auto-generating one if none exists
  */
-export async function getStudentStudyPlan(userId = 'usr-student-01', horizon = 'SEVEN_DAY') {
+export async function getStudentStudyPlan(userId, horizon = 'SEVEN_DAY') {
   const horizonConfig = HORIZONS[horizon] || HORIZONS.SEVEN_DAY;
 
   const existingPlan = await prisma.studyPlan.findFirst({
@@ -511,7 +511,7 @@ export async function getStudentStudyPlan(userId = 'usr-student-01', horizon = '
  * - RESCHEDULE: Student shifts the task to a different day/date
  */
 export async function updatePlanTaskAction({
-  userId = 'usr-student-01',
+  userId,
   planId,
   taskId,
   action, // 'ACCEPT' | 'COMPLETE' | 'SKIP' | 'RESCHEDULE'

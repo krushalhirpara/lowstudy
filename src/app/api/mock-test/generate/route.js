@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
 import { generateMockTestSession } from '@/lib/services/mockTestService';
+import { getSessionFromRequest } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   try {
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       testType = 'SUBJECT_TEST',
@@ -13,8 +24,7 @@ export async function POST(request) {
       semesterId = null,
       paperId = null,
       mockTestId = null,
-      customConfig = {},
-      userId = 'usr-student-01'
+      customConfig = {}
     } = body;
 
     const session = await generateMockTestSession({

@@ -75,7 +75,7 @@ export default function ExamModePage() {
   const fetchExamModeData = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/exam-mode?userId=usr-student-01');
+      const res = await fetch('/api/exam-mode');
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to load Exam Mode data');
       setData(json.data);
@@ -95,7 +95,7 @@ export default function ExamModePage() {
       const res = await fetch('/api/exam-mode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: 'usr-student-01', horizon: horizonId })
+        body: JSON.stringify({ horizon: horizonId })
       });
       const json = await res.json();
       if (json.success && json.schedule) {

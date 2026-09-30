@@ -33,9 +33,10 @@ import { GUJARAT_UNIVERSITIES } from '@/data/gujaratData';
 import { LANDMARK_CASES, IPC_VS_BNS_MAP } from '@/data/legalData';
 import JsonLd from '@/components/seo/JsonLd';
 import { getWebSiteJsonLd, getOrganizationJsonLd, getFaqJsonLd } from '@/utils/seo';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser } = useAuth();
   const [selectedUni, setSelectedUni] = useState('su');
   const [selectedSem, setSelectedSem] = useState(3);
   const [nyayaQuery, setNyayaQuery] = useState('What is Section 103(2) BNS on Mob Lynching?');
@@ -45,24 +46,6 @@ export default function HomePage() {
   const [isNyayaLoading, setIsNyayaLoading] = useState(false);
   const [bnsSearch, setBnsSearch] = useState('');
   const [openFaq, setOpenFaq] = useState(0);
-
-  // Check active student session
-  React.useEffect(() => {
-    let isCancelled = false;
-    async function checkSession() {
-      try {
-        const res = await fetch('/api/student/session');
-        const data = await res.json();
-        if (!isCancelled && data?.authenticated && data?.user) {
-          setCurrentUser(data.user);
-        }
-      } catch {}
-    }
-    checkSession();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
 
   // Safe protected action resolver
   const getProtectedHref = (targetPath) => {

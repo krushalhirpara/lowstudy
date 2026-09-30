@@ -39,7 +39,7 @@ function extractCaseLawsFromText(text = '') {
  * Evaluates a student's descriptive legal exam answer against verified model content
  */
 export async function evaluateStudentAnswer({
-  userId = 'usr-student-01',
+  userId,
   questionId,
   studentAnswer = '',
   timeSpentSecs = 0
@@ -504,7 +504,7 @@ export async function evaluateStudentAnswer({
  * Saves a completed practice attempt to the database and syncs revision status
  */
 export async function savePracticeAttempt({
-  userId = 'usr-student-01',
+  userId,
   questionId,
   studentAnswer,
   evaluation,
@@ -589,7 +589,7 @@ export async function savePracticeAttempt({
  * Retrieves past practice history and saved drafts for a question
  */
 export async function getQuestionPracticeHistory({
-  userId = 'usr-student-01',
+  userId,
   questionId
 }) {
   const attempts = await prisma.answerPracticeAttempt.findMany({

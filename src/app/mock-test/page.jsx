@@ -221,8 +221,7 @@ export default function MockTestEnginePage() {
           hasNegativeMarking,
           negativeMarkValue,
           randomize: randomizeQuestions
-        },
-        userId: 'usr-student-01'
+        }
       };
 
       const res = await fetch('/api/mock-test/generate', {
@@ -307,8 +306,7 @@ export default function MockTestEnginePage() {
           hasNegativeMarking: sessionMeta?.hasNegativeMarking ?? hasNegativeMarking,
           negativeMarkValue: sessionMeta?.negativeMarkValue ?? negativeMarkValue,
           passingMarks: sessionMeta?.passingMarks
-        },
-        userId: 'usr-student-01'
+        }
       };
 
       const res = await fetch('/api/mock-test/submit', {
@@ -340,7 +338,7 @@ export default function MockTestEnginePage() {
       const res = await fetch('/api/mcq/practice/revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mcqId, userId: 'usr-student-01' })
+        body: JSON.stringify({ mcqId })
       });
       const data = await res.json();
       if (data.success) {

@@ -16,7 +16,7 @@ export async function getQuestionsList(filters = {}) {
     search,
     page = 1,
     limit = 20,
-    userId = 'usr-student-01'
+    userId = null
   } = filters;
 
   const where = {
@@ -229,7 +229,7 @@ export async function getQuestionsList(filters = {}) {
  * Fetch a single question with its complete 9-part model answer,
  * relevant statutory provisions, case laws, and linear prev/next IDs.
  */
-export async function getQuestionDetail(questionId, userId = 'usr-student-01') {
+export async function getQuestionDetail(questionId, userId = null) {
   const question = await prisma.question.findUnique({
     where: { id: questionId },
     include: {
@@ -451,7 +451,8 @@ export async function getQuestionDetail(questionId, userId = 'usr-student-01') {
 /**
  * Toggle practiced status for a question.
  */
-export async function toggleQuestionPracticed(questionId, userId = 'usr-student-01') {
+export async function toggleQuestionPracticed(questionId, userId) {
+  if (!userId) throw new Error('Authentication required');
   const existing = await prisma.revisionItem.findFirst({
     where: {
       userId,
@@ -483,7 +484,7 @@ export async function toggleQuestionPracticed(questionId, userId = 'usr-student-
 /**
  * Report incorrect content on a question.
  */
-export async function reportQuestionContent({ questionId, issueType, notes, userId = 'usr-student-01' }) {
+export async function reportQuestionContent({ questionId, issueType, notes, userId = null }) {
   const comment = notes ? `[${issueType || 'CONTENT_ERROR'}] ${notes}` : (issueType || 'CONTENT_ERROR');
   const review = await prisma.contentReview.create({
     data: {

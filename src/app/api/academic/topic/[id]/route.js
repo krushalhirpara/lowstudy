@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getTopicLearningData } from '@/lib/services/topicLearningService';
+import { getSessionFromRequest } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request, { params }) {
   try {
     const topicId = params.id;
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'usr-student-01';
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    const userId = sessionPayload?.userId || null;
 
     const topicData = await getTopicLearningData(topicId, userId);
 
@@ -18,6 +19,8 @@ export async function GET(request, { params }) {
     return NextResponse.json({
       success: true,
       topic: topicData
+    }, {
+      headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' }
     });
   } catch (error) {
     console.error('Error fetching topic learning system detail:', error);

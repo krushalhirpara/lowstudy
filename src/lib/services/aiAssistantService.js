@@ -45,7 +45,7 @@ export const CAPABILITIES = {
 /**
  * Retrieves the complete active student context.
  */
-export async function getStudentContext(userId = 'usr-student-01') {
+export async function getStudentContext(userId = null) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -284,7 +284,7 @@ export async function retrieveVerifiedKnowledge({ query, topicId = null, subject
 export async function processAssistantQuery({
   query,
   capability = CAPABILITIES.EXPLAIN_SIMPLE,
-  userId = 'usr-student-01',
+  userId = null,
   topicId = null,
   subjectId = null,
   mcqId = null

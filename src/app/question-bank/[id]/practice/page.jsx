@@ -114,7 +114,7 @@ export default function ExamAnswerPracticePage() {
 
   const loadPracticeHistory = async () => {
     try {
-      const res = await fetch(`/api/questions/${questionId}/practice?userId=usr-student-01`);
+      const res = await fetch(`/api/questions/${questionId}/practice`);
       const json = await res.json();
       if (json.success && Array.isArray(json.history)) {
         setHistoryAttempts(json.history);
@@ -147,7 +147,6 @@ export default function ExamAnswerPracticePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'usr-student-01',
           studentAnswer,
           timeSpentSecs,
           saveAttempt: true
@@ -195,7 +194,6 @@ export default function ExamAnswerPracticePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'usr-student-01',
           studentAnswer,
           timeSpentSecs,
           saveAttempt: true
