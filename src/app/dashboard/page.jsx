@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   BookOpen,
-  Layers,
   GraduationCap,
   Award,
   CheckCircle2,
@@ -19,7 +19,6 @@ import {
   FileText,
   Calendar,
   ChevronRight,
-  ExternalLink,
   ShieldCheck,
   Check,
   Building2,
@@ -27,17 +26,15 @@ import {
   ListTodo,
   PenTool,
   Scale,
-  Bot,
   Search,
   Briefcase,
   MapPin,
-  User,
-  Settings,
   Edit3
 } from 'lucide-react';
 import CompleteProfileModal from '@/components/auth/CompleteProfileModal';
 
 export default function StudentDashboardPage() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
@@ -51,6 +48,10 @@ export default function StudentDashboardPage() {
       setLoading(true);
       setError(null);
       const res = await fetch('/api/student/dashboard');
+      if (res.status === 401) {
+        router.replace('/login?redirect=/dashboard');
+        return;
+      }
       if (!res.ok) {
         throw new Error(`Server returned status ${res.status}`);
       }
@@ -67,14 +68,14 @@ export default function StudentDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     setMounted(true);
     fetchDashboard();
   }, [fetchDashboard]);
 
-  const handleProfileUpdated = (updatedUser) => {
+  const handleProfileUpdated = () => {
     setShowProfileModal(false);
     setSessionToast('Profile updated successfully!');
     fetchDashboard();
@@ -99,7 +100,7 @@ export default function StudentDashboardPage() {
           </div>
           <div>
             <h3 className="text-base font-bold text-slate-900">Loading Student Dashboard</h3>
-            <p className="text-xs text-slate-500 mt-1">Retrieving Saurashtra University syllabus intelligence & progress metrics...</p>
+            <p className="text-xs text-slate-500 mt-1">Retrieving verified academic progress and intelligence metrics...</p>
           </div>
         </div>
       </div>
@@ -115,19 +116,19 @@ export default function StudentDashboardPage() {
             <AlertTriangle className="w-7 h-7" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-bold text-slate-900">Dashboard Temporarily Unavailable</h2>
+            <h2 className="text-xl font-bold text-slate-900">Dashboard Unavailable</h2>
             <p className="text-xs text-slate-600 leading-relaxed">
-              We encountered a connection issue while loading your academic progress. You can retry now or access study materials directly.
+              We encountered an issue loading your academic progress. Please sign in or retry.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
               type="button"
               onClick={fetchDashboard}
-              className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
+              className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Retry Dashboard</span>
+              <span>Retry</span>
             </button>
             <Link
               href="/curriculum"
@@ -141,18 +142,18 @@ export default function StudentDashboardPage() {
     );
   }
 
-  const student = dashboardData?.student || { fullName: 'Law Student Scholar', id: 'usr-student-01' };
+  const student = dashboardData?.student || { fullName: 'Law Student', id: '' };
   const academicContext = dashboardData?.academicContext || {
-    university: { name: 'Saurashtra University', code: 'SU' },
+    university: { name: 'Gujarat Public Law University', code: 'GU' },
     course: { name: '3-Year LL.B.' },
     semester: { title: 'Semester 3' }
   };
-  const overallPreparationPercentage = dashboardData?.overallPreparationPercentage || 65;
+  const overallPreparationPercentage = dashboardData?.overallPreparationPercentage ?? 0;
   const coreMetrics = dashboardData?.coreMetrics || {
-    questionsSolved: 14,
-    mcqsSolved: 142,
-    mockTestsCompleted: 5,
-    studyStreak: 7
+    questionsSolved: 0,
+    mcqsSolved: 0,
+    mockTestsCompleted: 0,
+    studyStreak: 0
   };
   const subjectProgress = dashboardData?.subjectProgress || [];
   const sections = dashboardData?.sections || {};
@@ -216,11 +217,11 @@ export default function StudentDashboardPage() {
 
             <div className="flex items-center gap-2 text-xs">
               <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-amber-600">
-                {student.fullName ? student.fullName.charAt(0) : 'A'}
+                {student.fullName ? student.fullName.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="hidden md:block text-left font-mono">
                 <p className="text-[11px] font-bold text-slate-900 leading-tight">{student.fullName}</p>
-                <p className="text-[9px] text-slate-500">{student.email || `ID: ${student.id}`}</p>
+                <p className="text-[9px] text-slate-500">{student.email}</p>
               </div>
             </div>
           </div>
@@ -235,7 +236,7 @@ export default function StudentDashboardPage() {
               <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
               <div>
                 <span className="font-bold">Profile Incomplete: </span>
-                <span className="text-slate-700">Add your City &amp; College/University to customize question banks and past exam schedules.</span>
+                <span className="text-slate-700">Add your City &amp; College/University to personalize your syllabus materials.</span>
               </div>
             </div>
             <button
@@ -258,7 +259,7 @@ export default function StudentDashboardPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  Continue Preparation
+                  {continueItem ? 'Continue Preparation' : 'Start Learning'}
                 </span>
                 {continueItem && (
                   <span className="text-xs font-mono text-slate-400">
@@ -279,10 +280,10 @@ export default function StudentDashboardPage() {
               ) : (
                 <div className="space-y-1.5">
                   <h2 className="text-xl sm:text-2xl font-bold font-serif-title text-white">
-                    Ready to Begin Semester 3 Studies
+                    Ready to Begin Your Legal Studies
                   </h2>
-                  <p className="text-xs text-slate-400">
-                    Start with Labour and Industrial Law - I Unit 1 to establish foundational case law principles.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Select a subject from your syllabus below to start studying statutory notes, practicing MCQs, and evaluating descriptive exam answers.
                   </p>
                 </div>
               )}
@@ -291,7 +292,7 @@ export default function StudentDashboardPage() {
             <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-800/80">
               <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
                 <Clock className="w-4 h-4 text-amber-400" />
-                <span>Last Activity: Today</span>
+                <span>{continueItem ? 'Recent Topic' : 'No Activity Yet'}</span>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -307,7 +308,7 @@ export default function StudentDashboardPage() {
                   href={continueItem?.continueUrl || '/curriculum'}
                   className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 btn-mobile-touch"
                 >
-                  <span>Continue Preparation</span>
+                  <span>{continueItem ? 'Continue Preparation' : 'Browse Curriculum'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -322,7 +323,7 @@ export default function StudentDashboardPage() {
                 Overall Preparation
               </span>
               <p className="text-xs text-slate-400">
-                Composite readiness across all 5 Semester 3 subjects.
+                Composite readiness across your enrolled semester subjects.
               </p>
             </div>
 
@@ -355,7 +356,7 @@ export default function StudentDashboardPage() {
                     {overallPreparationPercentage}%
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 font-mono">
-                    Prepared
+                    {overallPreparationPercentage > 0 ? 'Prepared' : 'Not Started'}
                   </span>
                 </div>
               </div>
@@ -363,7 +364,7 @@ export default function StudentDashboardPage() {
 
             <div className="text-center">
               <span className="px-3 py-1 rounded-full bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300">
-                Syllabus Scope: 5 Core Subjects
+                Syllabus Scope: {subjectProgress.length} Core Subjects
               </span>
             </div>
           </div>
@@ -378,7 +379,7 @@ export default function StudentDashboardPage() {
               <FileText className="w-4 h-4 text-blue-400" />
             </div>
             <p className="text-2xl sm:text-3xl font-black font-mono text-white">{coreMetrics.questionsSolved}</p>
-            <p className="text-[11px] text-slate-500">Descriptive & PYQs</p>
+            <p className="text-[11px] text-slate-500">Descriptive & Practice</p>
           </div>
 
           <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
@@ -387,7 +388,7 @@ export default function StudentDashboardPage() {
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
             <p className="text-2xl sm:text-3xl font-black font-mono text-emerald-400">{coreMetrics.mcqsSolved}</p>
-            <p className="text-[11px] text-slate-500">Practice & Tests</p>
+            <p className="text-[11px] text-slate-500">Practice & Quizzes</p>
           </div>
 
           <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
@@ -396,7 +397,7 @@ export default function StudentDashboardPage() {
               <Award className="w-4 h-4 text-amber-400" />
             </div>
             <p className="text-2xl sm:text-3xl font-black font-mono text-amber-400">{coreMetrics.mockTestsCompleted}</p>
-            <p className="text-[11px] text-slate-500">Evaluated Exams</p>
+            <p className="text-[11px] text-slate-500">Completed Tests</p>
           </div>
 
           <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
@@ -504,7 +505,7 @@ export default function StudentDashboardPage() {
           </div>
         </div>
 
-        {/* 4. Subject Progress for the 5 Semester 3 Subjects */}
+        {/* 4. Subject Progress */}
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -513,7 +514,7 @@ export default function StudentDashboardPage() {
                 <span>Subject Progress & Curriculum Mastery</span>
               </h2>
               <p className="text-xs text-slate-500">
-                Official syllabus tracking for all 5 Saurashtra University Semester 3 law subjects.
+                Official syllabus tracking for your semester law subjects.
               </p>
             </div>
             <Link
@@ -525,7 +526,7 @@ export default function StudentDashboardPage() {
             </Link>
           </div>
 
-          {/* 5 Subjects Cards Grid */}
+          {/* Subjects Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {(subjectProgress || []).map((subj) => (
               <div
@@ -556,7 +557,7 @@ export default function StudentDashboardPage() {
                   </div>
                 </div>
 
-                {/* The 5 Sub-metrics */}
+                {/* Sub-metrics */}
                 <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800/80 text-xs font-mono">
                   
                   {/* Metric 1: Topic Completion */}
@@ -645,9 +646,11 @@ export default function StudentDashboardPage() {
                   <h3 className="text-base font-bold text-white font-serif-title">Today's Academic Study Plan</h3>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono text-slate-400">
-                    {(studyPlanTasks || []).filter(t => t.isCompleted).length} of {(studyPlanTasks || []).length} Done
-                  </span>
+                  {studyPlanTasks.length > 0 && (
+                    <span className="text-xs font-mono text-slate-400">
+                      {studyPlanTasks.filter(t => t.isCompleted).length} of {studyPlanTasks.length} Done
+                    </span>
+                  )}
                   <Link
                     href="/study-plan"
                     className="text-xs font-bold text-amber-400 hover:text-amber-300 font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20"
@@ -657,47 +660,66 @@ export default function StudentDashboardPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {(studyPlanTasks || []).map((task) => (
-                  <div
-                    key={task.id}
-                    className={`p-4 rounded-2xl border transition-all flex items-start gap-3.5 ${
-                      task.isCompleted
-                        ? 'bg-slate-950/40 border-slate-850 text-slate-500'
-                        : 'bg-slate-950/90 border-slate-800 text-slate-200'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleToggleTask(task.id)}
-                      className={`w-6 h-6 rounded-lg flex items-center justify-center border shrink-0 mt-0.5 transition ${
+              {studyPlanTasks.length > 0 ? (
+                <div className="space-y-3">
+                  {studyPlanTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className={`p-4 rounded-2xl border transition-all flex items-start gap-3.5 ${
                         task.isCompleted
-                          ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                          : 'border-slate-700 hover:border-amber-400'
+                          ? 'bg-slate-950/40 border-slate-850 text-slate-500'
+                          : 'bg-slate-950/90 border-slate-800 text-slate-200'
                       }`}
                     >
-                      {task.isCompleted && <Check className="w-3.5 h-3.5" />}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleTask(task.id)}
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center border shrink-0 mt-0.5 transition cursor-pointer ${
+                          task.isCompleted
+                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                            : 'border-slate-700 hover:border-amber-400'
+                        }`}
+                      >
+                        {task.isCompleted && <Check className="w-3.5 h-3.5" />}
+                      </button>
 
-                    <div className="space-y-1 flex-1">
-                      <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono">
-                        <span className="font-bold uppercase text-amber-400">[{task.subjectCode}]</span>
-                        <span className="text-slate-400">{task.estimatedMins} Mins Target</span>
+                      <div className="space-y-1 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono">
+                          <span className="font-bold uppercase text-amber-400">[{task.subjectCode}]</span>
+                          <span className="text-slate-400">{task.estimatedMins} Mins Target</span>
+                        </div>
+                        <p className={`text-xs sm:text-sm font-semibold leading-snug ${task.isCompleted ? 'line-through text-slate-500' : 'text-white'}`}>
+                          {task.title}
+                        </p>
                       </div>
-                      <p className={`text-xs sm:text-sm font-semibold leading-snug ${task.isCompleted ? 'line-through text-slate-500' : 'text-white'}`}>
-                        {task.title}
-                      </p>
-                    </div>
 
-                    <Link
-                      href={task.actionUrl || '/curriculum'}
-                      className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-750 text-xs font-bold text-slate-300 shrink-0"
-                    >
-                      Start
-                    </Link>
+                      <Link
+                        href={task.actionUrl || '/curriculum'}
+                        className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-750 text-xs font-bold text-slate-300 shrink-0"
+                      >
+                        Start
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 rounded-2xl bg-slate-950/60 border border-slate-800 text-center space-y-3">
+                  <ListTodo className="w-8 h-8 text-slate-500 mx-auto" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-white">No study plan for today</p>
+                    <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                      Create an adaptive AI study plan based on your syllabus, examination target date, and daily available study hours.
+                    </p>
                   </div>
-                ))}
-              </div>
+                  <Link
+                    href="/study-plan"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold transition shadow-sm"
+                  >
+                    <span>Create Study Plan</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* SECTION 3: WEAK TOPICS */}
@@ -710,31 +732,41 @@ export default function StudentDashboardPage() {
                 <span className="text-xs font-mono text-slate-400">Priority Review</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {(sections?.weakTopics || []).map((wt, idx) => (
-                  <div
-                    key={wt.topicId || idx}
-                    className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 space-y-3 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase font-bold">
-                        <span>[{wt.subjectCode}] Unit {wt.unitNumber}</span>
-                        <span className="text-rose-400">Needs Study</span>
-                      </div>
-                      <h4 className="text-xs font-bold text-white mt-1 leading-snug">{wt.title}</h4>
-                    </div>
-
-                    <Link
-                      href={wt.revisionUrl || '/curriculum'}
-                      className="w-full py-2 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
+              {sections?.weakTopics && sections.weakTopics.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {sections.weakTopics.map((wt, idx) => (
+                    <div
+                      key={wt.topicId || idx}
+                      className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 space-y-3 flex flex-col justify-between"
                     >
-                      <BookOpen className="w-3.5 h-3.5" />
-                      <span>Revise Weak Topic</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                ))}
-              </div>
+                      <div>
+                        <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase font-bold">
+                          <span>[{wt.subjectCode}] Unit {wt.unitNumber}</span>
+                          <span className="text-rose-400">Needs Study</span>
+                        </div>
+                        <h4 className="text-xs font-bold text-white mt-1 leading-snug">{wt.title}</h4>
+                      </div>
+
+                      <Link
+                        href={wt.revisionUrl || '/curriculum'}
+                        className="w-full py-2 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
+                      >
+                        <BookOpen className="w-3.5 h-3.5" />
+                        <span>Revise Weak Topic</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 rounded-2xl bg-slate-950/60 border border-slate-800 text-center space-y-2">
+                  <ShieldCheck className="w-8 h-8 text-emerald-500/60 mx-auto" />
+                  <p className="text-sm font-semibold text-white">No weak topics identified yet.</p>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                    Complete practice quizzes and mock tests to identify topics that require targeted revision.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* SECTION 8: IMPORTANT QUESTIONS (High-Yield / PYQs) */}
@@ -749,33 +781,39 @@ export default function StudentDashboardPage() {
                 </Link>
               </div>
 
-              <div className="space-y-3">
-                {(sections?.importantQuestions || []).map((q, idx) => (
-                  <div key={q.id || idx} className="p-4 rounded-2xl bg-slate-950 border border-slate-855 space-y-2">
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="text-slate-400 uppercase font-bold">[{q.subjectCode}] &bull; {q.marks} Marks</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 border border-amber-500/25 text-amber-300">
-                        {q.priorityLabel}
-                      </span>
+              {sections?.importantQuestions && sections.importantQuestions.length > 0 ? (
+                <div className="space-y-3">
+                  {sections.importantQuestions.map((q, idx) => (
+                    <div key={q.id || idx} className="p-4 rounded-2xl bg-slate-950 border border-slate-855 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span className="text-slate-400 uppercase font-bold">[{q.subjectCode}] &bull; {q.marks} Marks</span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 border border-amber-500/25 text-amber-300">
+                          {q.priorityLabel}
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm font-semibold text-white leading-snug">
+                        {q.questionText}
+                      </p>
+                      <p className="text-[11px] text-slate-400 italic">
+                        Why Important: {q.whyImportant}
+                      </p>
+                      <div className="pt-1">
+                        <Link
+                          href={q.practiceUrl || '/question-bank'}
+                          className="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1"
+                        >
+                          <span>Practice Question & Model Answer</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
                     </div>
-                    <p className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                      {q.questionText}
-                    </p>
-                    <p className="text-[11px] text-slate-400 italic">
-                      Why Important: {q.whyImportant}
-                    </p>
-                    <div className="pt-1">
-                      <Link
-                        href={q.practiceUrl || '/question-bank'}
-                        className="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1"
-                      >
-                        <span>Practice Question & Model Answer</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 text-center text-xs text-slate-400">
+                  No high-yield questions cataloged for this semester.
+                </div>
+              )}
             </div>
 
           </div>
@@ -784,27 +822,34 @@ export default function StudentDashboardPage() {
           <div className="space-y-6">
             
             {/* SECTION 9: UPCOMING EXAM COUNTDOWN */}
-            <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 space-y-4 shadow-xl">
+            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
               <div className="flex items-center gap-2 text-amber-400 font-bold">
                 <Calendar className="w-5 h-5" />
                 <h3 className="text-base font-bold text-white">Upcoming Examination</h3>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-white leading-snug">{sections?.upcomingExam?.title || 'LL.B. Final Examination'}</p>
-                <p className="text-xs text-slate-400">{sections?.upcomingExam?.session || 'Winter Examination'}</p>
-              </div>
-
-              {/* Countdown Card */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-850 text-center font-mono">
-                <span className="text-4xl font-black text-amber-400">{sections?.upcomingExam?.daysRemaining || 62}</span>
-                <p className="text-xs uppercase font-bold text-slate-400 mt-1">Days Remaining</p>
-              </div>
-
-              <div className="text-[11px] text-slate-400 space-y-1 pt-1 border-t border-slate-800">
-                <p>&bull; 5 Theory Papers (500 Marks Total)</p>
-                <p>&bull; Target: 70%+ First Class Distinction</p>
-              </div>
+              {sections?.upcomingExam?.isAvailable ? (
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-white leading-snug">{sections.upcomingExam.title}</p>
+                    <p className="text-xs text-slate-400">{sections.upcomingExam.session}</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-950 border border-slate-850 text-center font-mono">
+                    <span className="text-4xl font-black text-amber-400">{sections.upcomingExam.daysRemaining}</span>
+                    <p className="text-xs uppercase font-bold text-slate-400 mt-1">Days Remaining</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 text-center space-y-2">
+                  <Clock className="w-7 h-7 text-slate-500 mx-auto" />
+                  <p className="text-xs font-semibold text-slate-300">
+                    Upcoming examination information is not available yet.
+                  </p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Official dates will appear here once verified examination circulars are released by the university.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* SECTION 4: WRONG ANSWERS (MY MISTAKES) */}
@@ -820,25 +865,37 @@ export default function StudentDashboardPage() {
               </div>
 
               <p className="text-xs text-slate-400 leading-relaxed">
-                Every wrong answer is automatically filed here until answered correctly.
+                Every wrong answer from your practice drills is automatically saved here until mastered.
               </p>
 
-              <div className="space-y-2">
-                {(sections?.wrongAnswers?.recentMistakes || []).map((m, idx) => (
-                  <div key={m.id || idx} className="p-3 rounded-xl bg-slate-950 border border-slate-850 text-xs space-y-1">
-                    <span className="text-[10px] font-mono text-slate-400 font-bold">[{m.subjectCode}] {m.topicTitle}</span>
-                    <p className="text-slate-200 line-clamp-1">{m.questionText}</p>
+              {sections?.wrongAnswers?.recentMistakes && sections.wrongAnswers.recentMistakes.length > 0 ? (
+                <>
+                  <div className="space-y-2">
+                    {sections.wrongAnswers.recentMistakes.map((m, idx) => (
+                      <div key={m.id || idx} className="p-3 rounded-xl bg-slate-950 border border-slate-850 text-xs space-y-1">
+                        <span className="text-[10px] font-mono text-slate-400 font-bold">[{m.subjectCode}] {m.topicTitle}</span>
+                        <p className="text-slate-200 line-clamp-1">{m.questionText}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              <Link
-                href={sections?.wrongAnswers?.practiceUrl || '/revision/mistakes'}
-                className="w-full py-2.5 px-4 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
-              >
-                <span>Drill Mistake Notebook</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
+                  <Link
+                    href={sections?.wrongAnswers?.practiceUrl || '/revision/mistakes'}
+                    className="w-full py-2.5 px-4 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
+                  >
+                    <span>Drill Mistake Notebook</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </>
+              ) : (
+                <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 text-center space-y-2">
+                  <CheckCircle2 className="w-7 h-7 text-emerald-500/60 mx-auto" />
+                  <p className="text-xs font-semibold text-slate-300">No mistakes recorded yet.</p>
+                  <p className="text-[11px] text-slate-500">
+                    Incorrect questions from your quizzes and mock tests will be saved here for targeted revision.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* SECTION 6: RECENT TESTS */}
@@ -853,23 +910,37 @@ export default function StudentDashboardPage() {
                 </Link>
               </div>
 
-              <div className="space-y-2.5">
-                {(sections?.recentTests || []).slice(0, 3).map((test, idx) => (
-                  <div key={test.id || idx} className="p-3 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-between text-xs">
-                    <div>
-                      <p className="font-bold text-white font-mono">{test.practiceMode}</p>
-                      <p className="text-[11px] text-slate-400 font-mono">
-                        Score: {test.score}/{test.totalQuestions} ({test.percentage}%)
-                      </p>
+              {sections?.recentTests && sections.recentTests.length > 0 ? (
+                <div className="space-y-2.5">
+                  {sections.recentTests.slice(0, 3).map((test, idx) => (
+                    <div key={test.id || idx} className="p-3 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-between text-xs">
+                      <div>
+                        <p className="font-bold text-white font-mono">{test.practiceMode}</p>
+                        <p className="text-[11px] text-slate-400 font-mono">
+                          Score: {test.score}/{test.totalQuestions} ({test.percentage}%)
+                        </p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold ${
+                        test.percentage >= 50 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                      }`}>
+                        {test.percentage >= 50 ? 'Passed' : 'Review'}
+                      </span>
                     </div>
-                    <span className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold ${
-                      test.percentage >= 50 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
-                    }`}>
-                      {test.percentage >= 50 ? 'Passed' : 'Review'}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 text-center space-y-2">
+                  <Timer className="w-7 h-7 text-slate-500 mx-auto" />
+                  <p className="text-xs font-semibold text-slate-300">No tests completed yet.</p>
+                  <Link
+                    href="/mock-test"
+                    className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-semibold"
+                  >
+                    <span>Take your first test</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* SECTION 5: BOOKMARKS */}
@@ -882,18 +953,28 @@ export default function StudentDashboardPage() {
                 <span className="text-xs text-slate-500 font-mono">{(sections?.bookmarks || []).length} Saved</span>
               </div>
 
-              <div className="space-y-2">
-                {(sections?.bookmarks || []).map((bm, idx) => (
-                  <Link
-                    key={bm.id || idx}
-                    href={bm.url || '/curriculum'}
-                    className="p-2.5 rounded-xl bg-slate-950 border border-slate-850 text-xs text-slate-300 hover:text-amber-300 flex items-center justify-between group transition"
-                  >
-                    <span className="font-mono text-[11px] font-semibold uppercase">[{bm.entityType}]</span>
-                    <span className="text-slate-400 group-hover:text-amber-400">View &rarr;</span>
-                  </Link>
-                ))}
-              </div>
+              {sections?.bookmarks && sections.bookmarks.length > 0 ? (
+                <div className="space-y-2">
+                  {sections.bookmarks.map((bm, idx) => (
+                    <Link
+                      key={bm.id || idx}
+                      href={bm.url || '/curriculum'}
+                      className="p-2.5 rounded-xl bg-slate-950 border border-slate-850 text-xs text-slate-300 hover:text-amber-300 flex items-center justify-between group transition"
+                    >
+                      <span className="font-mono text-[11px] font-semibold uppercase">[{bm.entityType}]</span>
+                      <span className="text-slate-400 group-hover:text-amber-400">View &rarr;</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 text-center space-y-1.5">
+                  <Bookmark className="w-6 h-6 text-slate-500 mx-auto" />
+                  <p className="text-xs font-semibold text-slate-300">No bookmarks yet.</p>
+                  <p className="text-[10px] text-slate-500">
+                    Bookmark notes, case laws, and statutory sections while studying.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* SECTION 7: QUICK REVISION (Spaced Repetition SM-2 Queue) */}
@@ -906,17 +987,28 @@ export default function StudentDashboardPage() {
                 <span className="text-xs text-slate-500 font-mono">{sections?.quickRevision?.totalDue || 0} Cards Due</span>
               </div>
 
-              <p className="text-xs text-slate-400">
-                Spaced repetition items scheduled for recall today.
-              </p>
-
-              <Link
-                href={sections?.quickRevision?.practiceUrl || '/quiz'}
-                className="w-full py-2 px-3 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
-              >
-                <span>Start Daily Spaced Revision</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
+              {sections?.quickRevision?.items && sections.quickRevision.items.length > 0 ? (
+                <>
+                  <p className="text-xs text-slate-400">
+                    Spaced repetition items scheduled for recall today.
+                  </p>
+                  <Link
+                    href={sections?.quickRevision?.practiceUrl || '/quiz'}
+                    className="w-full py-2 px-3 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
+                  >
+                    <span>Start Daily Spaced Revision</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </>
+              ) : (
+                <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 text-center space-y-1.5">
+                  <RefreshCw className="w-6 h-6 text-slate-500 mx-auto" />
+                  <p className="text-xs font-semibold text-slate-300">Your revision deck is empty.</p>
+                  <p className="text-[10px] text-slate-500">
+                    Spaced repetition items will be scheduled as you practice.
+                  </p>
+                </div>
+              )}
             </div>
 
           </div>

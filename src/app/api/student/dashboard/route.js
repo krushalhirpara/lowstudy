@@ -7,16 +7,20 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
   try {
     const { user: sessionPayload } = getSessionFromRequest(request);
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || sessionPayload?.userId || 'usr-student-01';
+    if (!sessionPayload?.userId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized. Please sign in to view your dashboard.' },
+        { status: 401 }
+      );
+    }
 
-    const data = await getStudentDashboardData(userId);
+    const data = await getStudentDashboardData(sessionPayload.userId);
 
     return NextResponse.json(
       { success: true, data },
       {
         headers: {
-          'Cache-Control': 'private, max-age=15, stale-while-revalidate=60',
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
         },
       }
     );
@@ -32,10 +36,17 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const { user: sessionPayload } = getSessionFromRequest(request);
-    const body = await request.json().catch(() => ({}));
-    const { userId = sessionPayload?.userId || 'usr-student-01', targetId, isCompleted } = body;
+    if (!sessionPayload?.userId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized. Please sign in.' },
+        { status: 401 }
+      );
+    }
 
-    const result = await updateStudyPlanTarget({ userId, targetId, isCompleted });
+    const body = await request.json().catch(() => ({}));
+    const { targetId, isCompleted } = body;
+
+    const result = await updateStudyPlanTarget({ userId: sessionPayload.userId, targetId, isCompleted });
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
     console.error('Error updating study plan target:', error);

@@ -15,7 +15,7 @@ function LoginForm() {
   const redirectParam = searchParams.get('redirect');
   const createdParam = searchParams.get('created') === 'true' || searchParams.get('registered') === 'true';
   const initialEmailParam = searchParams.get('email') || '';
-  const targetDestination = getSafeRedirectUrl(redirectParam, '/dashboard');
+  const targetDestination = getSafeRedirectUrl(redirectParam, '/');
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState(initialEmailParam);
@@ -217,7 +217,7 @@ function LoginForm() {
 
   const handleProfileModalComplete = () => {
     setShowProfileModal(false);
-    setSuccessMsg('Profile completed! Redirecting to dashboard...');
+    setSuccessMsg('Profile completed! Redirecting...');
     router.refresh();
     setTimeout(() => {
       router.push(targetDestination);

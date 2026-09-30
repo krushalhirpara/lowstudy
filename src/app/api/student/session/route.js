@@ -124,9 +124,9 @@ async function createNewStudent({
     city: normalizedCity,
     universityId: validUniId,
     role: 'STUDENT',
-    xp: 100,
-    streakDays: 1,
-    coins: 50,
+    xp: 0,
+    streakDays: 0,
+    coins: 0,
     isActive: true,
     lastLoginAt: now,
     lastActiveAt: now,
@@ -225,7 +225,7 @@ export async function POST(request) {
 
     // Normalize email cleanly (lowercase + trim whitespace)
     const normalizedEmail = typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : null;
-    const safeRedirect = getSafeRedirectUrl(redirectUrl, '/dashboard');
+    const safeRedirect = getSafeRedirectUrl(redirectUrl, '/');
 
     // Handle Logout
     if (action === 'logout') {

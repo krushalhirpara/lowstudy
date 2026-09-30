@@ -15,7 +15,7 @@ function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
-  const targetDestination = getSafeRedirectUrl(redirectParam, '/dashboard');
+  const targetDestination = getSafeRedirectUrl(redirectParam, '/');
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');

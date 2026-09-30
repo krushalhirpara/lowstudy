@@ -366,7 +366,7 @@ export function validateUrlSafe(urlString) {
  * @param {string} fallback 
  * @returns {string} Safe relative internal path
  */
-export function getSafeRedirectUrl(targetUrl, fallback = '/dashboard') {
+export function getSafeRedirectUrl(targetUrl, fallback = '/') {
   if (!targetUrl || typeof targetUrl !== 'string') {
     return fallback;
   }

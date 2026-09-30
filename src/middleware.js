@@ -30,7 +30,7 @@ function parseEdgeSession(token) {
 /**
  * Edge-compatible safe redirect sanitizer
  */
-function getSafeRedirect(targetUrl, fallback = '/dashboard') {
+function getSafeRedirect(targetUrl, fallback = '/') {
   if (!targetUrl || typeof targetUrl !== 'string') return fallback;
   const trimmed = targetUrl.trim().replace(/[\r\n\0]/g, '');
   if (!trimmed.startsWith('/') || trimmed.startsWith('//') || trimmed.startsWith('/\\')) return fallback;
@@ -126,10 +126,10 @@ export function middleware(request) {
     }
   }
 
-  // 5. If already logged in and visiting /login or /signup, redirect to target or dashboard
+  // 5. If already logged in and visiting /login or /signup, redirect to target or home
   if ((pathname === '/login' || pathname === '/signup') && isAuthenticated) {
     const redirectParam = request.nextUrl.searchParams.get('redirect');
-    const safeTarget = getSafeRedirect(redirectParam, '/dashboard');
+    const safeTarget = getSafeRedirect(redirectParam, '/');
     return NextResponse.redirect(new URL(safeTarget, request.url));
   }
 
