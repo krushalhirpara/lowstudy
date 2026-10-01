@@ -173,6 +173,7 @@ export default function StudentDashboardPage() {
         initialPhoneNumber={student.phoneNumber || ''}
         initialCity={student.city || ''}
         initialUniversityId={student.universityId || academicContext.university?.id || ''}
+        initialActivityOptIn={student.activityNotificationOptIn || false}
         userEmail={student.email || ''}
         onComplete={handleProfileUpdated}
       />

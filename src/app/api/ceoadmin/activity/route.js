@@ -11,7 +11,7 @@ export async function GET(request) {
   }
 
   try {
-    const [pageViews, loginEvents] = await Promise.all([
+    const [pageViews, loginEvents, activityEvents] = await Promise.all([
       prisma.pageView.findMany({
         take: 60,
         orderBy: { createdAt: 'desc' },
@@ -53,9 +53,41 @@ export async function GET(request) {
           },
         },
       }),
+      prisma.activityEvent.findMany({
+        take: 40,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          type: true,
+          publicDisplayName: true,
+          subjectTitle: true,
+          userId: true,
+          createdAt: true,
+          user: {
+            select: {
+              fullName: true,
+              email: true,
+              avatar: true,
+            },
+          },
+        },
+      }),
     ]);
 
     const activity = [];
+
+    activityEvents.forEach(act => {
+      activity.push({
+        id: `act-${act.id}`,
+        type: act.type,
+        title: act.subjectTitle ? `${act.type}: ${act.subjectTitle}` : `Student Action: ${act.type}`,
+        user: act.user?.fullName || act.publicDisplayName || 'A student',
+        email: act.user?.email || null,
+        success: true,
+        path: '/learning',
+        timestamp: act.createdAt,
+      });
+    });
 
     loginEvents.forEach(l => {
       activity.push({
@@ -84,6 +116,7 @@ export async function GET(request) {
     });
 
     activity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
 
     return NextResponse.json({
       success: true,

@@ -4,6 +4,7 @@ import '@/app/white-theme.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import FloatingAiTutor from '@/components/layout/FloatingAiTutor';
+import LiveActivityToast from '@/components/notifications/LiveActivityToast';
 import AdSenseShield from '@/components/ads/AdSenseShield';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import Script from 'next/script';
@@ -122,9 +123,13 @@ export default function RootLayout({ children }) {
 
           {/* Floating AI Tutor Button (Client rendered, hides on /ceoadmin) */}
           <FloatingAiTutor />
+
+          {/* Premium Live Social-Proof Activity Notifications */}
+          <LiveActivityToast />
         </AuthProvider>
       </body>
     </html>
   );
 }
+
 

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { trackActivityClient } from '@/lib/clientActivity';
 import { 
   PenTool, 
   Sparkles, 
@@ -214,6 +215,7 @@ export default function DraftingLabPage() {
         }
       });
       setIsEvaluating(false);
+      trackActivityClient('DRAFTING');
     }, 900);
   };
 

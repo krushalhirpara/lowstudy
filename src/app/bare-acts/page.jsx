@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { IPC_VS_BNS_MAP, SUBJECTS_DATA } from '@/data/legalData';
 import { MockDB } from '@/data/db';
+import { trackActivityClient } from '@/lib/clientActivity';
 
 export default function BareActsPage() {
   const [search, setSearch] = useState('');
@@ -24,6 +25,11 @@ export default function BareActsPage() {
   useEffect(() => {
     MockDB.init();
   }, []);
+
+  const handleTabChange = (tab, name) => {
+    setActiveTab(tab);
+    trackActivityClient('BARE_ACT', { subjectTitle: name || 'Bare Acts' });
+  };
 
   const filteredMap = IPC_VS_BNS_MAP.filter(item => 
     item.ipc.toLowerCase().includes(search.toLowerCase()) || 
@@ -70,7 +76,7 @@ export default function BareActsPage() {
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto scrollbar-none flex-nowrap">
         <button 
-          onClick={() => setActiveTab('bns-ipc')}
+          onClick={() => handleTabChange('bns-ipc', 'IPC ↔ BNS Mapping')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-mobile-touch flex items-center shrink-0 ${
             activeTab === 'bns-ipc' 
               ? 'bg-amber-500 text-slate-950 shadow-lg' 
@@ -81,7 +87,7 @@ export default function BareActsPage() {
         </button>
 
         <button 
-          onClick={() => setActiveTab('bns-full')}
+          onClick={() => handleTabChange('bns-full', 'BNS 2023')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-mobile-touch flex items-center shrink-0 ${
             activeTab === 'bns-full' 
               ? 'bg-amber-500 text-slate-950 shadow-lg' 
@@ -92,7 +98,7 @@ export default function BareActsPage() {
         </button>
 
         <button 
-          onClick={() => setActiveTab('bnss-full')}
+          onClick={() => handleTabChange('bnss-full', 'BNSS 2023')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-mobile-touch flex items-center shrink-0 ${
             activeTab === 'bnss-full' 
               ? 'bg-amber-500 text-slate-950 shadow-lg' 
@@ -103,7 +109,7 @@ export default function BareActsPage() {
         </button>
 
         <button 
-          onClick={() => setActiveTab('bsa-full')}
+          onClick={() => handleTabChange('bsa-full', 'BSA 2023')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-mobile-touch flex items-center shrink-0 ${
             activeTab === 'bsa-full' 
               ? 'bg-amber-500 text-slate-950 shadow-lg' 

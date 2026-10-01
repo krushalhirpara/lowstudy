@@ -3,7 +3,8 @@ import { ALL_SYLLABUS_SUBJECTS, UNIVERSITIES } from '@/data/syllabusData';
 import { IPC_VS_BNS_MAP, LANDMARK_CASES, SUBJECTS_DATA } from '@/data/legalData';
 import { GUJARAT_COLLEGES, LAW_PROGRAMS } from '@/data/gujaratData';
 import { checkRateLimit } from '@/lib/rateLimiter';
-import { detectPromptInjection, sanitizeInput } from '@/lib/security';
+import { detectPromptInjection, sanitizeInput, getSessionFromRequest } from '@/lib/security';
+import { recordActivityEvent } from '@/lib/activityLogger';
 import prisma from '@/lib/prisma';
 
 // Dynamic RAG Retrieval helper to extract verified legal facts matching query
@@ -310,6 +311,13 @@ export async function POST(request) {
       historyCount
     });
 
+    const { user: sessionPayload } = getSessionFromRequest(request);
+    recordActivityEvent({
+      type: 'NYAYAAI',
+      userId: sessionPayload?.userId || null,
+      ipAddress: clientIp,
+    }).catch(() => {});
+
     return NextResponse.json({
       success: true,
       sender: 'ai',
@@ -323,3 +331,4 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+

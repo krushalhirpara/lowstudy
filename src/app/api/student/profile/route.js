@@ -17,6 +17,7 @@ const PROFILE_SELECT_FIELDS = {
   city: true,
   phoneNumber: true,
   profileCompleted: true,
+  activityNotificationOptIn: true,
   universityId: true,
   courseId: true,
   semesterId: true,
@@ -81,7 +82,7 @@ export async function GET(request) {
 
 /**
  * PATCH /api/student/profile
- * Updates the student's personal profile (Full Name, City, University).
+ * Updates the student's personal profile (Full Name, City, University, Opt-In settings).
  * Protected against tampering with sensitive authentication attributes.
  */
 export async function PATCH(request) {
@@ -95,13 +96,18 @@ export async function PATCH(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { fullName, city, universityId, phoneNumber } = body;
+    const { fullName, city, universityId, phoneNumber, activityNotificationOptIn } = body;
 
     const dataToUpdate = {};
+
+    if (typeof activityNotificationOptIn === 'boolean') {
+      dataToUpdate.activityNotificationOptIn = activityNotificationOptIn;
+    }
 
     if (typeof fullName === 'string' && fullName.trim()) {
       dataToUpdate.fullName = sanitizeInput(fullName.trim(), { maxLength: 100 });
     }
+
 
     if (typeof phoneNumber === 'string' && phoneNumber.trim()) {
       const normalizedPhone = normalizePhoneNumber(phoneNumber);

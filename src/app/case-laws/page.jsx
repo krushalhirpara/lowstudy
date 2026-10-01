@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { LANDMARK_CASES } from '@/data/legalData';
 import { MockDB } from '@/data/db';
+import { trackActivityClient } from '@/lib/clientActivity';
 
 export default function CaseLawsPage() {
   const [search, setSearch] = useState('');
@@ -103,6 +104,7 @@ export default function CaseLawsPage() {
             <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
               <span className="text-[10px] text-slate-500 font-mono">{item.importance}</span>
               <Link 
+                onClick={() => trackActivityClient('CASE_LAWS', { subjectTitle: item.title })}
                 href={`/ai-tutor?prompt=${encodeURIComponent(`Explain the full facts and ratio of ${item.title}`)}`}
                 className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-xs font-bold flex items-center justify-center gap-1.5 btn-mobile-touch"
               >

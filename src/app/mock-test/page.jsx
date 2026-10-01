@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { trackActivityClient } from '@/lib/clientActivity';
 import {
   Award,
   Clock,
@@ -248,6 +249,7 @@ export default function MockTestEnginePage() {
       setSecondsRemaining((data.data.testMeta.timeLimitMinutes || timeLimitMinutes) * 60);
 
       setTestState('running');
+      trackActivityClient('MOCK_TEST');
     } catch (err) {
       console.error('Error starting test:', err);
       alert('Failed to connect to mock test server. Please retry.');

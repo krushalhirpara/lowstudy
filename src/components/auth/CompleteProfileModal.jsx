@@ -12,6 +12,7 @@ export default function CompleteProfileModal({
   initialCity = '',
   initialUniversityId = '',
   initialPhoneNumber = '',
+  initialActivityOptIn = false,
   userEmail = '',
   firebaseUid = null,
   photoURL = null,
@@ -21,6 +22,7 @@ export default function CompleteProfileModal({
   const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber || '');
   const [city, setCity] = useState(initialCity || '');
   const [universityId, setUniversityId] = useState(initialUniversityId || '');
+  const [activityOptIn, setActivityOptIn] = useState(Boolean(initialActivityOptIn));
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -29,7 +31,8 @@ export default function CompleteProfileModal({
     if (initialCity) setCity(initialCity);
     if (initialUniversityId) setUniversityId(initialUniversityId);
     if (initialPhoneNumber) setPhoneNumber(initialPhoneNumber);
-  }, [initialFullName, initialCity, initialUniversityId, initialPhoneNumber]);
+    if (typeof initialActivityOptIn === 'boolean') setActivityOptIn(initialActivityOptIn);
+  }, [initialFullName, initialCity, initialUniversityId, initialPhoneNumber, initialActivityOptIn]);
 
   if (!isOpen) return null;
 
@@ -73,6 +76,7 @@ export default function CompleteProfileModal({
           phoneNumber: normPhone,
           city: trimmedCity,
           universityId,
+          activityNotificationOptIn: activityOptIn,
           firebaseUid: firebaseUid || undefined,
           photoURL: photoURL || undefined,
         }),
@@ -198,6 +202,23 @@ export default function CompleteProfileModal({
               placeholder="Search and select university..."
               required
             />
+          </div>
+
+          {/* 5. Privacy: Activity Notifications Visibility */}
+          <div className="pt-1 pb-1">
+            <label className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition">
+              <input
+                type="checkbox"
+                id="complete-profile-activity-optin"
+                checked={activityOptIn}
+                onChange={(e) => setActivityOptIn(e.target.checked)}
+                className="mt-0.5 rounded border-slate-700 text-amber-500 focus:ring-amber-500/20 w-4 h-4 accent-amber-500"
+              />
+              <div className="text-[11px] leading-tight text-slate-300">
+                <span className="font-semibold text-white block mb-0.5">Show my first name in community live activity notifications</span>
+                <span className="text-slate-400">If unchecked, your activity will remain strictly anonymous (&ldquo;A student...&rdquo;). Never exposes contact details or private data.</span>
+              </div>
+            </label>
           </div>
 
           {/* Submit button */}

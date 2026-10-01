@@ -14,6 +14,7 @@ const USER_SAFE_FIELDS = {
   city: true,
   phoneNumber: true,
   profileCompleted: true,
+  activityNotificationOptIn: true,
   universityId: true,
   courseId: true,
   semesterId: true,

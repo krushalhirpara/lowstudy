@@ -19,6 +19,7 @@ import {
   Building2,
   HelpCircle
 } from 'lucide-react';
+import { trackActivityClient } from '@/lib/clientActivity';
 
 const MOOT_PROBLEMS = [
   {
@@ -93,6 +94,7 @@ export default function MootCourtPage() {
   const handleSimulateOralArguments = () => {
     if (!oralArgument.trim()) return;
     setIsSimulatingJudge(true);
+    trackActivityClient('MOOT_COURT', { subjectTitle: selectedProblem?.title || 'Moot Court' });
     setTimeout(() => {
       const citedPuttaswamy = oralArgument.toLowerCase().includes('puttaswamy') || oralArgument.toLowerCase().includes('arjun');
       const score = citedPuttaswamy ? 88 : 72;

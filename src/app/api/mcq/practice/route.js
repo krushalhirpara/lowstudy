@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPracticeQuestions, submitPracticeSession } from '@/lib/services/mcqPracticeService';
 import { getSessionFromRequest } from '@/lib/security';
+import { recordActivityEvent } from '@/lib/activityLogger';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,13 +78,21 @@ export async function POST(request) {
       answers,
       timeSpentSeconds,
       useNegativeMarking,
-      userId
+      userId,
     });
+
+    const eventType = (mode === 'TIMED_QUIZ' || mode === 'DAILY_QUIZ') ? 'DAILY_QUIZ' : 'MCQ_PRACTICE';
+    recordActivityEvent({
+      type: eventType,
+      userId,
+    }).catch(() => {});
 
     return NextResponse.json({
       success: true,
       data: result
     });
+
+
   } catch (error) {
     console.error('Error submitting practice session:', error);
     const isDuplicate = error.message && error.message.includes('already been submitted');

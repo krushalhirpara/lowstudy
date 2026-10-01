@@ -27,6 +27,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { MockDB } from '@/data/db';
+import { trackActivityClient } from '@/lib/clientActivity';
 
 export default function SubjectDetailPage({ params }) {
   const subjectId = params.id;
@@ -119,6 +120,9 @@ export default function SubjectDetailPage({ params }) {
     setCases(MockDB.getCaseLaws(topic.id));
     setActs(MockDB.getBareActs(topic.id));
     setFlashcards(MockDB.getFlashcards(topic.id));
+
+    // Track active subject study
+    trackActivityClient('SUBJECT_STUDY', { subjectTitle: subject?.name || topic?.title || 'Law Subject' });
 
     // Reset components state
     setActiveMcqIdx(0);

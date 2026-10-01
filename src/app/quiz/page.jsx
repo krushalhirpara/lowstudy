@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useId } from 'react';
 import Link from 'next/link';
+import { trackActivityClient } from '@/lib/clientActivity';
 import {
   Award,
   Clock,
@@ -212,6 +213,7 @@ export default function McqPracticePage() {
       }
 
       setQuizState('running');
+      trackActivityClient(selectedMode === 'TIMED_QUIZ' ? 'DAILY_QUIZ' : 'MCQ_PRACTICE');
     } catch (err) {
       console.error('Error starting practice session:', err);
       alert('Unable to connect to practice server. Please retry.');

@@ -12,6 +12,7 @@ import {
   sanitizeInput,
   getSafeRedirectUrl
 } from '@/lib/security';
+import { recordActivityEvent } from '@/lib/activityLogger';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,10 @@ async function recordLoginAudit({ userId = null, email, provider, success, ipAdd
         failureReason: failureReason ? failureReason.slice(0, 200) : null,
       },
     });
+
+    if (success && validUserId) {
+      recordActivityEvent({ type: 'LOGIN', userId: validUserId, ipAddress }).catch(() => {});
+    }
   } catch (err) {
     console.warn('[LoginEvent] Non-fatal login audit error:', err?.message);
   }
@@ -69,6 +74,7 @@ const USER_SELECT_FIELDS = {
   city: true,
   phoneNumber: true,
   profileCompleted: true,
+  activityNotificationOptIn: true,
   universityId: true,
   courseId: true,
   semesterId: true,
@@ -128,6 +134,7 @@ async function createNewStudent({
     city: normalizedCity,
     phoneNumber: normalizedPhone,
     profileCompleted: profileCompleted || Boolean(normalizedCity && validUniId && normalizedPhone),
+    activityNotificationOptIn: false,
     universityId: validUniId,
     role: 'STUDENT',
     xp: 0,
@@ -139,11 +146,18 @@ async function createNewStudent({
     ...(passwordHash ? { passwordHash } : {}),
   };
 
-  return await prisma.user.create({
+  const newStudent = await prisma.user.create({
     data: baseData,
     select: USER_SELECT_FIELDS,
   });
+
+  if (newStudent?.id) {
+    recordActivityEvent({ type: 'SIGNUP', userId: newStudent.id }).catch(() => {});
+  }
+
+  return newStudent;
 }
+
 
 /**
  * GET: Retrieve active student session from secure HttpOnly cookie or Bearer token.
@@ -293,6 +307,9 @@ export async function POST(request) {
       }
 
       const updateData = {};
+      if (typeof body.activityNotificationOptIn === 'boolean') {
+        updateData.activityNotificationOptIn = body.activityNotificationOptIn;
+      }
       if (fullName && typeof fullName === 'string' && fullName.trim()) {
         updateData.fullName = sanitizeInput(fullName.trim(), { maxLength: 100 });
       }
