@@ -1205,6 +1205,12 @@ export async function POST(request) {
 
     return response;
   } catch (error) {
+    console.error('[POST /api/student/session] Error:', {
+      name: error?.name,
+      code: error?.code,
+      message: error?.message,
+    });
+
     if (error?.code === 'P2002') {
       return NextResponse.json(
         { success: false, error: 'An account with this email address already exists. Please sign in.' },
@@ -1216,6 +1222,20 @@ export async function POST(request) {
       return NextResponse.json(
         { success: false, error: 'Please select a valid college / university.' },
         { status: 400 }
+      );
+    }
+
+    // Prisma initialization or connection failure
+    if (
+      error?.name?.includes('PrismaClient') ||
+      error?.message?.includes('prisma') ||
+      error?.message?.includes('database') ||
+      error?.message?.includes('column') ||
+      error?.message?.includes('connect')
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication service is temporarily unavailable. Please try again later.' },
+        { status: 503 }
       );
     }
 
@@ -1236,14 +1256,8 @@ export async function POST(request) {
       );
     }
 
-    console.error('[POST /api/student/session] Unexpected Error:', {
-      name: error?.name,
-      code: error?.code,
-      message: error?.message,
-    });
-
     return NextResponse.json(
-      { success: false, error: 'Something went wrong. Please try again.' },
+      { success: false, error: 'Something went wrong while creating your account. Please try again.' },
       { status: 500 }
     );
   }

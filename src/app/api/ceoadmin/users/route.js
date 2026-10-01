@@ -25,11 +25,12 @@ export async function GET(request) {
 
     const where = {};
 
-    // 1. Search filter (Name, Email, ID, City)
+    // 1. Search filter (Name, Email, Phone, ID, City)
     if (search) {
       where.OR = [
         { fullName: { contains: search } },
         { email: { contains: search.toLowerCase() } },
+        { phoneNumber: { contains: search } },
         { id: { contains: search } },
         { city: { contains: search } },
       ];
@@ -114,6 +115,8 @@ export async function GET(request) {
           id: true,
           fullName: true,
           email: true,
+          phoneNumber: true,
+          profileCompleted: true,
           provider: true,
           role: true,
           isActive: true,

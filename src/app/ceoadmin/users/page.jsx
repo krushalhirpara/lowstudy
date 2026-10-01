@@ -551,9 +551,14 @@ export default function CeoAdminUsersPage() {
                         </div>
                       </td>
 
-                      {/* Email + Provider */}
+                      {/* Email + Provider + Phone */}
                       <td className="px-4 py-3.5">
                         <div className="font-medium text-slate-200">{u.email}</div>
+                        {u.phoneNumber && (
+                          <div className="text-[11px] font-mono text-amber-400/90 flex items-center gap-1 mt-0.5">
+                            <span>📞 {u.phoneNumber}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1 mt-0.5">
                           {u.provider === 'google' ? (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">

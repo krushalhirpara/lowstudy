@@ -90,6 +90,7 @@ export async function GET(request) {
         id: true,
         fullName: true,
         email: true,
+        phoneNumber: true,
         city: true,
         provider: true,
         role: true,
@@ -110,6 +111,7 @@ export async function GET(request) {
     const headers = [
       'Name',
       'Email',
+      'Contact Number',
       'City',
       'College / University',
       'Signup Date',
@@ -133,6 +135,7 @@ export async function GET(request) {
       return [
         escapeCsvCell(u.fullName || 'Student'),
         escapeCsvCell(u.email),
+        escapeCsvCell(u.phoneNumber || '—'),
         escapeCsvCell(cityDisplay),
         escapeCsvCell(universityDisplay),
         escapeCsvCell(signupDate),
