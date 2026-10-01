@@ -1,12 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import JsonLd from '@/components/seo/JsonLd';
 import { 
   BLOG_ARTICLES, 
   getBlogArticleBySlug, 
-  getPublishedBlogArticles 
+  getPublishedBlogArticles,
+  getRelatedArticles
 } from '@/data/blogData';
 import { 
   Calendar, 
@@ -23,7 +25,11 @@ import {
   Share2,
   Bookmark,
   ChevronRight,
-  GraduationCap
+  GraduationCap,
+  ShieldCheck,
+  HelpCircle,
+  Link as LinkIcon,
+  Info
 } from 'lucide-react';
 
 export async function generateMetadata({ params }) {
@@ -36,6 +42,7 @@ export async function generateMetadata({ params }) {
   }
 
   const pageUrl = `https://lowstudy.com/blog/${article.slug}`;
+  const imageUrl = `https://lowstudy.com${article.featuredImage || `/images/blog/${article.slug}.svg`}`;
 
   return {
     title: article.metaTitle || `${article.title} | LowStudy Law Blog`,
@@ -53,14 +60,23 @@ export async function generateMetadata({ params }) {
       type: 'article',
       publishedTime: article.publishedDate,
       modifiedTime: article.updatedDate || article.publishedDate,
-      authors: [article.author?.name || 'LowStudy Legal Team'],
+      authors: [article.author?.name || 'LowStudy Law Editorial Team'],
       section: article.category,
       tags: article.secondaryKeywords || [],
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: article.imageAlt || article.title,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: article.title,
       description: article.excerpt,
+      images: [imageUrl],
     },
   };
 }
@@ -79,6 +95,7 @@ export default function BlogArticleDetailPage({ params }) {
   }
 
   const pageUrl = `https://lowstudy.com/blog/${article.slug}`;
+  const imageUrl = `https://lowstudy.com${article.featuredImage || `/images/blog/${article.slug}.svg`}`;
 
   // 1. Article Schema (JSON-LD)
   const articleJsonLd = {
@@ -90,14 +107,15 @@ export default function BlogArticleDetailPage({ params }) {
     },
     headline: article.title,
     description: article.excerpt,
+    image: imageUrl,
     datePublished: article.publishedDate,
     dateModified: article.updatedDate || article.publishedDate,
     articleSection: article.category,
     keywords: [article.primaryKeyword, ...(article.secondaryKeywords || [])].join(', '),
     author: {
       '@type': 'Person',
-      name: article.author?.name || 'LowStudy Legal Team',
-      jobTitle: article.author?.role || 'Legal Educator',
+      name: article.author?.name || 'LowStudy Law Editorial Team',
+      jobTitle: article.author?.role || 'Legal Academic Educator',
     },
     publisher: {
       '@type': 'Organization',
@@ -105,7 +123,7 @@ export default function BlogArticleDetailPage({ params }) {
       url: 'https://lowstudy.com',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://lowstudy.com/logo.png',
+        url: 'https://lowstudy.com/icon.svg',
       },
     },
   };
@@ -117,14 +135,27 @@ export default function BlogArticleDetailPage({ params }) {
     { name: article.title, url: `/blog/${article.slug}` },
   ];
 
+  // 3. FAQ Schema (where available)
+  const faqJsonLd = article.faqs && article.faqs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: article.faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: f.answer,
+      },
+    })),
+  } : null;
+
   // Resolve related articles
-  const relatedArticles = (article.relatedArticles || [])
-    .map((slug) => getBlogArticleBySlug(slug))
-    .filter(Boolean);
+  const relatedArticles = getRelatedArticles(article, 3);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-poppins py-8 px-4 sm:px-6 lg:px-8">
       <JsonLd data={articleJsonLd} />
+      {faqJsonLd && <JsonLd data={faqJsonLd} />}
 
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Visible Breadcrumbs */}
@@ -150,7 +181,7 @@ export default function BlogArticleDetailPage({ params }) {
             {article.title}
           </h1>
 
-          <p className="text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed italic border-l-3 border-amber-500 pl-4 py-1.5 bg-slate-50/80 rounded-r-xl">
+          <p className="text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed italic border-l-4 border-amber-500 pl-4 py-1.5 bg-slate-50/80 rounded-r-xl">
             {article.excerpt}
           </p>
 
@@ -168,18 +199,47 @@ export default function BlogArticleDetailPage({ params }) {
             <div className="text-[11px] text-slate-500 sm:text-right space-y-0.5 font-mono">
               <div>Published: {new Date(article.publishedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
               {article.updatedDate && (
-                <div className="text-emerald-700 font-semibold">Updated: {new Date(article.updatedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                <div className="text-emerald-700 font-semibold">Reviewed &amp; Updated: {new Date(article.updatedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
               )}
             </div>
           </div>
         </header>
+
+        {/* Featured Image Container */}
+        <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-xl bg-slate-950 aspect-[1200/630] relative group">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={article.featuredImage || `/images/blog/${article.slug}.svg`}
+            alt={article.imageAlt || article.title}
+            className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-500"
+            loading="eager"
+          />
+        </div>
+
+        {/* Key Takeaways Card */}
+        {article.keyTakeaways && article.keyTakeaways.length > 0 && (
+          <div className="p-6 sm:p-8 rounded-3xl bg-amber-50/60 border border-amber-200/90 space-y-4">
+            <h3 className="text-base sm:text-lg font-bold text-amber-950 font-serif-title flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0" />
+              <span>Key Academic Takeaways for Students</span>
+            </h3>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-amber-950">
+              {article.keyTakeaways.map((item, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Main Article Body */}
         <article className="p-6 sm:p-10 rounded-3xl bg-white border border-slate-200/90 shadow-xl shadow-slate-900/5 space-y-8 text-slate-800 text-sm sm:text-base leading-relaxed">
           {article.contentSections && article.contentSections.map((sec, idx) => (
             <section key={idx} className="space-y-4">
               <h2 className="text-xl sm:text-2xl font-bold text-slate-950 font-serif-title border-b border-slate-100 pb-2 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shrink-0" />
                 <span>{sec.heading}</span>
               </h2>
 
@@ -190,9 +250,56 @@ export default function BlogArticleDetailPage({ params }) {
           ))}
         </article>
 
-        {/* Related LowStudy Interactive Resources */}
+        {/* Frequently Asked Student Questions (FAQ) */}
+        {article.faqs && article.faqs.length > 0 && (
+          <section aria-label="Frequently Asked Questions" className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-lg space-y-5">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-950 font-serif-title flex items-center gap-2">
+              <HelpCircle className="w-5 h-5 text-amber-600 shrink-0" />
+              <span>Frequently Asked Student Questions (FAQ)</span>
+            </h3>
+
+            <div className="space-y-3.5">
+              {article.faqs.map((faq, idx) => (
+                <div key={idx} className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span>{faq.question}</span>
+                  </h4>
+                  <p className="text-xs sm:text-sm text-slate-600 pl-3.5 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Sources & Statutory References */}
+        {article.sources && article.sources.length > 0 && (
+          <div className="p-5 sm:p-6 rounded-2xl bg-slate-100/80 border border-slate-200 text-xs text-slate-600 space-y-2.5">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+              <LinkIcon className="w-3.5 h-3.5 text-slate-500" />
+              <span>Sources &amp; Statutory Authorities</span>
+            </div>
+            <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-600">
+              {article.sources.map((src, idx) => (
+                <li key={idx}>{src}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Legal Educational Disclaimer */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-100 border border-slate-200/80 flex items-start gap-3 text-slate-600 text-xs leading-relaxed">
+          <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-slate-800">Educational Disclaimer:</strong> LowStudy provides educational content, syllabus guides, and exam preparation material for law students. This study guide is published strictly for academic and examination preparation purposes and should not be construed as legal advice.
+          </div>
+        </div>
+
+        {/* Related LowStudy Interactive Academic Resources */}
         {article.relatedResources && article.relatedResources.length > 0 && (
-          <div className="p-6 sm:p-8 rounded-3xl bg-slate-900 text-white border border-slate-800 space-y-5">
+          <div className="p-6 sm:p-8 rounded-3xl bg-slate-900 text-white border border-slate-800 space-y-5 shadow-xl">
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">
                 Direct Resource Integration
@@ -233,7 +340,7 @@ export default function BlogArticleDetailPage({ params }) {
               <span>Related Law Student Guides</span>
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {relatedArticles.map((rel) => (
                 <Link
                   key={rel.slug}
@@ -258,7 +365,7 @@ export default function BlogArticleDetailPage({ params }) {
           </section>
         )}
 
-        {/* Bottom CTA Card */}
+        {/* Bottom Practice CTA Card */}
         <section aria-label="Practice Exam MCQs" className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 text-white border border-slate-800 shadow-2xl space-y-4">
           <div className="max-w-2xl space-y-2">
             <span className="px-3 py-1 rounded-full bg-amber-500 text-slate-950 text-[10px] font-extrabold uppercase tracking-wider">

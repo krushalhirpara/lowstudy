@@ -38,6 +38,7 @@ export default function BlogIndexClient({ articles = [] }) {
         article.title.toLowerCase().includes(q) ||
         article.excerpt.toLowerCase().includes(q) ||
         article.category.toLowerCase().includes(q) ||
+        (article.cluster && article.cluster.toLowerCase().includes(q)) ||
         (article.primaryKeyword && article.primaryKeyword.toLowerCase().includes(q)) ||
         (article.targetUniversity && article.targetUniversity.toLowerCase().includes(q)) ||
         (article.secondaryKeywords &&
@@ -62,7 +63,7 @@ export default function BlogIndexClient({ articles = [] }) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search guides by topic, university, BNS section, case law, or exam strategy..."
+            placeholder="Search all 30 guides by topic, university, BNS section, case law, or exam strategy..."
             className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all"
           />
           {searchQuery && (
@@ -148,17 +149,17 @@ export default function BlogIndexClient({ articles = [] }) {
         </section>
       )}
 
-      {/* 3. Articles Grid */}
+      {/* 3. Articles Grid (30 High-Yield Articles) */}
       <section aria-label="Legal Blog Articles" className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-amber-600" />
             <span>
-              {selectedCategory === 'All' ? 'Latest Law Study Guides & Notes' : `${selectedCategory} Articles`}
+              {selectedCategory === 'All' ? '30 High-Yield Law Study Guides & Notes' : `${selectedCategory} Articles`}
             </span>
           </h2>
           <span className="text-xs font-semibold text-slate-500">
-            {filteredArticles.length} {filteredArticles.length === 1 ? 'Article' : 'Articles'}
+            {filteredArticles.length} of {articles.length} {articles.length === 1 ? 'Article' : 'Articles'}
           </span>
         </div>
 
@@ -188,42 +189,60 @@ export default function BlogIndexClient({ articles = [] }) {
             {filteredArticles.map((article) => (
               <article
                 key={article.slug}
-                className="p-6 rounded-3xl bg-white border border-slate-200/90 hover:border-amber-500/50 hover:shadow-xl hover:shadow-slate-900/5 transition-all flex flex-col justify-between space-y-4 group"
+                className="rounded-3xl bg-white border border-slate-200/90 hover:border-amber-500/50 hover:shadow-xl hover:shadow-slate-900/5 transition-all flex flex-col justify-between overflow-hidden group"
               >
-                <div className="space-y-3.5">
-                  <div className="flex items-center justify-between text-[11px] text-slate-500">
-                    <span className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 font-bold border border-amber-200/60">
+                {/* Thumbnail Header */}
+                <Link href={`/blog/${article.slug}`} className="block relative aspect-[1200/630] overflow-hidden bg-slate-950">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={article.featuredImage || `/images/blog/${article.slug}.svg`}
+                    alt={article.imageAlt || article.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <span className="px-2.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white font-bold text-[10px] border border-white/10">
                       {article.category}
                     </span>
-                    <span className="flex items-center gap-1 font-medium">
-                      <Clock className="w-3 h-3 text-slate-400" /> {article.readTime}
-                    </span>
+                  </div>
+                </Link>
+
+                <div className="p-6 flex flex-col justify-between flex-1 space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500">
+                      <span className="font-medium text-amber-700">
+                        {article.cluster || article.category}
+                      </span>
+                      <span className="flex items-center gap-1 font-medium">
+                        <Clock className="w-3 h-3 text-slate-400" /> {article.readTime}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base font-bold text-slate-900 group-hover:text-amber-700 transition-colors leading-snug font-serif-title">
+                      <Link href={`/blog/${article.slug}`}>
+                        {article.title}
+                      </Link>
+                    </h3>
+
+                    <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                      {article.excerpt}
+                    </p>
                   </div>
 
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-amber-700 transition-colors leading-snug font-serif-title">
-                    <Link href={`/blog/${article.slug}`}>
-                      {article.title}
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{new Date(article.publishedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    </div>
+
+                    <Link
+                      href={`/blog/${article.slug}`}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 hover:text-amber-800 group-hover:translate-x-0.5 transition-all"
+                    >
+                      <span>Read Guide</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
-                  </h3>
-
-                  <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
-                    {article.excerpt}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[11px] text-slate-500">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{new Date(article.publishedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
-
-                  <Link
-                    href={`/blog/${article.slug}`}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 hover:text-amber-800 group-hover:translate-x-0.5 transition-all"
-                  >
-                    <span>Read Article</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
                 </div>
               </article>
             ))}
