@@ -2,6 +2,7 @@ import { GUJARAT_UNIVERSITIES, GUJARAT_COLLEGES } from '../data/gujaratData.js';
 import { ALL_SYLLABUS_SUBJECTS } from '../data/syllabusData.js';
 import { SUBJECTS_DATA } from '../data/legalData.js';
 import { SU_SEM3_SUBJECT_MAP, slugify } from '../lib/services/seoDataService.js';
+import { getPublishedBlogArticles } from '../data/blogData.js';
 import prisma from '../lib/prisma.js';
 
 /**
@@ -164,18 +165,13 @@ export default async function sitemap() {
     priority: 0.8,
   }));
 
-  // 7. Law Blog & Exam Preparation Articles
-  const blogSlugs = [
-    'gujarat-university-llb-exam-preparation-guide',
-    'bns-vs-ipc-key-differences-for-law-students',
-    'important-constitutional-law-articles-for-exams',
-    'bnss-vs-crpc-procedural-law-changes-explained',
-  ];
-  const blogRoutes = blogSlugs.map((slug) => ({
-    url: `${baseUrl}/blog/${slug}`,
-    lastModified: currentDate,
-    changeFrequency: 'monthly',
-    priority: 0.75,
+  // 7. Law Blog & Exam Preparation Articles (Published only)
+  const publishedArticles = getPublishedBlogArticles();
+  const blogRoutes = publishedArticles.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: post.updatedDate || post.publishedDate || currentDate,
+    changeFrequency: 'weekly',
+    priority: post.featured ? 0.85 : 0.75,
   }));
 
   return [

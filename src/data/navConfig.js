@@ -251,9 +251,9 @@ export const NAV_ITEMS = [
     ]
   },
   {
-    id: 'pricing',
-    label: 'Pricing',
+    id: 'blog',
+    label: 'Blog',
     type: 'link',
-    href: '/pricing'
+    href: '/blog'
   }
 ];

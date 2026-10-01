@@ -1,102 +1,98 @@
 import React from 'react';
-import Link from 'next/link';
 import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import JsonLd from '@/components/seo/JsonLd';
-import { getArticleJsonLd } from '@/utils/seo';
-import { BookOpen, Calendar, ArrowRight, GraduationCap, Scale, FileText } from 'lucide-react';
+import BlogIndexClient from '@/components/blog/BlogIndexClient';
+import { getPublishedBlogArticles } from '@/data/blogData';
+import { BookOpen, Sparkles, GraduationCap } from 'lucide-react';
 
 export const metadata = {
-  title: 'Gujarat Law Education & Exam Preparation Blog | LowStudy',
-  description: 'Guides, syllabus breakdowns, study tips, BNS 2023 revision notes, and exam answer writing strategies for Gujarat law students.',
+  title: 'Gujarat Law Student Blog & Exam Notes | LL.B. Study Hub | LowStudy',
+  description: 'Verified law study guides, university syllabus breakdowns (GU, Saurashtra, VNSGU), BNS 2023 revision notes, and exam answer writing strategies for Gujarat law students.',
+  keywords: [
+    'Gujarat University LLB syllabus',
+    'Saurashtra University LLB notes',
+    'BNS 2023 vs IPC differences',
+    'How to write law exam answer',
+    'IRAC method law exam',
+    'Gujarat law student study guides',
+    'LL.B. semester 3 syllabus',
+    'LowStudy blog'
+  ],
   alternates: {
     canonical: 'https://lowstudy.com/blog',
   },
+  openGraph: {
+    title: 'Gujarat Law Student Blog & Exam Notes | LowStudy',
+    description: 'Verified study guides, semester syllabus breakdowns, BNS 2023 comparative tables, and high-scoring exam writing techniques.',
+    url: 'https://lowstudy.com/blog',
+    siteName: 'LowStudy',
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Gujarat Law Student Blog & Exam Notes | LowStudy',
+    description: 'Verified study guides, semester syllabus breakdowns, BNS 2023 comparative tables, and high-scoring exam writing techniques.',
+  },
 };
 
-export const BLOG_POSTS = [
-  {
-    slug: 'gujarat-university-llb-exam-preparation-guide',
-    title: 'Gujarat University LL.B. Exam Preparation & Answer Writing Guide',
-    excerpt: 'Step-by-step framework to score high marks in Gujarat University 3-Year LL.B. semester examinations using structured case law citations.',
-    category: 'Exam Strategy',
-    date: '2026-09-10',
-    readTime: '6 min read',
-  },
-  {
-    slug: 'bns-vs-ipc-key-differences-for-law-students',
-    title: 'BNS 2023 vs IPC 1860: Key Differences Law Students Must Know',
-    excerpt: 'Comprehensive conversion chart comparing major penal offences under Bharatiya Nyaya Sanhita against traditional IPC provisions.',
-    category: 'New Laws',
-    date: '2026-09-08',
-    readTime: '8 min read',
-  },
-  {
-    slug: 'important-constitutional-law-articles-for-exams',
-    title: 'Top 15 Constitutional Law Articles Frequently Asked in Gujarat LL.B. Exams',
-    excerpt: 'Focus area analysis of Article 14, Article 19, Article 21, Article 32, and Article 226 with landmark Supreme Court precedents.',
-    category: 'Syllabus Notes',
-    date: '2026-09-05',
-    readTime: '7 min read',
-  },
-  {
-    slug: 'bnss-vs-crpc-procedural-law-changes-explained',
-    title: 'BNSS 2023 vs CrPC 1973: Procedural Law Reforms Explained',
-    excerpt: 'Breakdown of zero FIR, electronic summons, forensic evidence mandates, and timeline restrictions under BNSS 2023.',
-    category: 'Procedural Law',
-    date: '2026-09-01',
-    readTime: '9 min read',
-  },
-];
+export default function BlogPage() {
+  const articles = getPublishedBlogArticles();
 
-export default function BlogIndexPage() {
+  const blogJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Gujarat Law Student Blog & Exam Preparation Hub',
+    description: 'Verified study guides, university syllabus breakdowns, BNS 2023 revision notes, and exam answer writing strategies for law students.',
+    url: 'https://lowstudy.com/blog',
+    publisher: {
+      '@type': 'Organization',
+      name: 'LowStudy',
+      url: 'https://lowstudy.com',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://lowstudy.com/logo.png',
+      },
+    },
+    hasPart: articles.map((a) => ({
+      '@type': 'BlogPosting',
+      headline: a.title,
+      description: a.excerpt,
+      url: `https://lowstudy.com/blog/${a.slug}`,
+      datePublished: a.publishedDate,
+      author: {
+        '@type': 'Person',
+        name: a.author?.name || 'LowStudy Legal Team',
+      },
+    })),
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <Breadcrumbs items={[{ name: 'Law Student Blog & Guides', url: '/blog' }]} />
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-poppins py-8 px-4 sm:px-6 lg:px-8">
+      <JsonLd data={blogJsonLd} />
 
-        <header className="p-6 sm:p-8 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase">
-            <BookOpen className="w-4 h-4" /> Gujarat Legal Education Hub
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Visible Breadcrumbs */}
+        <Breadcrumbs items={[{ name: 'Legal Blog & Content Hub', url: '/blog' }]} />
+
+        {/* Hero Header */}
+        <header className="p-8 sm:p-10 lg:p-12 rounded-3xl bg-white border border-slate-200/90 shadow-xl shadow-slate-900/5 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold uppercase tracking-wider">
+            <GraduationCap className="w-4 h-4 text-amber-600" />
+            <span>Gujarat Legal Education &amp; Exam Content Hub</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
-            Law Student Study Guides & Exam Notes
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-950 font-serif-title tracking-tight leading-tight">
+            Law Student Study Guides &amp; Exam Notes
           </h1>
-          <p className="text-slate-300 text-base max-w-3xl">
-            Verified study guides, university exam strategies, BNS 2023 revision notes, and landmark judgment summaries tailored for law students in Gujarat.
+
+          <p className="text-slate-600 text-xs sm:text-sm md:text-base max-w-3xl leading-relaxed">
+            Verified study guides, university exam strategies, BNS 2023 revision notes, and landmark judgment summaries tailored for Gujarat University, Saurashtra University, and VNSGU law students.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {BLOG_POSTS.map((post) => (
-            <article
-              key={post.slug}
-              className="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-4 group"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-slate-400">
-                  <span className="px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">
-                    {post.category}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" /> {post.date} • {post.readTime}
-                  </span>
-                </div>
-                <h2 className="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">
-                  <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-                </h2>
-                <p className="text-slate-300 text-sm leading-relaxed">{post.excerpt}</p>
-              </div>
-
-              <Link
-                href={`/blog/${post.slug}`}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 group-hover:text-emerald-300 pt-2"
-              >
-                <span>Read Guide</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </article>
-          ))}
-        </div>
+        {/* Client Interactive Hub */}
+        <BlogIndexClient articles={articles} />
       </div>
     </div>
   );
