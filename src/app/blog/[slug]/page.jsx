@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import JsonLd from '@/components/seo/JsonLd';
+import BlogFeaturedImage from '@/components/blog/BlogFeaturedImage';
 import { 
   BLOG_ARTICLES, 
   getBlogArticleBySlug, 
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }) {
   }
 
   const pageUrl = `https://lowstudy.com/blog/${article.slug}`;
-  const imageUrl = `https://lowstudy.com${article.featuredImage || `/images/blog/${article.slug}.svg`}`;
+  const imageUrl = `https://lowstudy.com${article.featuredImage || `/images/blog/${article.slug}.webp`}`;
 
   return {
     title: article.metaTitle || `${article.title} | LowStudy Law Blog`,
@@ -95,7 +96,7 @@ export default function BlogArticleDetailPage({ params }) {
   }
 
   const pageUrl = `https://lowstudy.com/blog/${article.slug}`;
-  const imageUrl = `https://lowstudy.com${article.featuredImage || `/images/blog/${article.slug}.svg`}`;
+  const imageUrl = `https://lowstudy.com${article.featuredImage || `/images/blog/${article.slug}.webp`}`;
 
   // 1. Article Schema (JSON-LD)
   const articleJsonLd = {
@@ -207,12 +208,10 @@ export default function BlogArticleDetailPage({ params }) {
 
         {/* Featured Image Container */}
         <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-xl bg-slate-950 aspect-[1200/630] relative group">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={article.featuredImage || `/images/blog/${article.slug}.svg`}
+          <BlogFeaturedImage
+            src={article.featuredImage || `/images/blog/${article.slug}.webp`}
             alt={article.imageAlt || article.title}
-            className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-500"
-            loading="eager"
+            priority={true}
           />
         </div>
 

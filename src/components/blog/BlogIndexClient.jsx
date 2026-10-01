@@ -16,10 +16,11 @@ import {
   Building2, 
   GraduationCap, 
   CheckCircle2, 
-  Filter, 
+  Filter,
   Layers,
   ArrowUpRight
 } from 'lucide-react';
+import BlogFeaturedImage from '@/components/blog/BlogFeaturedImage';
 import { BLOG_CATEGORIES } from '@/data/blogData';
 
 export default function BlogIndexClient({ articles = [] }) {
@@ -193,12 +194,9 @@ export default function BlogIndexClient({ articles = [] }) {
               >
                 {/* Thumbnail Header */}
                 <Link href={`/blog/${article.slug}`} className="block relative aspect-[1200/630] overflow-hidden bg-slate-950">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={article.featuredImage || `/images/blog/${article.slug}.svg`}
+                  <BlogFeaturedImage
+                    src={article.featuredImage || `/images/blog/${article.slug}.webp`}
                     alt={article.imageAlt || article.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
                   />
                   <div className="absolute top-3 left-3 flex gap-2">
                     <span className="px-2.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white font-bold text-[10px] border border-white/10">
