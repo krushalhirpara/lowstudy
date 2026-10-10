@@ -66,6 +66,8 @@ const PROTECTED_STUDENT_ROUTES = [
   '/curriculum',
   '/previous-papers',
   '/academic',
+  '/exam-prep/library',
+  '/exam-prep/checkout',
 ];
 
 export function middleware(request) {

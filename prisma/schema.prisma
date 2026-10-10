@@ -63,6 +63,10 @@ model User {
   loginEvents             LoginEvent[]
   activityEvents          ActivityEvent[]
 
+  examPrepOrders          ExamPrepOrder[]
+  examPrepEntitlements    ExamPrepEntitlement[]
+  reviewedExamPrepQuestions ExamPrepQuestion[] @relation("ExamPrepQuestionReviewer")
+
   @@index([email])
   @@index([phoneNumber])
   @@index([role])
@@ -98,6 +102,7 @@ model University {
   syllabusSources        SyllabusSource[]
   syllabusVersions       SyllabusVersion[]
   nyayaContexts          NyayaAIContext[]
+  examPrepQuestions      ExamPrepQuestion[]
 
   @@index([code])
   @@index([state])
@@ -148,6 +153,7 @@ model Course {
 
   syllabusVersions SyllabusVersion[]
   nyayaContexts    NyayaAIContext[]
+  examPrepQuestions ExamPrepQuestion[]
 
   @@unique([universityId, code])
   @@index([universityId])
@@ -167,6 +173,7 @@ model Semester {
   previousPapers PreviousPaper[]
   mockTests      MockTest[]
   users          User[]
+  examPrepQuestions ExamPrepQuestion[]
 
   @@unique([courseId, semesterNumber])
   @@index([courseId])
@@ -199,6 +206,7 @@ model Subject {
   previousPapers  PreviousPaper[]
   mockTests       MockTest[]
   subjectProgress StudentSubjectProgress[]
+  examPrepQuestions ExamPrepQuestion[]
 
   syllabusSubjects SyllabusSubject[]
 
@@ -876,6 +884,7 @@ model SyllabusVersion {
   mcqs                Mcq[]
   notifications       SyllabusNotification[]
   nyayaContexts       NyayaAIContext[]
+  examPrepQuestions   ExamPrepQuestion[]
 
   @@unique([universityId, collegeId, courseId, academicYear, semesterNumber, version])
   @@index([universityId])
@@ -1153,5 +1162,120 @@ model ActivityEvent {
   @@index([createdAt])
   @@index([userId])
 }
+
+// 36. Exam Prep Pass Orders & Transactions (Razorpay Integration)
+model ExamPrepOrder {
+  id                 String    @id @default(cuid())
+  userId             String
+  productCode        String    @default("LOWSTUDY_EXAM_PREP_PASS")
+  amount             Int       @default(29900) // 29900 paise (₹299 INR)
+  currency           String    @default("INR")
+  status             String    @default("PENDING") // PENDING, AUTHORIZED, CAPTURED, FAILED, REFUNDED, PARTIALLY_REFUNDED
+  razorpayOrderId    String?   @unique
+  razorpayPaymentId  String?   @unique
+  razorpaySignature  String?
+  receipt            String?
+  notesJson          String?   // JSON string of purchase metadata
+  failureReason      String?
+  verifiedAt         DateTime?
+  refundedAt         DateTime?
+  refundAmount       Int?
+  razorpayRefundId   String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entitlements       ExamPrepEntitlement[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// 37. Exam Prep Pass Entitlements (User Access Rights)
+model ExamPrepEntitlement {
+  id               String    @id @default(cuid())
+  userId           String
+  productCode      String    @default("LOWSTUDY_EXAM_PREP_PASS")
+  orderId          String?
+  status           String    @default("ACTIVE") // ACTIVE, REVOKED, REFUNDED
+  grantedAt        DateTime  @default(now())
+  revokedAt        DateTime?
+  revocationReason String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order            ExamPrepOrder? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, productCode])
+  @@index([userId])
+  @@index([status])
+}
+
+// 38. Exam Prep Questions & Model Answers
+model ExamPrepQuestion {
+  id                   String    @id @default(cuid())
+  universityId         String
+  courseId             String
+  semesterId           String
+  subjectId            String
+  syllabusVersionId    String?
+  unitId               String?
+  topicId              String?
+  questionText         String
+  questionTextGu       String?
+  questionType         String    @default("DESCRIPTIVE") // DESCRIPTIVE, SHORT, CASE_PROBLEM, ESSAY, MARKS_WISE
+  marks                Int       @default(10) // 2, 5, 10, 14, 15, 20
+  marksCategory        String    @default("10_MARKS") // 2_MARKS, 5_MARKS, 10_MARKS, 14_15_MARKS, 20_MARKS, PROBLEM_BASED
+  expectedAnswerLength String?   // e.g. "150-200 words", "400-500 words", "3-4 pages"
+  suggestedTimeMinutes Int       @default(15)
+  difficulty           String    @default("MEDIUM") // EASY, MEDIUM, HARD
+  importanceLevel      String    @default("HIGH") // HIGH_PRIORITY, FREQUENT_PYQ, CONCEPTUAL, PRACTICE
+  modelAnswer          String    // Structured Model Answer with full legal citations
+  modelAnswerGu        String?
+  answerStructure      String?   // JSON array of sub-sections (e.g. ["Introduction", "Statutory Provisions", "Essential Ingredients", "Landmark Case Laws", "Conclusion"])
+  legalProvisions      String?   // JSON array of relevant bare acts / sections (e.g. ["BNS 2023 Sec 103", "BSA 2023 Sec 63"])
+  caseLawReferences    String?   // JSON array of verified landmark cases
+  keyRevisionPoints    String?   // JSON array of bullet points for rapid last-minute revision
+  sourceReferences     String?   // Syllabus version or exam pattern reference
+  verificationStatus   String    @default("VERIFIED") // DRAFT, IN_REVIEW, VERIFIED, OUTDATED, ARCHIVED
+  publicationStatus    String    @default("PUBLISHED") // DRAFT, IN_REVIEW, PUBLISHED, ARCHIVED
+  reviewedById         String?
+  reviewedAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  university           University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  course               Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  semester             Semester   @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  subject              Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  syllabusVersion      SyllabusVersion? @relation(fields: [syllabusVersionId], references: [id], onDelete: SetNull)
+  reviewedBy           User?      @relation("ExamPrepQuestionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([universityId])
+  @@index([subjectId])
+  @@index([semesterId])
+  @@index([marksCategory])
+  @@index([publicationStatus])
+  @@index([verificationStatus])
+}
+
+// 39. Webhook Events Log (Idempotent Webhook Processing)
+model WebhookEvent {
+  id           String    @id // Razorpay event ID (e.g. event_L123456)
+  eventType    String    // payment.captured, order.paid, refund.created, etc.
+  entityId     String?   // Razorpay order ID or payment ID
+  payload      String    // Full raw JSON string
+  status       String    @default("PROCESSED") // PROCESSED, FAILED, IGNORED
+  errorMessage String?
+  processedAt  DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+
+  @@index([eventType])
+  @@index([entityId])
+  @@index([createdAt])
+}
+
 
 

@@ -34,6 +34,7 @@ import { LANDMARK_CASES, IPC_VS_BNS_MAP } from '@/data/legalData';
 import JsonLd from '@/components/seo/JsonLd';
 import { getWebSiteJsonLd, getOrganizationJsonLd, getFaqJsonLd } from '@/utils/seo';
 import { useAuth } from '@/context/AuthContext';
+import ExamPrepPromoPopup from '@/components/home/ExamPrepPromoPopup';
 
 export default function HomePage() {
   const { user: currentUser } = useAuth();
@@ -716,6 +717,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* LowStudy Exam Prep Pass Homepage Promotion Popup */}
+      <ExamPrepPromoPopup />
 
     </div>
   );

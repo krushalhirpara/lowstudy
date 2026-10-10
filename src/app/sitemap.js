@@ -16,6 +16,7 @@ export default async function sitemap() {
   // 1. Core Public Static Hub Pages
   const staticRoutes = [
     '',
+    '/exam-prep',
     '/universities',
     '/colleges',
     '/gujarat-law-colleges',

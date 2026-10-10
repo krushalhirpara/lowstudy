@@ -7,7 +7,10 @@ export default function robots() {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/',
+          '/exam-prep',
+        ],
         disallow: [
           '/admin',
           '/admin/*',
@@ -17,6 +20,11 @@ export default function robots() {
           '/api/*',
           '/dashboard',
           '/dashboard/*',
+          '/exam-prep/checkout',
+          '/exam-prep/success',
+          '/exam-prep/failure',
+          '/exam-prep/library',
+          '/exam-prep/library/*',
           '/private/',
           '/user/',
           '/account/',

@@ -16,10 +16,14 @@ import {
   Search,
   ExternalLink,
   BookOpen,
+  CreditCard,
+  GraduationCap,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/ceoadmin/dashboard', icon: LayoutDashboard },
+  { label: 'Payments & Revenue', href: '/ceoadmin/payments', icon: CreditCard },
+  { label: 'Exam Prep & Coverage', href: '/ceoadmin/exam-prep', icon: GraduationCap },
   { label: 'Users', href: '/ceoadmin/users', icon: Users },
   { label: 'Blog & Content Hub', href: '/ceoadmin/blog', icon: BookOpen },
   { label: 'Live Activity', href: '/ceoadmin/activity', icon: Activity },

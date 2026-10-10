@@ -131,11 +131,119 @@ async function ensureDatabaseSchemaIntegrity(client) {
       );
     `);
 
+    // Ensure ExamPrepOrder table exists
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ExamPrepOrder" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "userId" TEXT NOT NULL,
+        "productCode" TEXT NOT NULL DEFAULT 'LOWSTUDY_EXAM_PREP_PASS',
+        "amount" INTEGER NOT NULL DEFAULT 29900,
+        "currency" TEXT NOT NULL DEFAULT 'INR',
+        "status" TEXT NOT NULL DEFAULT 'PENDING',
+        "razorpayOrderId" TEXT UNIQUE,
+        "razorpayPaymentId" TEXT UNIQUE,
+        "razorpaySignature" TEXT,
+        "receipt" TEXT,
+        "notesJson" TEXT,
+        "failureReason" TEXT,
+        "verifiedAt" DATETIME,
+        "refundedAt" DATETIME,
+        "refundAmount" INTEGER,
+        "razorpayRefundId" TEXT,
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "ExamPrepOrder_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+      );
+    `);
+
+    // Ensure ExamPrepEntitlement table exists
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ExamPrepEntitlement" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "userId" TEXT NOT NULL,
+        "productCode" TEXT NOT NULL DEFAULT 'LOWSTUDY_EXAM_PREP_PASS',
+        "orderId" TEXT,
+        "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+        "grantedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "revokedAt" DATETIME,
+        "revocationReason" TEXT,
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "ExamPrepEntitlement_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "ExamPrepEntitlement_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "ExamPrepOrder" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+      );
+    `);
+
+    // Ensure ExamPrepQuestion table exists
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ExamPrepQuestion" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "universityId" TEXT NOT NULL,
+        "courseId" TEXT NOT NULL,
+        "semesterId" TEXT NOT NULL,
+        "subjectId" TEXT NOT NULL,
+        "syllabusVersionId" TEXT,
+        "unitId" TEXT,
+        "topicId" TEXT,
+        "questionText" TEXT NOT NULL,
+        "questionTextGu" TEXT,
+        "questionType" TEXT NOT NULL DEFAULT 'DESCRIPTIVE',
+        "marks" INTEGER NOT NULL DEFAULT 10,
+        "marksCategory" TEXT NOT NULL DEFAULT '10_MARKS',
+        "expectedAnswerLength" TEXT,
+        "suggestedTimeMinutes" INTEGER NOT NULL DEFAULT 15,
+        "difficulty" TEXT NOT NULL DEFAULT 'MEDIUM',
+        "importanceLevel" TEXT NOT NULL DEFAULT 'HIGH',
+        "modelAnswer" TEXT NOT NULL,
+        "modelAnswerGu" TEXT,
+        "answerStructure" TEXT,
+        "legalProvisions" TEXT,
+        "caseLawReferences" TEXT,
+        "keyRevisionPoints" TEXT,
+        "sourceReferences" TEXT,
+        "verificationStatus" TEXT NOT NULL DEFAULT 'VERIFIED',
+        "publicationStatus" TEXT NOT NULL DEFAULT 'PUBLISHED',
+        "reviewedById" TEXT,
+        "reviewedAt" DATETIME,
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "ExamPrepQuestion_universityId_fkey" FOREIGN KEY ("universityId") REFERENCES "University" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "ExamPrepQuestion_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "ExamPrepQuestion_semesterId_fkey" FOREIGN KEY ("semesterId") REFERENCES "Semester" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "ExamPrepQuestion_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "Subject" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "ExamPrepQuestion_syllabusVersionId_fkey" FOREIGN KEY ("syllabusVersionId") REFERENCES "SyllabusVersion" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+        CONSTRAINT "ExamPrepQuestion_reviewedById_fkey" FOREIGN KEY ("reviewedById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+      );
+    `);
+
+    // Ensure WebhookEvent table exists
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "WebhookEvent" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "eventType" TEXT NOT NULL,
+        "entityId" TEXT,
+        "payload" TEXT NOT NULL,
+        "status" TEXT NOT NULL DEFAULT 'PROCESSED',
+        "errorMessage" TEXT,
+        "processedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Ensure indexes exist
     await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "User_phoneNumber_idx" ON "User"("phoneNumber");`);
     await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "User_email_idx" ON "User"("email");`);
     await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ActivityEvent_type_idx" ON "ActivityEvent"("type");`);
     await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ActivityEvent_createdAt_idx" ON "ActivityEvent"("createdAt");`);
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ExamPrepOrder_userId_idx" ON "ExamPrepOrder"("userId");`);
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ExamPrepOrder_status_idx" ON "ExamPrepOrder"("status");`);
+    await client.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "ExamPrepEntitlement_userId_productCode_key" ON "ExamPrepEntitlement"("userId", "productCode");`);
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ExamPrepEntitlement_userId_idx" ON "ExamPrepEntitlement"("userId");`);
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ExamPrepQuestion_universityId_idx" ON "ExamPrepQuestion"("universityId");`);
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ExamPrepQuestion_subjectId_idx" ON "ExamPrepQuestion"("subjectId");`);
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ExamPrepQuestion_semesterId_idx" ON "ExamPrepQuestion"("semesterId");`);
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ExamPrepQuestion_marksCategory_idx" ON "ExamPrepQuestion"("marksCategory");`);
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "WebhookEvent_eventType_idx" ON "WebhookEvent"("eventType");`);
   } catch (err) {
     // Non-fatal notice: log cleanly without crashing
     console.warn('[Prisma Schema Self-Heal] Notice:', err?.message || err);
