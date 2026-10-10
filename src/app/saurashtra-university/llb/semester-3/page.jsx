@@ -25,7 +25,7 @@ export async function generateMetadata() {
   const sem = await getSemesterData(3);
   const title = 'Saurashtra University LL.B. Semester 3 — Complete Syllabus, Notes & Subjects';
   const description = 'Official Saurashtra University LL.B. Semester 3 curriculum hub. Study Labour Law I & II, Taxation Laws, Banking Laws, and Cyber Crimes. Complete bare act notes, model answers & MCQs.';
-  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/`;
+  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3`;
 
   return {
     title,

@@ -48,22 +48,22 @@ export default async function sitemap() {
     priority: route === '' ? 1.0 : 0.85,
   }));
 
-  // 2. Saurashtra University Complete Technical SEO Hierarchy
+  // 2. Saurashtra University Complete Technical SEO Hierarchy (Canonical no-slash format)
   const suBaseRoutes = [
     {
-      url: `${baseUrl}/saurashtra-university/`,
+      url: `${baseUrl}/saurashtra-university`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.95,
     },
     {
-      url: `${baseUrl}/saurashtra-university/llb/`,
+      url: `${baseUrl}/saurashtra-university/llb`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.90,
     },
     {
-      url: `${baseUrl}/saurashtra-university/llb/semester-3/`,
+      url: `${baseUrl}/saurashtra-university/llb/semester-3`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.90,
@@ -98,7 +98,7 @@ export default async function sitemap() {
       const subjectSlug = subjectMapping ? subjectMapping.canonicalSlug : slugify(sub.title);
 
       suSubjectRoutes.push({
-        url: `${baseUrl}/saurashtra-university/llb/semester-3/${subjectSlug}/`,
+        url: `${baseUrl}/saurashtra-university/llb/semester-3/${subjectSlug}`,
         lastModified: sub.updatedAt?.toISOString() || currentDate,
         changeFrequency: 'weekly',
         priority: 0.85,
@@ -107,7 +107,7 @@ export default async function sitemap() {
       for (const unit of sub.units) {
         const unitSlug = `unit-${unit.unitNumber}`;
         suUnitRoutes.push({
-          url: `${baseUrl}/saurashtra-university/llb/semester-3/${subjectSlug}/unit/${unitSlug}/`,
+          url: `${baseUrl}/saurashtra-university/llb/semester-3/${subjectSlug}/unit/${unitSlug}`,
           lastModified: unit.updatedAt?.toISOString() || currentDate,
           changeFrequency: 'weekly',
           priority: 0.80,
@@ -116,7 +116,7 @@ export default async function sitemap() {
         for (const topic of unit.topics) {
           const topicSlug = slugify(topic.title);
           suTopicRoutes.push({
-            url: `${baseUrl}/saurashtra-university/llb/semester-3/${subjectSlug}/topic/${topicSlug}/`,
+            url: `${baseUrl}/saurashtra-university/llb/semester-3/${subjectSlug}/topic/${topicSlug}`,
             lastModified: topic.updatedAt?.toISOString() || currentDate,
             changeFrequency: 'weekly',
             priority: 0.85,

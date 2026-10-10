@@ -22,7 +22,7 @@ export async function generateMetadata() {
   const course = await getCourseData('llb');
   const title = 'Saurashtra University LL.B. 3-Year Degree — Full Syllabus & Semester Guide';
   const description = 'Complete curriculum and syllabus breakdown for Saurashtra University 3-Year Bachelor of Laws (LL.B.). Access Semester 1 to 6 subjects, Semester 3 study notes, exam marks pattern, and mock tests.';
-  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/`;
+  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb`;
 
   return {
     title,

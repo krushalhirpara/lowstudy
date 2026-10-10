@@ -4,11 +4,15 @@
 export const BASE_URL = 'https://lowstudy.com';
 
 /**
- * Builds canonical URL for a given path
+ * Builds canonical URL for a given path (ensures clean, no-trailing-slash format)
  */
 export function getCanonicalUrl(path = '') {
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${BASE_URL}${cleanPath === '/' ? '' : cleanPath}`;
+  if (!path || path === '/' || path === '') return BASE_URL;
+  let cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
+    cleanPath = cleanPath.slice(0, -1);
+  }
+  return `${BASE_URL}${cleanPath}`;
 }
 
 /**

@@ -39,33 +39,9 @@ function getSafeRedirect(targetUrl, fallback = '/') {
   return trimmed;
 }
 
-// Protected Student Route Prefixes (Student Private Learning Areas)
+// Protected Student Route Prefixes (Strictly Private Student Learning & Checkout Areas)
 const PROTECTED_STUDENT_ROUTES = [
   '/dashboard',
-  '/subjects',
-  '/practice',
-  '/mock-test',
-  '/mock-tests',
-  '/quiz',
-  '/mcq',
-  '/notes',
-  '/case-laws',
-  '/bare-acts',
-  '/ai-tutor',
-  '/nyayaai',
-  '/ai',
-  '/drafting',
-  '/moot-court',
-  '/study-plan',
-  '/planner',
-  '/revision',
-  '/question-bank',
-  '/exam-mode',
-  '/research',
-  '/practice-writing',
-  '/curriculum',
-  '/previous-papers',
-  '/academic',
   '/exam-prep/library',
   '/exam-prep/checkout',
 ];
@@ -112,10 +88,8 @@ export function middleware(request) {
     return NextResponse.next();
   }
 
-  // 4. Student Protected Routes Check
-  // Check static list + semester curriculum learning routes (e.g. /saurashtra-university/llb/semester-3)
-  const isSemesterCurriculum = pathname.includes('/llb/semester-');
-  const isProtectedStudentRoute = isSemesterCurriculum || PROTECTED_STUDENT_ROUTES.some(
+  // 4. Student Protected Private Routes Check (Dashboard, Checkout, Library)
+  const isProtectedStudentRoute = PROTECTED_STUDENT_ROUTES.some(
     prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 

@@ -70,7 +70,9 @@ export default function Footer() {
               <li><Link href="/case-laws" className="hover:text-amber-400 transition">Landmark Case Laws</Link></li>
               <li><Link href="/dictionary" className="hover:text-amber-400 transition">Legal Dictionary & Maxims</Link></li>
               <li><Link href="/bns-vs-ipc" className="hover:text-amber-400 transition">BNS 2023 vs IPC 1860 Guide</Link></li>
-              <li><Link href="/saurashtra-university/llb/semester-3/" className="hover:text-amber-400 transition text-emerald-400 font-semibold">SU Sem 3 Hub →</Link></li>
+              <li><Link href="/exam-prep" className="hover:text-amber-400 transition text-amber-400 font-semibold">Exam Prep Pass (₹299)</Link></li>
+              <li><Link href="/blog" className="hover:text-amber-400 transition">Law Blog & Study Guides</Link></li>
+              <li><Link href="/saurashtra-university/llb/semester-3" className="hover:text-amber-400 transition text-emerald-400 font-semibold">SU Sem 3 Hub →</Link></li>
             </ul>
           </div>
 

@@ -56,7 +56,7 @@ export const metadata = {
     apple: '/icon.svg',
   },
   alternates: {
-    canonical: './',
+    canonical: 'https://lowstudy.com',
   },
   openGraph: {
     title: 'LowStudy — Gujarat Law Education & Exam Preparation Platform',

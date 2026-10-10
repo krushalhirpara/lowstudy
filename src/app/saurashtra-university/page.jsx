@@ -24,7 +24,7 @@ export async function generateMetadata() {
   const uni = await getUniversityData();
   const title = 'Saurashtra University Law Faculty — LL.B. Syllabus, Notes & Exam Preparation';
   const description = 'Official Saurashtra University Rajkot Law curriculum hub. Explore 3-Year LL.B. syllabus, Semester 3 study materials, bare act analysis, model answers, and mock tests.';
-  const canonicalUrl = `${SITE_URL}/saurashtra-university/`;
+  const canonicalUrl = `${SITE_URL}/saurashtra-university`;
 
   return {
     title,

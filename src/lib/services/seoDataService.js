@@ -102,14 +102,14 @@ function createFallbackUnits(subjectMeta) {
     title: `Unit ${num}: Statutory Principles & Landmark Doctrines`,
     description: `Core syllabus topics, statutory sections, and judicial interpretations for Unit ${num}.`,
     slug: `unit-${num}`,
-    canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${subjectMeta.canonicalSlug}/unit/unit-${num}/`,
+    canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${subjectMeta.canonicalSlug}/unit/unit-${num}`,
     topics: [
       {
         id: `${subjectMeta.id}-u${num}-t1`,
         topicNumber: 1,
         title: `Fundamental Concepts & Scope of Unit ${num}`,
         slug: slugify(`Fundamental Concepts & Scope of Unit ${num}`),
-        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${subjectMeta.canonicalSlug}/topic/${slugify(`Fundamental Concepts & Scope of Unit ${num}`)}/`,
+        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${subjectMeta.canonicalSlug}/topic/${slugify(`Fundamental Concepts & Scope of Unit ${num}`)}`,
         notes: [],
         questions: [],
         mcqs: []
@@ -119,7 +119,7 @@ function createFallbackUnits(subjectMeta) {
         topicNumber: 2,
         title: `Statutory Provisions & Judicial Precedents of Unit ${num}`,
         slug: slugify(`Statutory Provisions & Judicial Precedents of Unit ${num}`),
-        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${subjectMeta.canonicalSlug}/topic/${slugify(`Statutory Provisions & Judicial Precedents of Unit ${num}`)}/`,
+        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${subjectMeta.canonicalSlug}/topic/${slugify(`Statutory Provisions & Judicial Precedents of Unit ${num}`)}`,
         notes: [],
         questions: [],
         mcqs: []
@@ -162,7 +162,7 @@ export async function getUniversityData() {
     naacGrade: 'A Grade accredited by NAAC',
     ugcRecognition: 'Recognized under Section 2(f) & 12(B) of UGC Act, 1956',
     bciRecognition: 'Recognized by the Bar Council of India (BCI)',
-    canonicalUrl: `${SITE_URL}/saurashtra-university/`,
+    canonicalUrl: `${SITE_URL}/saurashtra-university`,
     description: 'Saurashtra University Faculty of Law is premier public legal education institution in Rajkot, Gujarat. Providing Bar Council of India (BCI) compliant 3-Year LL.B. and 2-Year LL.M. degree curricula.',
     address: {
       streetAddress: 'University Road',
@@ -212,7 +212,7 @@ export async function getCourseData(courseCode = 'llb') {
     eligibility: 'Graduation in any discipline with minimum 45% (40% for SC/ST)',
     regulatoryBody: 'Bar Council of India (BCI) & UGC',
     examinationPattern: 'Choice Based Credit System (CBCS) — 70 Marks University Exam + 30 Marks Continuous Internal Assessment',
-    canonicalUrl: `${SITE_URL}/saurashtra-university/llb/`,
+    canonicalUrl: `${SITE_URL}/saurashtra-university/llb`,
     description: 'Saurashtra University 3-Year LL.B. degree program comprehensive curriculum, semester syllabus breakdown, prescribed bare acts, legal notes, question banks, and mock test preparation.',
     semesters: course?.semesters || [],
   };
@@ -285,7 +285,7 @@ export async function getSemesterData(semesterNum = 3) {
     course,
     university: course.university,
     totalCredits: enrichedSubjects.reduce((acc, s) => acc + (s.credits || 4), 0),
-    canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-${semesterNum}/`,
+    canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-${semesterNum}`,
     description: `Complete syllabus, exam notes, model questions, and statutory analysis for Saurashtra University LL.B. Semester ${semesterNum}. Covers Labour Laws I & II, Taxation Laws, Banking Laws, and IT & Cyber Crimes.`,
     subjects: enrichedSubjects,
   };
@@ -326,7 +326,7 @@ export async function getSubjectData(subjectSlug) {
     console.warn(`Fallback: DB query for subject ${resolved.id} failed, using fallback.`);
   }
 
-  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/`;
+  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}`;
 
   let units = [];
   if (subject?.units && subject.units.length > 0) {
@@ -335,11 +335,11 @@ export async function getSubjectData(subjectSlug) {
       return {
         ...u,
         slug: unitSlug,
-        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/unit/${unitSlug}/`,
+        canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/unit/${unitSlug}`,
         topics: (u.topics || []).map((t) => ({
           ...t,
           slug: slugify(t.title),
-          canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/topic/${slugify(t.title)}/`,
+          canonicalUrl: `${SITE_URL}/saurashtra-university/llb/semester-3/${resolved.canonicalSlug}/topic/${slugify(t.title)}`,
         })),
       };
     });
@@ -392,7 +392,7 @@ export async function getUnitData(subjectSlug, unitSlug) {
     };
   }
 
-  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/${subject.canonicalSlug}/unit/${unit.slug}/`;
+  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/${subject.canonicalSlug}/unit/${unit.slug}`;
 
   return {
     ...unit,
@@ -526,7 +526,7 @@ export async function getTopicData(subjectSlug, topicSlug) {
     };
   }
 
-  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/${subject.canonicalSlug}/topic/${matchedTopic.slug}/`;
+  const canonicalUrl = `${SITE_URL}/saurashtra-university/llb/semester-3/${subject.canonicalSlug}/topic/${matchedTopic.slug}`;
 
   // Parse notes and model answers
   const primaryNote = matchedTopic.notes?.[0] || null;
