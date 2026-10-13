@@ -17,24 +17,24 @@ export default function ExamPrepPromoPopup() {
     setMounted(true);
 
     try {
-      const dismissedAt = localStorage.getItem(POPUP_STORAGE_KEY);
-      if (dismissedAt) {
-        const lastDismissedTime = parseInt(dismissedAt, 10);
-        const daysPassed = (Date.now() - lastDismissedTime) / (1000 * 60 * 60 * 24);
-        if (daysPassed < FREQUENCY_CAP_DAYS) {
-          return; // Frequency capped
+      if (typeof window !== 'undefined') {
+        const dismissedAt = localStorage.getItem(POPUP_STORAGE_KEY);
+        if (dismissedAt) {
+          const lastDismissedTime = parseInt(dismissedAt, 10);
+          if (!isNaN(lastDismissedTime)) {
+            const daysPassed = (Date.now() - lastDismissedTime) / (1000 * 60 * 60 * 24);
+            if (daysPassed < FREQUENCY_CAP_DAYS) {
+              return; // Frequency capped
+            }
+          }
         }
       }
-
-      // Show popup after short 2.5 second delay so page finishes initial rendering
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-      }, 2500);
-
-      return () => clearTimeout(timer);
     } catch {
       // Ignore storage access errors
     }
+
+    // Show popup immediately without delay
+    setIsVisible(true);
   }, []);
 
   // Handle body scroll locking and Escape key dismiss
@@ -61,8 +61,12 @@ export default function ExamPrepPromoPopup() {
   const handleDismiss = () => {
     setIsVisible(false);
     try {
-      localStorage.setItem(POPUP_STORAGE_KEY, Date.now().toString());
-    } catch {}
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(POPUP_STORAGE_KEY, Date.now().toString());
+      }
+    } catch {
+      // Ignore storage write errors
+    }
   };
 
   const handleExplore = () => {
@@ -76,7 +80,7 @@ export default function ExamPrepPromoPopup() {
     }
   };
 
-  if (!mounted || !isVisible) return null;
+  if (!mounted || !isVisible || typeof document === 'undefined' || !document.body) return null;
 
   const modalContent = (
     <div
