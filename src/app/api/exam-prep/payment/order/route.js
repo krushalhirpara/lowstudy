@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/security.js';
-import { createExamPrepOrder } from '@/lib/services/examPrepService.js';
+import { createExamPrepOrder, validateAcademicOrderInput } from '@/lib/services/examPrepService.js';
 import prisma from '@/lib/prisma.js';
 
 export const dynamic = 'force-dynamic';
@@ -39,6 +39,21 @@ export async function POST(request) {
     } catch {}
 
     const { universityId, collegeId, courseId, semesterId, phoneNumber, fullName } = body;
+
+    // Strict Academic Data Validation
+    const validationResult = await validateAcademicOrderInput({
+      universityId,
+      collegeId,
+      courseId,
+      semesterId,
+    });
+
+    if (!validationResult.valid) {
+      return NextResponse.json(
+        { success: false, error: validationResult.error },
+        { status: validationResult.status || 400 }
+      );
+    }
 
     // Persist selected academic profile and phone against student record
     if (universityId || collegeId || courseId || semesterId || phoneNumber || fullName) {

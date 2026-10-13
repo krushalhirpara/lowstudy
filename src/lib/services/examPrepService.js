@@ -1232,3 +1232,314 @@ export async function getExamPrepContentCoverageReport() {
     coverageMatrix: report,
   };
 }
+
+/**
+ * Validates an academic hierarchy combination server-side.
+ * Ensures university is VERIFIED, college belongs to university, and course is verified for college.
+ */
+export async function validateAcademicOrderInput({ universityId, collegeId, courseId, semesterId } = {}) {
+  if (universityId) {
+    const validUni = await prisma.university.findUnique({
+      where: { id: universityId },
+      select: { id: true, name: true, status: true },
+    });
+    if (!validUni || validUni.status !== 'VERIFIED') {
+      return { valid: false, status: 400, error: 'Invalid or unverified university selected.' };
+    }
+  }
+
+  let validCourse = null;
+  if (courseId && universityId) {
+    validCourse = await prisma.course.findFirst({
+      where: { id: courseId, universityId, isActive: true },
+      select: { id: true, code: true, name: true },
+    });
+    if (!validCourse) {
+      return {
+        valid: false,
+        status: 400,
+        error: 'Selected law program is not offered by the specified university.',
+      };
+    }
+  }
+
+  if (collegeId && universityId) {
+    const validCollege = await prisma.college.findFirst({
+      where: { id: collegeId, universityId, status: 'VERIFIED' },
+      select: { id: true, name: true, programsJson: true },
+    });
+    if (!validCollege) {
+      return {
+        valid: false,
+        status: 400,
+        error: 'Selected college is not an affiliated verified institution of the specified university.',
+      };
+    }
+
+    if (courseId && validCollege.programsJson) {
+      try {
+        const allowed = JSON.parse(validCollege.programsJson);
+        if (Array.isArray(allowed) && allowed.length > 0) {
+          const courseCode = validCourse?.code || '';
+          const normCourseCode = courseCode.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const normCourseId = courseId.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const isAllowed = allowed.some(p => {
+            const normP = p.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return p === courseId || p === courseCode || normP === normCourseCode || normCourseId.includes(normP) || normP.includes(normCourseCode);
+          });
+          if (!isAllowed) {
+            return {
+              valid: false,
+              status: 400,
+              error: `Selected law program is not verified for ${validCollege.name}.`,
+            };
+          }
+        }
+      } catch {}
+    }
+  }
+
+  if (semesterId && courseId) {
+    const validSem = await prisma.semester.findFirst({
+      where: { id: semesterId, courseId },
+    });
+    if (!validSem) {
+      return {
+        valid: false,
+        status: 400,
+        error: 'Selected semester does not belong to the specified law program.',
+      };
+    }
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Loads verified academic hierarchy data for LowStudy dropdowns and selectors.
+ */
+export async function getAcademicHierarchyData({ universityId, collegeId, courseId, semesterId } = {}) {
+  // 1. If no university selected, return all verified universities
+  if (!universityId) {
+    const universities = await prisma.university.findMany({
+      where: { status: 'VERIFIED' },
+      orderBy: { established: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        city: true,
+        state: true,
+        logo: true,
+        academicYear: true,
+        officialWebsite: true,
+        officialSyllabusSource: true,
+        _count: {
+          select: {
+            colleges: { where: { status: 'VERIFIED' } },
+            courses: { where: { isActive: true } },
+            subjects: { where: { isActive: true } },
+            examPrepQuestions: true,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      universities: universities.map(u => ({
+        ...u,
+        collegesCount: u._count.colleges,
+        coursesCount: u._count.courses,
+        subjectsCount: u._count.subjects,
+        examPrepCount: u._count.examPrepQuestions,
+        hasVerifiedSyllabus: u._count.subjects > 0,
+      })),
+    };
+  }
+
+  // 2. Fetch specific university
+  const university = await prisma.university.findUnique({
+    where: { id: universityId },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      city: true,
+      state: true,
+      status: true,
+      academicYear: true,
+      officialWebsite: true,
+      officialSyllabusSource: true,
+      colleges: {
+        where: { status: 'VERIFIED' },
+        orderBy: { name: 'asc' },
+        select: {
+          id: true,
+          universityId: true,
+          name: true,
+          city: true,
+          district: true,
+          type: true,
+          officialWebsite: true,
+          sourceUrl: true,
+          programsJson: true,
+          status: true,
+        },
+      },
+      courses: {
+        where: { isActive: true },
+        orderBy: { name: 'asc' },
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          totalSemesters: true,
+          semesters: {
+            orderBy: { semesterNumber: 'asc' },
+            select: {
+              id: true,
+              semesterNumber: true,
+              title: true,
+              subjects: {
+                where: { isActive: true },
+                orderBy: { shortCode: 'asc' },
+                select: {
+                  id: true,
+                  title: true,
+                  shortCode: true,
+                  category: true,
+                  syllabusVersion: true,
+                  credits: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!university) {
+    return { success: false, status: 404, error: 'University not found.' };
+  }
+
+  // 3. Validate collegeId if provided
+  let selectedCollege = null;
+  if (collegeId) {
+    selectedCollege = university.colleges.find(c => c.id === collegeId);
+    if (!selectedCollege) {
+      return {
+        success: false,
+        status: 400,
+        error: `Selected college "${collegeId}" is not affiliated with ${university.name}.`,
+      };
+    }
+  }
+
+  // 4. Filter courses if selected college has specific program restrictions
+  let availableCourses = university.courses;
+  if (selectedCollege && selectedCollege.programsJson) {
+    try {
+      const allowedProgramCodes = JSON.parse(selectedCollege.programsJson);
+      if (Array.isArray(allowedProgramCodes) && allowedProgramCodes.length > 0) {
+        availableCourses = availableCourses.filter(course => {
+          const codeMatch = allowedProgramCodes.includes(course.code);
+          const idMatch = allowedProgramCodes.includes(course.id);
+          const normCode = course.code.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const normalizedMatch = allowedProgramCodes.some(p => 
+            p.toLowerCase().replace(/[^a-z0-9]/g, '') === normCode
+          );
+          return codeMatch || idMatch || normalizedMatch;
+        });
+      }
+    } catch (err) {
+      console.warn('Error parsing college programsJson:', err);
+    }
+  }
+
+  // 5. Validate courseId if provided
+  if (courseId) {
+    const matchedCourse = availableCourses.find(c => c.id === courseId);
+    if (!matchedCourse) {
+      return {
+        success: false,
+        status: 400,
+        error: `Selected course "${courseId}" is not offered by the selected college or university.`,
+      };
+    }
+  }
+
+  // 6. Calculate accurate, verified distinct subject counts per semester
+  const enrichedCourses = availableCourses.map(course => {
+    const enrichedSemesters = course.semesters.map(sem => {
+      const distinctSubjectMap = new Map();
+      for (const sub of sem.subjects) {
+        const key = (sub.shortCode || sub.title).trim().toUpperCase();
+        if (!distinctSubjectMap.has(key)) {
+          distinctSubjectMap.set(key, sub);
+        }
+      }
+
+      const distinctSubjectCount = distinctSubjectMap.size;
+      const totalSubjectRecords = sem.subjects.length;
+      const isUnderVerification = distinctSubjectCount === 0;
+
+      return {
+        id: sem.id,
+        semesterNumber: sem.semesterNumber,
+        title: sem.title || `Semester ${sem.semesterNumber}`,
+        distinctSubjectCount,
+        totalSubjectRecords,
+        isUnderVerification,
+        statusMessage: isUnderVerification
+          ? 'Syllabus data under verification'
+          : `${distinctSubjectCount} Subject${distinctSubjectCount === 1 ? '' : 's'}`,
+        displayLabel: isUnderVerification
+          ? `${sem.title || `Semester ${sem.semesterNumber}`} — Syllabus data under verification`
+          : `${sem.title || `Semester ${sem.semesterNumber}`} (${distinctSubjectCount} Subject${distinctSubjectCount === 1 ? '' : 's'})`,
+        subjects: sem.subjects,
+      };
+    });
+
+    return {
+      ...course,
+      semesters: enrichedSemesters,
+    };
+  });
+
+  // 7. Validate semesterId if provided
+  if (semesterId) {
+    let foundSem = null;
+    for (const crs of enrichedCourses) {
+      const s = crs.semesters.find(sm => sm.id === semesterId);
+      if (s) {
+        foundSem = s;
+        break;
+      }
+    }
+    if (!foundSem) {
+      return {
+        success: false,
+        status: 400,
+        error: `Selected semester "${semesterId}" does not belong to the selected course.`,
+      };
+    }
+  }
+
+  return {
+    success: true,
+    university: {
+      ...university,
+      collegesCount: university.colleges.length,
+      hasNoAffiliatedColleges: university.colleges.length === 0,
+      collegeMessage: university.colleges.length === 0
+        ? (university.code === 'GNLU'
+            ? 'Unitary Institution — Gandhinagar Campus Only'
+            : 'No verified affiliated law colleges on record')
+        : null,
+      courses: enrichedCourses,
+    },
+    colleges: university.colleges,
+  };
+}

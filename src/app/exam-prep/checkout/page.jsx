@@ -155,26 +155,57 @@ function CheckoutContent() {
         if (data.university) {
           setUniversityDetails(data.university);
 
-          // Handle Course selection
+          // Handle College selection: reset if previously selected college doesn't belong to newly selected university
+          const validColleges = data.university.colleges || [];
+          let currentCollegeId = selectedCollegeId;
+          if (validColleges.length > 0 && selectedCollegeId) {
+            const hasCollege = validColleges.some(c => c.id === selectedCollegeId);
+            if (!hasCollege) {
+              currentCollegeId = '';
+              setSelectedCollegeId('');
+            }
+          } else if (validColleges.length === 0) {
+            currentCollegeId = '';
+            setSelectedCollegeId('');
+          }
+
+          // Handle Course selection: filter by college if college specifies programs
+          let validCourses = data.university.courses || [];
+          if (currentCollegeId) {
+            const matchedCol = validColleges.find(c => c.id === currentCollegeId);
+            if (matchedCol && matchedCol.programsJson) {
+              try {
+                const allowed = JSON.parse(matchedCol.programsJson);
+                if (Array.isArray(allowed) && allowed.length > 0) {
+                  const filtered = validCourses.filter(course => {
+                    const normCode = course.code.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return allowed.some(p => {
+                      const normP = p.toLowerCase().replace(/[^a-z0-9]/g, '');
+                      return normP === normCode || p === course.id || p === course.code;
+                    });
+                  });
+                  if (filtered.length > 0) validCourses = filtered;
+                }
+              } catch {}
+            }
+          }
+
           const paramCourse = searchParams?.get('courseId');
-          const validCourses = data.university.courses || [];
-          const matchedCourse = validCourses.find(c => c.id === (paramCourse || selectedCourseId));
-          const targetCourseId = matchedCourse ? matchedCourse.id : (validCourses[0]?.id || '');
+          let targetCourse = validCourses.find(c => c.id === (paramCourse || selectedCourseId));
+          if (!targetCourse && validCourses.length > 0) {
+            targetCourse = validCourses[0];
+          }
+          const targetCourseId = targetCourse ? targetCourse.id : '';
           setSelectedCourseId(targetCourseId);
 
           // Handle Semester selection
-          const targetCourse = validCourses.find(c => c.id === targetCourseId);
           const validSemesters = targetCourse?.semesters || [];
           const paramSem = searchParams?.get('semesterId');
-          const matchedSem = validSemesters.find(s => s.id === (paramSem || selectedSemesterId));
-          setSelectedSemesterId(matchedSem ? matchedSem.id : (validSemesters[0]?.id || ''));
-
-          // Handle College selection
-          const validColleges = data.university.colleges || [];
-          if (validColleges.length > 0 && selectedCollegeId) {
-            const hasCollege = validColleges.some(c => c.id === selectedCollegeId);
-            if (!hasCollege) setSelectedCollegeId('');
+          let targetSem = validSemesters.find(s => s.id === (paramSem || selectedSemesterId));
+          if (!targetSem && validSemesters.length > 0) {
+            targetSem = validSemesters[0];
           }
+          setSelectedSemesterId(targetSem ? targetSem.id : '');
         }
       } catch (err) {
         console.warn('Error fetching university details:', err);
@@ -195,26 +226,67 @@ function CheckoutContent() {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  // Dependent Selectors: Available Courses & Semesters
+  // Dependent Selectors: Available Colleges, Courses & Semesters
   const availableColleges = useMemo(() => {
     return universityDetails?.colleges || [];
   }, [universityDetails]);
 
   const availableCourses = useMemo(() => {
-    return universityDetails?.courses || [];
-  }, [universityDetails]);
+    const allCourses = universityDetails?.courses || [];
+    if (!selectedCollegeId) return allCourses;
+    const col = availableColleges.find(c => c.id === selectedCollegeId);
+    if (!col || !col.programsJson) return allCourses;
+    try {
+      const allowed = JSON.parse(col.programsJson);
+      if (!Array.isArray(allowed) || allowed.length === 0) return allCourses;
+      const filtered = allCourses.filter(course => {
+        const normCode = course.code.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return allowed.some(p => {
+          const normP = p.toLowerCase().replace(/[^a-z0-9]/g, '');
+          return normP === normCode || p === course.id || p === course.code;
+        });
+      });
+      return filtered.length > 0 ? filtered : allCourses;
+    } catch {
+      return allCourses;
+    }
+  }, [universityDetails, selectedCollegeId, availableColleges]);
 
   const availableSemesters = useMemo(() => {
     const course = availableCourses.find(c => c.id === selectedCourseId);
     return course?.semesters || [];
   }, [availableCourses, selectedCourseId]);
 
-  // Handle University change -> Reset dependent course & semester
+  // Handle University change -> Reset dependent college, course & semester
   const handleUniversityChange = (newUniId) => {
     setSelectedUniversityId(newUniId);
     setSelectedCollegeId('');
     setSelectedCourseId('');
     setSelectedSemesterId('');
+  };
+
+  // Handle College change -> Filter available courses & reset incompatible course/semester
+  const handleCollegeChange = (newCollegeId) => {
+    setSelectedCollegeId(newCollegeId);
+    if (!newCollegeId) return;
+    const col = availableColleges.find(c => c.id === newCollegeId);
+    if (col && col.programsJson) {
+      try {
+        const allowed = JSON.parse(col.programsJson);
+        const allCourses = universityDetails?.courses || [];
+        const filtered = allCourses.filter(course => {
+          const normCode = course.code.toLowerCase().replace(/[^a-z0-9]/g, '');
+          return allowed.some(p => {
+            const normP = p.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return normP === normCode || p === course.id || p === course.code;
+          });
+        });
+        if (filtered.length > 0 && !filtered.some(c => c.id === selectedCourseId)) {
+          setSelectedCourseId(filtered[0].id);
+          setSelectedSemesterId(filtered[0].semesters?.[0]?.id || '');
+        }
+      } catch {}
+    }
   };
 
   // Handle Course change -> Reset dependent semester
@@ -632,7 +704,7 @@ function CheckoutContent() {
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="e.g. Krushal Hirpara"
+                        placeholder="Enter your full name"
                         className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-white text-xs placeholder:text-slate-600 focus:outline-none"
                       />
                     </div>
@@ -791,25 +863,33 @@ function CheckoutContent() {
                 </div>
 
                 {/* College / Institution Selector (Optional) */}
-                {availableColleges.length > 0 && (
-                  <div className="space-y-1.5 animate-in fade-in">
-                    <label className="text-slate-300 font-semibold block">
-                      Affiliated College / Center (Optional)
-                    </label>
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-semibold block">
+                    Affiliated College / Center (Optional)
+                  </label>
+                  {availableColleges.length > 0 ? (
                     <select
                       value={selectedCollegeId}
-                      onChange={(e) => setSelectedCollegeId(e.target.value)}
+                      onChange={(e) => handleCollegeChange(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 px-3 text-white text-xs focus:outline-none"
                     >
-                      <option value="">University Department / Main Campus</option>
+                      <option value="">University Department / All Affiliated Colleges</option>
                       {availableColleges.map((col) => (
                         <option key={col.id} value={col.id}>
                           {col.name} ({col.city})
                         </option>
                       ))}
                     </select>
-                  </div>
-                )}
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
+                      <Building2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>
+                        {universityDetails?.collegeMessage ||
+                          'No affiliated law colleges on record — Unitary Institution / Main Campus Only'}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Course Selector */}
                 <div className="space-y-1.5">
@@ -819,8 +899,9 @@ function CheckoutContent() {
                       Loading available courses...
                     </div>
                   ) : availableCourses.length === 0 ? (
-                    <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-500 text-xs">
-                      No active courses listed for this university.
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-amber-900/40 text-amber-300 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>Syllabus data under verification for this academic selection.</span>
                     </div>
                   ) : (
                     <select
@@ -845,21 +926,50 @@ function CheckoutContent() {
                       Loading semesters...
                     </div>
                   ) : availableSemesters.length === 0 ? (
-                    <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-500 text-xs">
+                    <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-500 text-xs">
                       Please select a course to view valid semesters.
                     </div>
                   ) : (
-                    <select
-                      value={selectedSemesterId}
-                      onChange={(e) => setSelectedSemesterId(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 px-3 text-white text-xs focus:outline-none"
-                    >
-                      {availableSemesters.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.title || `Semester ${s.semesterNumber}`} ({s.subjects?.length || 0} Subjects Available)
-                        </option>
-                      ))}
-                    </select>
+                    <>
+                      <select
+                        value={selectedSemesterId}
+                        onChange={(e) => setSelectedSemesterId(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 px-3 text-white text-xs focus:outline-none"
+                      >
+                        {availableSemesters.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.displayLabel ||
+                              (s.distinctSubjectCount
+                                ? `${s.title} (${s.distinctSubjectCount} Subjects)`
+                                : `${s.title} — Syllabus data under verification`)}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Dynamic Verified Subject Count Status Badge */}
+                      {(() => {
+                        const activeSem = availableSemesters.find((s) => s.id === selectedSemesterId);
+                        if (!activeSem) return null;
+                        if (activeSem.isUnderVerification || activeSem.distinctSubjectCount === 0) {
+                          return (
+                            <div className="p-2.5 rounded-xl bg-amber-950/30 border border-amber-800/40 text-amber-300 text-[11px] flex items-start gap-2">
+                              <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                              <span>
+                                Syllabus data under verification for this semester. You can complete your enrollment to receive automatic access once content is published.
+                              </span>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="p-2 rounded-xl bg-emerald-950/30 border border-emerald-800/40 text-emerald-300 text-[11px] flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span>
+                              <strong>{activeSem.distinctSubjectCount} distinct curriculum subjects</strong> verified in LowStudy database.
+                            </span>
+                          </div>
+                        );
+                      })()}
+                    </>
                   )}
                 </div>
 

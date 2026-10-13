@@ -118,6 +118,8 @@ model College {
   district            String?
   type                String    @default("Grant-in-Aid Law College")
   officialWebsite     String?
+  sourceUrl           String?
+  programsJson        String?   // JSON array of verified course codes, e.g. ["LLB-3Y", "BALLB-5Y"]
   status              String    @default("VERIFIED") // VERIFIED, PENDING_REVIEW
   hasSeparateSyllabus Boolean   @default(false)
   createdAt           DateTime  @default(now())

@@ -144,6 +144,19 @@ export const GUJARAT_UNIVERSITIES = [
 ];
 
 export const GUJARAT_COLLEGES = [
+  // --- GUJARAT UNIVERSITY (GU) ---
+  {
+    id: "col-gu-dept",
+    name: "School of Law, Gujarat University",
+    universityId: "gu",
+    city: "Ahmedabad",
+    district: "Ahmedabad",
+    type: "University Department",
+    officialWebsite: "https://www.gujaratuniversity.ac.in/department/law",
+    sourceUrl: "https://www.gujaratuniversity.ac.in",
+    status: "VERIFIED",
+    programs: ["BALLB-5Y", "LLM-2Y"]
+  },
   {
     id: "col-la-shah",
     name: "Sir L.A. Shah Law College",
@@ -152,8 +165,9 @@ export const GUJARAT_COLLEGES = [
     district: "Ahmedabad",
     type: "Grant-in-Aid Law College",
     officialWebsite: "https://lashahlawcollege.org",
+    sourceUrl: "https://gujaratuniversity.ac.in (GCAS 3-Yr LL.B. Directory)",
     status: "VERIFIED",
-    programs: ["llb-3yr", "llb-5yr"]
+    programs: ["LLB-3Y"]
   },
   {
     id: "col-mn-law",
@@ -163,8 +177,9 @@ export const GUJARAT_COLLEGES = [
     district: "Ahmedabad",
     type: "Government Aided Law College",
     officialWebsite: "https://mnlawcollege.org",
+    sourceUrl: "https://gujaratuniversity.ac.in (GCAS 3-Yr LL.B. Directory)",
     status: "VERIFIED",
-    programs: ["llb-3yr"]
+    programs: ["LLB-3Y"]
   },
   {
     id: "col-im-nanavati",
@@ -174,8 +189,9 @@ export const GUJARAT_COLLEGES = [
     district: "Ahmedabad",
     type: "Private Grant-in-Aid",
     officialWebsite: "http://imnanavatilawcollege.org",
+    sourceUrl: "https://gujaratuniversity.ac.in (GCAS 3-Yr LL.B. Directory)",
     status: "VERIFIED",
-    programs: ["llb-3yr", "llm"]
+    programs: ["LLB-3Y", "LLM-2Y"]
   },
   {
     id: "col-siddharth",
@@ -185,41 +201,83 @@ export const GUJARAT_COLLEGES = [
     district: "Gandhinagar",
     type: "Government Aided",
     officialWebsite: "https://siddharthlawcollege.in",
+    sourceUrl: "https://gujaratuniversity.ac.in (GCAS 3-Yr LL.B. Directory)",
     status: "VERIFIED",
-    programs: ["llb-3yr"]
+    programs: ["LLB-3Y"]
   },
   {
-    id: "col-vt-choksi",
-    name: "V.T. Choksi Sarvajanik Law College",
-    universityId: "vnsgu",
-    city: "Surat",
-    district: "Surat",
-    type: "Grant-in-Aid Law College",
-    officialWebsite: "https://vtchoksilaw.ac.in",
-    status: "VERIFIED",
-    programs: ["llb-3yr", "llm"]
-  },
-  {
-    id: "col-sheth-mn",
-    name: "Sheth M.N. Law College",
-    universityId: "hngu",
-    city: "Patan",
-    district: "Patan",
-    type: "Grant-in-Aid Law College",
-    officialWebsite: "https://mnlawpatan.org",
-    status: "VERIFIED",
-    programs: ["llb-3yr"]
-  },
-  {
-    id: "col-anand-law",
-    name: "Anand Law College",
+    id: "col-dt-law",
+    name: "Daulatbhai Trivedi Law College",
     universityId: "gu",
-    city: "Anand",
-    district: "Anand",
-    type: "Self-Finance Law College",
-    officialWebsite: "https://alc.ac.in",
+    city: "Ahmedabad",
+    district: "Ahmedabad",
+    type: "Grant-in-Aid Law College",
+    officialWebsite: "https://www.gujaratuniversity.ac.in",
+    sourceUrl: "https://gujaratuniversity.ac.in (GCAS 3-Yr LL.B. Directory)",
     status: "VERIFIED",
-    programs: ["llb-3yr", "llb-5yr", "llm"]
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-ddk-law",
+    name: "Shri D.D. Kotiyavala Municipal Law College",
+    universityId: "gu",
+    city: "Ahmedabad",
+    district: "Ahmedabad",
+    type: "Grant-in-Aid Law College",
+    officialWebsite: "https://www.gujaratuniversity.ac.in",
+    sourceUrl: "https://gujaratuniversity.ac.in (GCAS 3-Yr LL.B. Directory)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-navgujarat-law",
+    name: "Navgujarat Law College",
+    universityId: "gu",
+    city: "Ahmedabad",
+    district: "Ahmedabad",
+    type: "Grant-in-Aid Law College",
+    officialWebsite: "https://www.gujaratuniversity.ac.in",
+    sourceUrl: "https://gujaratuniversity.ac.in (GCAS 3-Yr LL.B. Directory)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-lj-law",
+    name: "L.J. School of Law",
+    universityId: "gu",
+    city: "Ahmedabad",
+    district: "Ahmedabad",
+    type: "Self-Finance Law College",
+    officialWebsite: "https://ljku.edu.in",
+    sourceUrl: "https://gujaratuniversity.ac.in (GU Affiliated Law Institutions)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y", "BALLB-5Y", "BBALLB-5Y"]
+  },
+
+  // --- SAURASHTRA UNIVERSITY (SU) ---
+  {
+    id: "col-su-dept",
+    name: "Department of Law, Saurashtra University",
+    universityId: "su",
+    city: "Rajkot",
+    district: "Rajkot",
+    type: "University Department",
+    officialWebsite: "https://saurashtrauniversity.edu/department/department-of-law",
+    sourceUrl: "https://saurashtrauniversity.edu (SU Department Directory)",
+    status: "VERIFIED",
+    programs: ["LLM-2Y"]
+  },
+  {
+    id: "col-amp-law",
+    name: "A.M.P. Government Law College",
+    universityId: "su",
+    city: "Rajkot",
+    district: "Rajkot",
+    type: "Government Law College",
+    officialWebsite: "https://amplc.ac.in",
+    sourceUrl: "https://saurashtrauniversity.edu (GCAS / SU Affiliated Law Colleges)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
   },
   {
     id: "col-kp-shah",
@@ -229,30 +287,171 @@ export const GUJARAT_COLLEGES = [
     district: "Jamnagar",
     type: "Grant-in-Aid",
     officialWebsite: "https://kpshahlawcollege.org",
+    sourceUrl: "https://saurashtrauniversity.edu (GCAS / SU Affiliated Law Colleges)",
     status: "VERIFIED",
-    programs: ["llb-3yr"]
+    programs: ["LLB-3Y"]
   },
   {
+    id: "col-harivandana-law",
+    name: "Shree Harivandana College (Faculty of Law)",
+    universityId: "su",
+    city: "Rajkot",
+    district: "Rajkot",
+    type: "Self-Finance Law College",
+    officialWebsite: "https://saurashtrauniversity.edu",
+    sourceUrl: "https://gcas.gujgov.edu.in (GCAS Law Admission Booklet)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-atmiya-law",
+    name: "Shree Atmiya Law College",
+    universityId: "su",
+    city: "Rajkot",
+    district: "Rajkot",
+    type: "Self-Finance Law College",
+    officialWebsite: "https://saurashtrauniversity.edu",
+    sourceUrl: "https://gcas.gujgov.edu.in (GCAS Law Admission Booklet)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-ajmera-law",
+    name: "Smt. S.S. Ajmera Law College",
+    universityId: "su",
+    city: "Gondal",
+    district: "Rajkot",
+    type: "Grant-in-Aid Law College",
+    officialWebsite: "https://saurashtrauniversity.edu",
+    sourceUrl: "https://gcas.gujgov.edu.in (GCAS Law Admission Booklet)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-gurukrupa-law",
+    name: "Gayatri Gurukrupa Law College",
+    universityId: "su",
+    city: "Lathi",
+    district: "Amreli",
+    type: "Self-Finance Law College",
+    officialWebsite: "https://saurashtrauniversity.edu",
+    sourceUrl: "https://gcas.gujgov.edu.in (GCAS Law Admission Booklet)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-navyug-law",
+    name: "Navyug Law College",
+    universityId: "su",
+    city: "Morbi",
+    district: "Morbi",
+    type: "Self-Finance Law College",
+    officialWebsite: "https://saurashtrauniversity.edu",
+    sourceUrl: "https://gcas.gujgov.edu.in (GCAS Law Admission Booklet)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+
+  // --- VEER NARMAD SOUTH GUJARAT UNIVERSITY (VNSGU) ---
+  {
+    id: "col-vnsgu-dept",
+    name: "Department of Law, VNSGU",
+    universityId: "vnsgu",
+    city: "Surat",
+    district: "Surat",
+    type: "University Department",
+    officialWebsite: "https://www.vnsgu.ac.in",
+    sourceUrl: "https://www.vnsgu.ac.in (VNSGU Department Directory)",
+    status: "VERIFIED",
+    programs: ["BBALLB-5Y", "LLM-2Y"]
+  },
+  {
+    id: "col-vt-choksi",
+    name: "V.T. Choksi Sarvajanik Law College",
+    universityId: "vnsgu",
+    city: "Surat",
+    district: "Surat",
+    type: "Grant-in-Aid Law College",
+    officialWebsite: "https://vtchoksilaw.ac.in",
+    sourceUrl: "https://www.vnsgu.ac.in (VNSGU Affiliated Colleges List)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y", "LLM-2Y"]
+  },
+  {
+    id: "col-daboo-law",
+    name: "Dinshaw Daboo Law College",
+    universityId: "vnsgu",
+    city: "Navsari",
+    district: "Navsari",
+    type: "Grant-in-Aid Law College",
+    officialWebsite: "https://www.vnsgu.ac.in",
+    sourceUrl: "https://www.vnsgu.ac.in (VNSGU Affiliated Colleges List)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-km-law",
+    name: "Shah K.M. Law College",
+    universityId: "vnsgu",
+    city: "Valsad",
+    district: "Valsad",
+    type: "Grant-in-Aid Law College",
+    officialWebsite: "https://www.vnsgu.ac.in",
+    sourceUrl: "https://www.vnsgu.ac.in (VNSGU Affiliated Colleges List)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-krishnanandji-law",
+    name: "Mahamandleshwar Shri Krishnanandji Law College",
+    universityId: "vnsgu",
+    city: "Bharuch",
+    district: "Bharuch",
+    type: "Grant-in-Aid Law College",
+    officialWebsite: "https://www.vnsgu.ac.in",
+    sourceUrl: "https://www.vnsgu.ac.in (VNSGU Affiliated Colleges List)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+  {
+    id: "col-naranlala-law",
+    name: "Naranlala Law College",
+    universityId: "vnsgu",
+    city: "Navsari",
+    district: "Navsari",
+    type: "Self-Finance Law College",
+    officialWebsite: "https://www.vnsgu.ac.in",
+    sourceUrl: "https://www.vnsgu.ac.in (VNSGU Affiliated Colleges List)",
+    status: "VERIFIED",
+    programs: ["LLB-3Y"]
+  },
+
+  // --- MAHARAJA SAYAJIRAO UNIVERSITY OF BARODA (MSU) ---
+  {
     id: "col-msu-fol",
-    name: "Faculty of Law, M.S. University",
+    name: "Faculty of Law, The Maharaja Sayajirao University of Baroda",
     universityId: "msu",
     city: "Vadodara",
     district: "Vadodara",
     type: "University Constituent Faculty",
     officialWebsite: "https://msubaroda.ac.in/Faculty/Law",
+    sourceUrl: "https://msubaroda.ac.in (Unitary Faculty)",
     status: "VERIFIED",
-    programs: ["llb-3yr", "llb-5yr", "llm"]
+    programs: ["LLB-3Y", "BALLB-5Y", "LLM-2Y"]
   },
+
+  // --- HEMCHANDRACHARYA NORTH GUJARAT UNIVERSITY (HNGU) ---
   {
-    id: "col-gu-dept",
-    name: "School of Law, Gujarat University",
-    universityId: "gu",
-    city: "Ahmedabad",
-    district: "Ahmedabad",
-    type: "University Department",
-    officialWebsite: "https://www.gujaratuniversity.ac.in/department/law",
+    id: "col-sheth-mn",
+    name: "Sheth M.N. Law College",
+    universityId: "hngu",
+    city: "Patan",
+    district: "Patan",
+    type: "Grant-in-Aid Law College",
+    officialWebsite: "https://mnlawpatan.org",
+    sourceUrl: "https://www.ngu.ac.in",
     status: "VERIFIED",
-    programs: ["llb-3yr", "llb-5yr", "llm"]
+    programs: ["LLB-3Y"]
   }
 ];
 

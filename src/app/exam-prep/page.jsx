@@ -366,7 +366,7 @@ export default function ExamPrepLandingPage() {
               >
                 {availableSemesters.map(s => (
                   <option key={s.id} value={s.id}>
-                    {s.title}
+                    {s.displayLabel || s.title}
                   </option>
                 ))}
               </select>
@@ -383,11 +383,15 @@ export default function ExamPrepLandingPage() {
                 disabled={availableSubjects.length === 0}
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-white focus:outline-none focus:border-amber-500 disabled:opacity-50 transition-colors"
               >
-                {availableSubjects.map(subj => (
-                  <option key={subj.id} value={subj.id}>
-                    {subj.title} ({subj.shortCode})
-                  </option>
-                ))}
+                {availableSubjects.length === 0 ? (
+                  <option value="">Syllabus data under verification</option>
+                ) : (
+                  availableSubjects.map(subj => (
+                    <option key={subj.id} value={subj.id}>
+                      {subj.title} ({subj.shortCode})
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 

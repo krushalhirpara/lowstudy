@@ -117,6 +117,18 @@ async function ensureDatabaseSchemaIntegrity(client) {
       await client.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN "lastActiveAt" DATETIME;`);
     }
 
+    // Ensure College table has sourceUrl and programsJson
+    try {
+      const collegeColumns = await client.$queryRawUnsafe(`PRAGMA table_info("College");`);
+      const collegeColNames = Array.isArray(collegeColumns) ? collegeColumns.map(c => c.name) : [];
+      if (!collegeColNames.includes('sourceUrl')) {
+        await client.$executeRawUnsafe(`ALTER TABLE "College" ADD COLUMN "sourceUrl" TEXT;`);
+      }
+      if (!collegeColNames.includes('programsJson')) {
+        await client.$executeRawUnsafe(`ALTER TABLE "College" ADD COLUMN "programsJson" TEXT;`);
+      }
+    } catch {}
+
     // Ensure ActivityEvent table exists
     await client.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "ActivityEvent" (
