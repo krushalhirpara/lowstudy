@@ -19,6 +19,8 @@ export async function GET(request) {
     const search = sanitizeInput(searchParams.get('search') || '').trim();
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+    const universityId = searchParams.get('universityId') || 'ALL';
+    const semesterId = searchParams.get('semesterId') || 'ALL';
 
     const data = await getAdminPaymentsData({
       page,
@@ -27,6 +29,8 @@ export async function GET(request) {
       search,
       startDate,
       endDate,
+      universityId,
+      semesterId,
     });
 
     return NextResponse.json({

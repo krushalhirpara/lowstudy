@@ -51,6 +51,15 @@ export async function GET(request) {
         code: true,
         city: true,
         state: true,
+        colleges: {
+          where: { status: 'VERIFIED' },
+          orderBy: { name: 'asc' },
+          select: {
+            id: true,
+            name: true,
+            city: true,
+          }
+        },
         courses: {
           where: { isActive: true },
           orderBy: { name: 'asc' },

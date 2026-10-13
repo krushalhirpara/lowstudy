@@ -193,8 +193,7 @@ export default function ExamPrepLandingPage() {
   }, [previewSamples, selectedCategory]);
 
   const getCheckoutLink = () => {
-    if (currentUser) return '/exam-prep/checkout';
-    return `/signup?redirect=${encodeURIComponent('/exam-prep/checkout')}`;
+    return '/exam-prep/checkout';
   };
 
   const faqs = [

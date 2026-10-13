@@ -15,7 +15,7 @@ export const SEMESTERS = [
   { id: "sem10", name: "Semester 10", num: 10 }
 ];
 
-import subjectsStructure from './subjectsStructure.json';
+import subjectsStructure from './subjectsStructure.js';
 
 // Generates realistic mock content for any given subject based on its metadata.
 // This allows full syllabus details for every single university/semester/version.

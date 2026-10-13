@@ -152,7 +152,7 @@ export const NAV_ITEMS = [
       },
       {
         name: 'Universities',
-        href: '/universities',
+        href: '/gujarat-law-universities',
         iconName: 'Building2',
         desc: 'Gujarat University, Saurashtra University, VNSGU, MSU, HNGU portals.'
       },

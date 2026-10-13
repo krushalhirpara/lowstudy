@@ -7,10 +7,7 @@ export default function robots() {
     rules: [
       {
         userAgent: '*',
-        allow: [
-          '/',
-          '/exam-prep',
-        ],
+        allow: '/',
         disallow: [
           '/admin',
           '/admin/*',

@@ -71,7 +71,7 @@ export default function ExamPrepPromoPopup() {
 
   const handleExplore = () => {
     handleDismiss();
-    router.push('/exam-prep');
+    router.push('/exam-prep/checkout');
   };
 
   const handleBackdropClick = (e) => {
@@ -106,7 +106,7 @@ export default function ExamPrepPromoPopup() {
             type="button"
             onClick={handleDismiss}
             aria-label="Close promotional popup"
-            className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400/60 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -147,7 +147,7 @@ export default function ExamPrepPromoPopup() {
           <button
             type="button"
             onClick={handleExplore}
-            className="flex-1 py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
+            className="flex-1 py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-900 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
           >
             <span>Explore Exam Prep</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -156,7 +156,7 @@ export default function ExamPrepPromoPopup() {
           <button
             type="button"
             onClick={handleDismiss}
-            className="py-2.5 sm:py-3 px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-400 hover:text-slate-200 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
+            className="py-2.5 sm:py-3 px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 text-slate-400 hover:text-slate-200 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
           >
             Maybe Later
           </button>

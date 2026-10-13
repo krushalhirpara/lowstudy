@@ -16,6 +16,9 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  CreditCard,
+  TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 
 export default function CeoAdminDashboard() {
@@ -80,6 +83,58 @@ export default function CeoAdminDashboard() {
           <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-amber-400' : ''}`} />
           <span>{refreshing ? 'Refreshing...' : 'Refresh Metrics'}</span>
         </button>
+      </div>
+ 
+      {/* Exam Prep Pass Monetization & Payments Feature Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-500/15 via-slate-900 to-indigo-950/40 border border-amber-500/30 p-6 shadow-2xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Exam Prep Monetization & Razorpay Integration</span>
+            </div>
+            <h2 className="text-xl font-bold text-white tracking-tight">
+              Exam Prep Pass Payments Console
+            </h2>
+            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+              Real-time audit of ₹299 pass transactions, verified student contact numbers, university & semester enrollments, payment status, and entitlement access control.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-6 bg-slate-950/70 border border-slate-800 rounded-2xl px-5 py-3 shadow-inner">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Revenue</div>
+                <div className="text-xl font-extrabold text-white">
+                  ₹{(cards.examPrepRevenueInr ?? 0).toLocaleString()}
+                </div>
+              </div>
+              <div className="w-px h-8 bg-slate-800" />
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Paid Passes</div>
+                <div className="text-xl font-extrabold text-emerald-400">
+                  {cards.examPrepSuccessfulPayments ?? 0}
+                </div>
+              </div>
+              <div className="w-px h-8 bg-slate-800" />
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Passes</div>
+                <div className="text-xl font-extrabold text-amber-400">
+                  {cards.activePassHolders ?? 0}
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href="/ceoadmin/payments"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>Open Exam Prep Payments</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* 9 Executive Dashboard Cards */}

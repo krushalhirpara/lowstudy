@@ -114,7 +114,7 @@ export default function Footer() {
             <ul className="space-y-2 text-xs">
               <li><Link href="/curriculum" className="hover:text-amber-400 transition font-medium">Current Verified Syllabus</Link></li>
               <li><Link href="/syllabus/history" className="hover:text-amber-400 transition">Syllabus Version History</Link></li>
-              <li><Link href="/universities" className="hover:text-amber-400 transition">Gujarat Universities</Link></li>
+              <li><Link href="/gujarat-law-universities" className="hover:text-amber-400 transition">Gujarat Law Universities</Link></li>
               <li><Link href="/gujarat-law-colleges" className="hover:text-amber-400 transition">Law Colleges Directory</Link></li>
               <li><Link href="/career" className="hover:text-amber-400 transition text-amber-400">Court Internships & Judiciary</Link></li>
             </ul>

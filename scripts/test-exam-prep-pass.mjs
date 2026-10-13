@@ -212,6 +212,41 @@ async function runTests() {
     assert(adminData.orders.length > 0, 'Orders list populated for admin');
 
     // -------------------------------------------------------------
+    // Test Suite 8b: Webhook Refund & Entitlement Revocation
+    // -------------------------------------------------------------
+    console.log('\n🔄 Test Suite 8b: Refund Webhook & Automatic Access Revocation');
+    const refundWebhookEventId = `evt_refund_${Date.now()}`;
+    const refundWebhookPayload = {
+      id: refundWebhookEventId,
+      event: 'refund.created',
+      payload: {
+        refund: {
+          entity: {
+            id: `rfnd_mock_${Date.now()}`,
+            payment_id: mockPaymentId,
+            amount: 29900,
+            currency: 'INR',
+          }
+        }
+      }
+    };
+
+    const refundWebhookResult = await handleRazorpayWebhook({
+      rawBody: JSON.stringify(refundWebhookPayload),
+      signature: '',
+      eventData: refundWebhookPayload,
+    });
+    assert(refundWebhookResult.success === true, 'Refund webhook processed successfully');
+
+    const refundedEntitlement = await prisma.examPrepEntitlement.findFirst({
+      where: { userId: testUser.id, productCode: EXAM_PREP_CONFIG.PRODUCT_CODE }
+    });
+    assert(refundedEntitlement.status === 'REFUNDED', 'Entitlement revoked after refund webhook');
+
+    const accessAfterRefund = await hasActiveExamPrepEntitlement(testUser.id);
+    assert(accessAfterRefund === false, 'hasActiveExamPrepEntitlement reports false after refund');
+
+    // -------------------------------------------------------------
     // Test Suite 9: Content Coverage Report
     // -------------------------------------------------------------
     console.log('\n📊 Test Suite 9: Content Coverage Matrix Report');

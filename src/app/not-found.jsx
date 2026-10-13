@@ -31,7 +31,7 @@ export default function NotFound() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 text-left">
           <Link
-            href="/gujarat-law-colleges"
+            href="/gujarat-law-universities"
             className="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition-all group"
           >
             <GraduationCap className="w-6 h-6 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />

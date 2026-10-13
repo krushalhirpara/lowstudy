@@ -49,6 +49,7 @@ export default function CollegeSeoPage({ params }) {
   if (!college) notFound();
 
   const uni = GUJARAT_UNIVERSITIES.find((u) => u.id === college.universityId);
+  const uniHref = uni ? (uni.id === 'su' ? '/saurashtra-university' : `/universities/${uni.id}`) : '/subjects';
 
   const orgJsonLd = getOrganizationJsonLd();
 
@@ -87,7 +88,7 @@ export default function CollegeSeoPage({ params }) {
             {uni && (
               <span className="flex items-center gap-1.5">
                 <Building2 className="w-4 h-4 text-teal-400" /> Affiliated to:{' '}
-                <Link href={`/universities/${uni.id}`} className="text-teal-400 hover:underline font-semibold">
+                <Link href={uniHref} className="text-teal-400 hover:underline font-semibold">
                   {uni.name}
                 </Link>
               </span>
@@ -106,7 +107,7 @@ export default function CollegeSeoPage({ params }) {
 
           <div className="pt-2 flex flex-wrap gap-3">
             <Link
-              href={uni ? `/universities/${uni.id}` : '/subjects'}
+              href={uniHref}
               className="px-5 py-2.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-sm hover:bg-emerald-400 transition-colors inline-flex items-center gap-2"
             >
               <span>View Applicable Syllabus</span>

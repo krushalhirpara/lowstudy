@@ -18,6 +18,7 @@ export default async function sitemap() {
     '',
     '/exam-prep',
     '/universities',
+    '/gujarat-law-universities',
     '/colleges',
     '/gujarat-law-colleges',
     '/subjects',
@@ -128,13 +129,15 @@ export default async function sitemap() {
     console.error('Error querying Saurashtra University sitemap data:', err);
   }
 
-  // 3. Gujarat University Detail Pages
-  const universityRoutes = GUJARAT_UNIVERSITIES.map((uni) => ({
-    url: `${baseUrl}/universities/${uni.id}`,
-    lastModified: uni.lastVerified || currentDate,
-    changeFrequency: 'weekly',
-    priority: 0.9,
-  }));
+  // 3. Gujarat University Detail Pages (Filter out 'su' which redirects to canonical /saurashtra-university)
+  const universityRoutes = GUJARAT_UNIVERSITIES
+    .filter((uni) => uni.id !== 'su')
+    .map((uni) => ({
+      url: `${baseUrl}/universities/${uni.id}`,
+      lastModified: uni.lastVerified || currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    }));
 
   // 4. Affiliated Gujarat Law College Detail Pages
   const collegeRoutes = GUJARAT_COLLEGES.map((college) => ({

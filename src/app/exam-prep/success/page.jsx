@@ -33,7 +33,39 @@ export default function ExamPrepSuccessPage() {
         router.push('/login');
         return;
       }
-      checkEntitlement();
+
+      async function verifyFromCallbackAndCheck() {
+        setIsVerifying(true);
+        try {
+          if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentId = urlParams.get('razorpay_payment_id');
+            const orderId = urlParams.get('razorpay_order_id');
+            const signature = urlParams.get('razorpay_signature');
+            const linkRef = urlParams.get('razorpay_payment_link_reference_id');
+            const linkId = urlParams.get('razorpay_payment_link_id');
+
+            if (paymentId && (orderId || linkRef || linkId) && signature) {
+              await fetch('/api/exam-prep/payment/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId: linkRef || orderId,
+                  razorpayOrderId: orderId || linkId,
+                  razorpayPaymentId: paymentId,
+                  razorpaySignature: signature,
+                }),
+              });
+            }
+          }
+        } catch (e) {
+          console.warn('Callback payment verification notice:', e);
+        }
+
+        checkEntitlement();
+      }
+
+      verifyFromCallbackAndCheck();
     }
   }, [currentUser, isAuthLoading, router]);
 

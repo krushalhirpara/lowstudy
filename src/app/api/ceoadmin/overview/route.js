@@ -31,6 +31,9 @@ export async function GET(request) {
       totalPageViews,
       recentUsers,
       recentLogins,
+      examPrepSuccessfulPayments,
+      examPrepRevenueAggregate,
+      activePassHolders,
     ] = await Promise.all([
       // User counts
       prisma.user.count({ where: { role: { not: 'ADMIN' } } }),
@@ -99,7 +102,14 @@ export async function GET(request) {
           },
         },
       }),
+
+      // Exam Prep Pass metrics
+      prisma.examPrepOrder.count({ where: { status: 'CAPTURED' } }),
+      prisma.examPrepOrder.aggregate({ where: { status: 'CAPTURED' }, _sum: { amount: true } }),
+      prisma.examPrepEntitlement.count({ where: { status: 'ACTIVE' } }),
     ]);
+
+    const examPrepRevenueInr = Math.round(((examPrepRevenueAggregate?._sum?.amount) || 0) / 100);
 
     return NextResponse.json({
       success: true,
@@ -117,6 +127,9 @@ export async function GET(request) {
           googleUsers,
           emailUsers,
           totalPageViews,
+          examPrepSuccessfulPayments,
+          examPrepRevenueInr,
+          activePassHolders,
         },
         recentUsers,
         recentLogins,

@@ -38,12 +38,36 @@ export async function POST(request) {
       body = await request.json();
     } catch {}
 
+    const { universityId, collegeId, courseId, semesterId, phoneNumber, fullName } = body;
+
+    // Persist selected academic profile and phone against student record
+    if (universityId || collegeId || courseId || semesterId || phoneNumber || fullName) {
+      await prisma.user.update({
+        where: { id: dbUser.id },
+        data: {
+          ...(universityId ? { universityId } : {}),
+          ...(collegeId ? { collegeId } : {}),
+          ...(courseId ? { courseId } : {}),
+          ...(semesterId ? { semesterId } : {}),
+          ...(phoneNumber ? { phoneNumber } : {}),
+          ...(fullName ? { fullName } : {}),
+          lastActiveAt: new Date(),
+        },
+      });
+    }
+
     const orderResult = await createExamPrepOrder({
       userId: dbUser.id,
       userEmail: dbUser.email,
-      userName: dbUser.fullName,
-      userPhone: dbUser.phoneNumber,
-      notes: body.notes || {},
+      userName: fullName || dbUser.fullName,
+      userPhone: phoneNumber || dbUser.phoneNumber,
+      notes: {
+        ...(body.notes || {}),
+        universityId: universityId || dbUser.universityId,
+        collegeId: collegeId || dbUser.collegeId,
+        courseId: courseId || dbUser.courseId,
+        semesterId: semesterId || dbUser.semesterId,
+      },
     });
 
     return NextResponse.json({

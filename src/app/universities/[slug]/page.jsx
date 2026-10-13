@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { GUJARAT_UNIVERSITIES, GUJARAT_COLLEGES } from '@/data/gujaratData';
 import { ALL_SYLLABUS_SUBJECTS } from '@/data/syllabusData';
 import { SUBJECTS_DATA } from '@/data/legalData';
@@ -27,6 +27,11 @@ export async function generateMetadata({ params }) {
   const uni = GUJARAT_UNIVERSITIES.find((u) => u.id === params.slug);
   if (!uni) return { title: 'University Not Found' };
 
+  // Resolve cannibalization for Saurashtra University
+  const canonicalUrl = uni.id === 'su' 
+    ? 'https://lowstudy.com/saurashtra-university' 
+    : `https://lowstudy.com/universities/${uni.id}`;
+
   const title = `${uni.name} Law Courses, Syllabus, Notes & Exam Prep | LowStudy`;
   const description = `Complete official syllabus, LL.B. notes, semester study guides, MCQs, case laws, and exam preparation resources for ${uni.name} (${uni.code}), ${uni.city}, Gujarat.`;
 
@@ -41,12 +46,12 @@ export async function generateMetadata({ params }) {
       `${uni.name} semester syllabus`,
     ],
     alternates: {
-      canonical: `https://lowstudy.com/universities/${uni.id}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
       title,
       description,
-      url: `https://lowstudy.com/universities/${uni.id}`,
+      url: canonicalUrl,
       siteName: 'LowStudy',
       locale: 'en_IN',
       type: 'article',
@@ -61,6 +66,11 @@ export async function generateStaticParams() {
 }
 
 export default function UniversitySeoPage({ params }) {
+  // If Saurashtra University is accessed via generic slug, permanently direct to its dedicated hub
+  if (params?.slug === 'su') {
+    redirect('/saurashtra-university');
+  }
+
   const uni = GUJARAT_UNIVERSITIES.find((u) => u.id === params.slug);
   if (!uni) notFound();
 
@@ -103,7 +113,7 @@ export default function UniversitySeoPage({ params }) {
         {/* Breadcrumbs */}
         <Breadcrumbs
           items={[
-            { name: 'Gujarat Universities', url: '/gujarat-law-colleges' },
+            { name: 'Gujarat Law Universities', url: '/gujarat-law-universities' },
             { name: uni.name, url: `/universities/${uni.id}` },
           ]}
         />

@@ -166,7 +166,7 @@ export default function UniversitiesIndexPage() {
                   {/* Actions */}
                   <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
                     <Link
-                      href={`/universities/${uni.id}`}
+                      href={uni.id === 'su' ? '/saurashtra-university' : `/universities/${uni.id}`}
                       className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-xs transition flex items-center gap-1.5 shadow-md shadow-emerald-500/10"
                     >
                       <span>Explore Syllabus & Notes</span>

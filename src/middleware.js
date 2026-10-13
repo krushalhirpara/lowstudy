@@ -39,11 +39,10 @@ function getSafeRedirect(targetUrl, fallback = '/') {
   return trimmed;
 }
 
-// Protected Student Route Prefixes (Strictly Private Student Learning & Checkout Areas)
+// Protected Student Route Prefixes (Strictly Private Student Learning & Dashboard Areas)
 const PROTECTED_STUDENT_ROUTES = [
   '/dashboard',
   '/exam-prep/library',
-  '/exam-prep/checkout',
 ];
 
 export function middleware(request) {

@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import prisma from '../prisma.js';
+import { GUJARAT_UNIVERSITIES, GUJARAT_COLLEGES } from '../../data/gujaratData.js';
 
 export const EXAM_PREP_CONFIG = {
   PRODUCT_CODE: 'LOWSTUDY_EXAM_PREP_PASS',
@@ -135,6 +136,11 @@ export async function createExamPrepOrder({ userId, userEmail, userName, userPho
   }
 
   const { keyId, keySecret, isConfigured } = getRazorpayCredentials();
+
+  if (!isConfigured && process.env.NODE_ENV === 'production') {
+    throw new Error('Razorpay payment gateway credentials are not configured on the production server.');
+  }
+
   const receipt = `rcpt_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
   const amount = EXAM_PREP_CONFIG.PRICE_PAISE; // 29900 paise = ₹299
   const currency = EXAM_PREP_CONFIG.CURRENCY;
@@ -186,11 +192,18 @@ export async function createExamPrepOrder({ userId, userEmail, userName, userPho
         const rzpData = await res.json();
         razorpayOrderId = rzpData.id;
       } else {
-        const errText = await res.text();
-        console.warn('[ExamPrepService] Razorpay API warning, proceeding with structured order ID:', errText);
+        const errData = await res.json().catch(() => ({}));
+        const errMsg = errData?.error?.description || `Razorpay order creation failed (status ${res.status})`;
+        console.error('[ExamPrepService] Razorpay API error:', errMsg);
+        if (!isTestMode) {
+          throw new Error(`Failed to initialize payment with Razorpay: ${errMsg}`);
+        }
       }
     } catch (apiErr) {
-      console.warn('[ExamPrepService] Razorpay network notice:', apiErr?.message || apiErr);
+      console.error('[ExamPrepService] Razorpay network/API error:', apiErr?.message || apiErr);
+      if (!isTestMode) {
+        throw apiErr;
+      }
     }
   }
 
@@ -219,6 +232,109 @@ export async function createExamPrepOrder({ userId, userEmail, userName, userPho
 }
 
 /**
+ * Generate a unique server-side Razorpay Payment Link per authenticated student/order
+ */
+export async function createExamPrepPaymentLink({ userId, userEmail, userName, userPhone, notes = {} }) {
+  if (!userId) {
+    throw new Error('Authentication required to generate payment link.');
+  }
+
+  const alreadyActive = await hasActiveExamPrepEntitlement(userId);
+  if (alreadyActive) {
+    return {
+      alreadyActive: true,
+      message: 'You already have an active LowStudy Exam Prep Pass.',
+      redirectUrl: '/exam-prep/library',
+    };
+  }
+
+  const { keyId, keySecret, isConfigured } = getRazorpayCredentials();
+  const receipt = `plink_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
+  const amount = EXAM_PREP_CONFIG.PRICE_PAISE; // 29900 paise = ₹299
+  const currency = EXAM_PREP_CONFIG.CURRENCY;
+
+  // 1. Create local order record in database
+  const localOrder = await prisma.examPrepOrder.create({
+    data: {
+      userId,
+      productCode: EXAM_PREP_CONFIG.PRODUCT_CODE,
+      amount,
+      currency,
+      status: 'PENDING',
+      receipt,
+      notesJson: JSON.stringify({
+        ...notes,
+        email: userEmail,
+        name: userName,
+        phone: userPhone,
+        type: 'PAYMENT_LINK',
+        initiatedAt: new Date().toISOString(),
+      }),
+    },
+  });
+
+  if (!isConfigured) {
+    throw new Error('Razorpay API credentials are not configured on the server.');
+  }
+
+  // 2. Call Razorpay Payment Links API: POST https://api.razorpay.com/v1/payment_links
+  const basicAuth = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+  const res = await fetch('https://api.razorpay.com/v1/payment_links', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Basic ${basicAuth}`,
+    },
+    body: JSON.stringify({
+      amount,
+      currency,
+      accept_partial: false,
+      reference_id: localOrder.id,
+      description: EXAM_PREP_CONFIG.DESCRIPTION,
+      customer: {
+        name: userName || 'Student',
+        email: userEmail || '',
+        contact: userPhone || '',
+      },
+      notify: {
+        sms: Boolean(userPhone),
+        email: Boolean(userEmail),
+      },
+      reminder_enable: false,
+      notes: {
+        lowstudy_order_id: localOrder.id,
+        user_id: userId,
+        product_code: EXAM_PREP_CONFIG.PRODUCT_CODE,
+      },
+      callback_url: 'https://lowstudy.com/exam-prep/success',
+      callback_method: 'get',
+    }),
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData?.error?.description || 'Failed to create Razorpay Payment Link.');
+  }
+
+  const linkData = await res.json();
+  const razorpayOrderId = linkData.order_id || linkData.id;
+
+  await prisma.examPrepOrder.update({
+    where: { id: localOrder.id },
+    data: { razorpayOrderId },
+  });
+
+  return {
+    success: true,
+    orderId: localOrder.id,
+    paymentLinkId: linkData.id,
+    shortUrl: linkData.short_url,
+    amount,
+    currency,
+  };
+}
+
+/**
  * Verify Razorpay payment signature & grant active entitlement transactionally
  */
 export async function verifyAndCapturePayment({
@@ -239,8 +355,12 @@ export async function verifyAndCapturePayment({
   // 1. Find local order and check ownership
   const localOrder = await prisma.examPrepOrder.findFirst({
     where: {
-      id: orderId,
       userId,
+      OR: [
+        { id: orderId },
+        { razorpayOrderId: razorpayOrderId },
+        { razorpayOrderId: orderId },
+      ],
     },
   });
 
@@ -263,7 +383,7 @@ export async function verifyAndCapturePayment({
   }
 
   // 2. Verify signature
-  const { keySecret, isConfigured, isTestMode } = getRazorpayCredentials();
+  const { keyId, keySecret, isConfigured, isTestMode } = getRazorpayCredentials();
 
   if (isConfigured && keySecret) {
     const expectedSignature = crypto
@@ -271,12 +391,12 @@ export async function verifyAndCapturePayment({
       .update(`${razorpayOrderId}|${razorpayPaymentId}`)
       .digest('hex');
 
+    const sigBuf = Buffer.from(razorpaySignature || '', 'utf8');
+    const expectedBuf = Buffer.from(expectedSignature, 'utf8');
+
     const isValidSignature = (
-      razorpaySignature &&
-      crypto.timingSafeEqual(
-        Buffer.from(expectedSignature, 'utf8'),
-        Buffer.from(razorpaySignature, 'utf8')
-      )
+      sigBuf.length === expectedBuf.length &&
+      crypto.timingSafeEqual(sigBuf, expectedBuf)
     );
 
     if (!isValidSignature && !isTestMode) {
@@ -290,9 +410,78 @@ export async function verifyAndCapturePayment({
       });
       throw new Error('Payment signature verification failed. Untrusted callback.');
     }
+
+    // 3. Direct server-side payment verification via Razorpay Payments API
+    if (!isTestMode && keyId && keySecret) {
+      try {
+        const basicAuth = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+        const payRes = await fetch(`https://api.razorpay.com/v1/payments/${razorpayPaymentId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Basic ${basicAuth}`,
+          },
+        });
+
+        if (payRes.ok) {
+          const payData = await payRes.json();
+
+          // Match order ID
+          if (payData.order_id && payData.order_id !== razorpayOrderId && payData.order_id !== localOrder.razorpayOrderId) {
+            throw new Error('Payment does not belong to this order.');
+          }
+
+          // Enforce exact price: ₹299 (29900 paise)
+          if (payData.amount !== EXAM_PREP_CONFIG.PRICE_PAISE) {
+            throw new Error(`Payment amount mismatch: expected ${EXAM_PREP_CONFIG.PRICE_PAISE} paise, got ${payData.amount} paise.`);
+          }
+
+          // Enforce currency: INR
+          if (payData.currency !== EXAM_PREP_CONFIG.CURRENCY) {
+            throw new Error(`Payment currency mismatch: expected ${EXAM_PREP_CONFIG.CURRENCY}, got ${payData.currency}.`);
+          }
+
+          // Verify status is captured
+          if (payData.status !== 'captured') {
+            if (payData.status === 'authorized') {
+              // Auto-capture authorized payment for exact amount
+              const captureRes = await fetch(`https://api.razorpay.com/v1/payments/${razorpayPaymentId}/capture`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Basic ${basicAuth}`,
+                },
+                body: JSON.stringify({
+                  amount: EXAM_PREP_CONFIG.PRICE_PAISE,
+                  currency: EXAM_PREP_CONFIG.CURRENCY,
+                }),
+              });
+              if (!captureRes.ok) {
+                const capErr = await captureRes.json().catch(() => ({}));
+                throw new Error(capErr?.error?.description || 'Failed to capture authorized payment.');
+              }
+            } else {
+              throw new Error(`Payment is not successful (status: ${payData.status}).`);
+            }
+          }
+        } else {
+          const payErrText = await payRes.text();
+          console.error('[ExamPrepService] Razorpay payment verification API error:', payErrText);
+          throw new Error('Could not verify payment status with Razorpay.');
+        }
+      } catch (apiErr) {
+        await prisma.examPrepOrder.update({
+          where: { id: localOrder.id },
+          data: {
+            status: 'FAILED',
+            failureReason: apiErr?.message || 'Payment API verification failed.',
+          },
+        });
+        throw apiErr;
+      }
+    }
   }
 
-  // 3. Database transaction: update order to CAPTURED and upsert Entitlement
+  // 4. Database transaction: update order to CAPTURED and upsert Entitlement
   const verifiedAt = new Date();
 
   const [updatedOrder, entitlement] = await prisma.$transaction([
@@ -358,7 +547,10 @@ export async function handleRazorpayWebhook({ rawBody, signature, eventData }) {
   const secret = webhookSecret || keySecret;
 
   // 1. Verify Webhook signature if secret configured
-  if (secret && signature) {
+  if (secret) {
+    if (!signature) {
+      throw new Error('Missing Razorpay Webhook signature.');
+    }
     const expectedSig = crypto
       .createHmac('sha256', secret)
       .update(rawBody)
@@ -370,6 +562,8 @@ export async function handleRazorpayWebhook({ rawBody, signature, eventData }) {
     if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
       throw new Error('Invalid Razorpay Webhook signature.');
     }
+  } else if (process.env.NODE_ENV === 'production') {
+    throw new Error('Razorpay Webhook secret is not configured on production server.');
   }
 
   const eventId = eventData?.id;
@@ -402,8 +596,21 @@ export async function handleRazorpayWebhook({ rawBody, signature, eventData }) {
   // 3. Process event types
   if (eventType === 'payment.captured' || eventType === 'order.paid') {
     const paymentEntity = eventData?.payload?.payment?.entity;
-    const razorpayOrderId = paymentEntity?.order_id;
+    const orderEntity = eventData?.payload?.order?.entity;
+    const razorpayOrderId = paymentEntity?.order_id || orderEntity?.id;
     const razorpayPaymentId = paymentEntity?.id;
+    const paymentAmount = paymentEntity?.amount || orderEntity?.amount;
+    const paymentCurrency = paymentEntity?.currency || orderEntity?.currency;
+
+    // Verify amount and currency if present
+    if (paymentAmount && paymentAmount !== EXAM_PREP_CONFIG.PRICE_PAISE) {
+      console.warn(`[ExamPrepService Webhook] Ignored event due to amount mismatch: ${paymentAmount} vs ${EXAM_PREP_CONFIG.PRICE_PAISE}`);
+      return { success: false, error: 'Payment amount mismatch' };
+    }
+    if (paymentCurrency && paymentCurrency !== EXAM_PREP_CONFIG.CURRENCY) {
+      console.warn(`[ExamPrepService Webhook] Ignored event due to currency mismatch: ${paymentCurrency} vs ${EXAM_PREP_CONFIG.CURRENCY}`);
+      return { success: false, error: 'Payment currency mismatch' };
+    }
 
     if (razorpayOrderId) {
       const order = await prisma.examPrepOrder.findFirst({
@@ -673,31 +880,52 @@ export async function getAdminPaymentsData({
   search = '',
   startDate = null,
   endDate = null,
+  universityId = 'ALL',
+  semesterId = 'ALL',
 }) {
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const take = Math.min(100, Math.max(1, parseInt(limit, 10) || 25));
   const skip = (pageNum - 1) * take;
 
+  let normalizedStatus = status;
+  if (status === 'SUCCESS') normalizedStatus = 'CAPTURED';
+
   const where = {
-    ...(status && status !== 'ALL' ? { status } : {}),
+    ...(normalizedStatus && normalizedStatus !== 'ALL' ? { status: normalizedStatus } : {}),
     ...(search ? {
       OR: [
+        { id: { contains: search } },
         { razorpayOrderId: { contains: search } },
         { razorpayPaymentId: { contains: search } },
         { user: { email: { contains: search } } },
         { user: { fullName: { contains: search } } },
+        { user: { phoneNumber: { contains: search } } },
+        { notesJson: { contains: search } },
+      ]
+    } : {}),
+    ...(universityId && universityId !== 'ALL' ? {
+      OR: [
+        { user: { universityId } },
+        { notesJson: { contains: universityId } },
+      ]
+    } : {}),
+    ...(semesterId && semesterId !== 'ALL' ? {
+      OR: [
+        { user: { semesterId } },
+        { notesJson: { contains: semesterId } },
       ]
     } : {}),
     ...(startDate || endDate ? {
       createdAt: {
         ...(startDate ? { gte: new Date(startDate) } : {}),
-        ...(endDate ? { lte: new Date(endDate) } : {}),
+        ...(endDate ? { lte: new Date(endDate.includes('T') ? endDate : `${endDate}T23:59:59.999Z`) } : {}),
       }
     } : {}),
   };
 
   const [
     totalOrders,
+    totalFilteredOrders,
     capturedOrders,
     pendingOrders,
     failedOrders,
@@ -706,6 +934,7 @@ export async function getAdminPaymentsData({
     orders,
   ] = await Promise.all([
     prisma.examPrepOrder.count(),
+    prisma.examPrepOrder.count({ where }),
     prisma.examPrepOrder.count({ where: { status: 'CAPTURED' } }),
     prisma.examPrepOrder.count({ where: { status: 'PENDING' } }),
     prisma.examPrepOrder.count({ where: { status: 'FAILED' } }),
@@ -725,6 +954,13 @@ export async function getAdminPaymentsData({
             phoneNumber: true,
             city: true,
             universityId: true,
+            collegeId: true,
+            courseId: true,
+            semesterId: true,
+            university: { select: { id: true, name: true, code: true } },
+            college: { select: { id: true, name: true } },
+            course: { select: { id: true, name: true, code: true } },
+            semester: { select: { id: true, semesterNumber: true, title: true } },
           }
         },
         entitlements: {
@@ -733,6 +969,7 @@ export async function getAdminPaymentsData({
             status: true,
             grantedAt: true,
             revokedAt: true,
+            revocationReason: true,
           }
         }
       }
@@ -779,6 +1016,7 @@ export async function getAdminPaymentsData({
   return {
     kpis: {
       totalOrders,
+      totalFilteredOrders,
       capturedOrders,
       pendingOrders,
       failedOrders,
@@ -786,35 +1024,91 @@ export async function getAdminPaymentsData({
       activeEntitlements: activeEntitlementsCount,
       grossRevenueInr: Math.round(grossPaise / 100),
       netRevenueInr: Math.round(netPaise / 100),
+      refundedRevenueInr: Math.round(refundPaise / 100),
       ordersToday,
       ordersThisMonth,
       revenueTodayInr: Math.round((revenueTodaySum._sum.amount || 0) / 100),
       revenueThisMonthInr: Math.round((revenueThisMonthSum._sum.amount || 0) / 100),
     },
-    orders: orders.map(o => ({
-      id: o.id,
-      userId: o.userId,
-      user: o.user,
-      productCode: o.productCode,
-      amount: o.amount,
-      amountInr: Math.round(o.amount / 100),
-      currency: o.currency,
-      status: o.status,
-      razorpayOrderId: o.razorpayOrderId,
-      razorpayPaymentId: o.razorpayPaymentId,
-      receipt: o.receipt,
-      failureReason: o.failureReason,
-      verifiedAt: o.verifiedAt,
-      refundedAt: o.refundedAt,
-      refundAmount: o.refundAmount ? Math.round(o.refundAmount / 100) : null,
-      createdAt: o.createdAt,
-      entitlementStatus: o.entitlements[0]?.status || (o.status === 'CAPTURED' ? 'ACTIVE' : 'NONE'),
-    })),
+    orders: orders.map(o => {
+      let orderNotes = {};
+      try {
+        if (o.notesJson) orderNotes = JSON.parse(o.notesJson);
+      } catch {}
+
+      const studentName = o.user?.fullName || orderNotes.fullName || orderNotes.name || 'Law Student';
+      const contactNumber = o.user?.phoneNumber || orderNotes.phoneNumber || orderNotes.phone || 'N/A';
+      const email = o.user?.email || orderNotes.email || 'N/A';
+      
+      const uniName = o.user?.university?.name 
+        || (orderNotes.universityId ? (GUJARAT_UNIVERSITIES.find(u => u.id === orderNotes.universityId)?.name || orderNotes.universityId) : 'Gujarat University');
+      
+      const colName = o.user?.college?.name 
+        || (orderNotes.collegeId ? (GUJARAT_COLLEGES.find(c => c.id === orderNotes.collegeId)?.name || orderNotes.collegeId) : '');
+      
+      const universityAndCollege = colName ? `${uniName} / ${colName}` : uniName;
+
+      const courseName = o.user?.course?.name 
+        || (orderNotes.courseId === 'llb-3yr' ? '3-Year LL.B.' : orderNotes.courseId ? String(orderNotes.courseId).toUpperCase() : '3-Year LL.B.');
+
+      const semesterName = o.user?.semester?.title 
+        || (orderNotes.semesterId ? `Semester ${String(orderNotes.semesterId).replace(/\D/g, '') || orderNotes.semesterId}` : 'Semester 1');
+
+      let displayStatus = 'Pending';
+      if (o.status === 'CAPTURED') displayStatus = 'Success';
+      else if (o.status === 'REFUNDED') displayStatus = 'Refunded';
+      else if (o.status === 'FAILED') displayStatus = 'Failed';
+      else if (o.status === 'PENDING') displayStatus = 'Pending';
+      else displayStatus = o.status;
+
+      const primaryEntitlement = o.entitlements?.[0];
+      let accessStatus = 'Revoked';
+      if (primaryEntitlement?.status === 'ACTIVE' || (!primaryEntitlement && o.status === 'CAPTURED')) {
+        accessStatus = 'Active';
+      } else if (primaryEntitlement?.status === 'REFUNDED' || primaryEntitlement?.status === 'REVOKED') {
+        accessStatus = 'Revoked';
+      } else {
+        accessStatus = o.status === 'CAPTURED' ? 'Active' : 'Revoked';
+      }
+
+      return {
+        id: o.id,
+        orderId: o.razorpayOrderId || o.id,
+        userId: o.userId,
+        user: o.user,
+        studentName,
+        contactNumber,
+        email,
+        university: uniName,
+        college: colName || 'Main Campus / Affiliated',
+        universityAndCollege,
+        course: courseName,
+        semester: semesterName,
+        productCode: o.productCode,
+        amount: o.amount,
+        amountInr: Math.round(o.amount / 100),
+        currency: o.currency,
+        status: o.status,
+        displayStatus,
+        razorpayOrderId: o.razorpayOrderId,
+        razorpayPaymentId: o.razorpayPaymentId || 'N/A',
+        receipt: o.receipt,
+        failureReason: o.failureReason,
+        verifiedAt: o.verifiedAt,
+        refundedAt: o.refundedAt,
+        refundAmount: o.refundAmount ? Math.round(o.refundAmount / 100) : null,
+        createdAt: o.createdAt,
+        paymentDate: o.verifiedAt || o.createdAt,
+        entitlementStatus: primaryEntitlement?.status || (o.status === 'CAPTURED' ? 'ACTIVE' : 'NONE'),
+        accessStatus,
+        notes: orderNotes,
+      };
+    }),
     pagination: {
-      total: totalOrders,
+      total: totalFilteredOrders,
       page: pageNum,
       limit: take,
-      totalPages: Math.ceil(totalOrders / take),
+      totalPages: Math.ceil(totalFilteredOrders / take) || 1,
     }
   };
 }
@@ -878,7 +1172,7 @@ export async function getExamPrepContentCoverageReport() {
       for (const sem of course.semesters) {
         for (const subj of sem.subjects) {
           const matching = examPrepQuestions.filter(
-            q => q.subjectId === subj.id || (q.universityId === uni.id && q.semesterId === sem.id)
+            q => q.subjectId === subj.id
           );
 
           const publishedCount = matching.filter(q => q.publicationStatus === 'PUBLISHED').length;

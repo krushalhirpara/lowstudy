@@ -22,7 +22,7 @@ import {
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/ceoadmin/dashboard', icon: LayoutDashboard },
-  { label: 'Payments & Revenue', href: '/ceoadmin/payments', icon: CreditCard },
+  { label: 'Exam Prep Payments', href: '/ceoadmin/payments', icon: CreditCard },
   { label: 'Exam Prep & Coverage', href: '/ceoadmin/exam-prep', icon: GraduationCap },
   { label: 'Users', href: '/ceoadmin/users', icon: Users },
   { label: 'Blog & Content Hub', href: '/ceoadmin/blog', icon: BookOpen },
