@@ -26,12 +26,13 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { isValidIndianPhoneNumber, normalizePhoneNumber, formatPhoneNumberForDisplay } from '@/lib/phoneUtils.js';
 import { trackExamPrepPurchase, trackStudentSignup, trackBeginCheckout } from '@/lib/analytics';
 
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user: currentUser, isLoading: isAuthLoading, refreshUser } = useAuth();
+  const { user: currentUser, isLoading: isAuthLoading, refreshUser, setUser } = useAuth();
 
   // Entitlement & Page Loading
   const [accessData, setAccessData] = useState(null);
@@ -40,6 +41,7 @@ function CheckoutContent() {
   // Step 1: Student Identity & Mobile OTP State
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [verifiedMobileNumber, setVerifiedMobileNumber] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -95,6 +97,7 @@ function CheckoutContent() {
       }
       if (currentUser.phoneNumber) {
         setMobileNumber(currentUser.phoneNumber);
+        setVerifiedMobileNumber(currentUser.phoneNumber);
         setIsMobileVerified(true);
       }
       if (currentUser.universityId && !selectedUniversityId) {
@@ -296,14 +299,82 @@ function CheckoutContent() {
     setSelectedSemesterId(course?.semesters?.[0]?.id || '');
   };
 
+  // Comprehensive validation states
+  const isIndianPhoneValid = useMemo(() => {
+    return isValidIndianPhoneNumber(mobileNumber);
+  }, [mobileNumber]);
+
+  const isAcademicProfileComplete = Boolean(
+    selectedUniversityId &&
+    selectedCourseId &&
+    selectedSemesterId
+  );
+
+  const isStudentDetailsComplete = useMemo(() => {
+    const normInput = normalizePhoneNumber(mobileNumber);
+    const normVerified = normalizePhoneNumber(verifiedMobileNumber);
+    return Boolean(
+      fullName.trim().length > 0 &&
+      isIndianPhoneValid &&
+      isMobileVerified &&
+      normVerified &&
+      normInput === normVerified
+    );
+  }, [fullName, isIndianPhoneValid, isMobileVerified, verifiedMobileNumber, mobileNumber]);
+
+  const isFormFullyValid = Boolean(
+    isStudentDetailsComplete &&
+    isAcademicProfileComplete &&
+    agreedToTerms &&
+    !isPaymentProcessing
+  );
+
+  // Mobile number input handler - invalidates verification on any edit
+  const handleMobileChange = (val) => {
+    const cleaned = val.replace(/[^\d+ ]/g, '');
+    setMobileNumber(cleaned);
+
+    // Invalidate previous verification if number changed
+    const normCleaned = normalizePhoneNumber(cleaned);
+    const normVerified = normalizePhoneNumber(verifiedMobileNumber);
+    if (isMobileVerified || (normVerified && normCleaned !== normVerified)) {
+      setIsMobileVerified(false);
+      setVerifiedMobileNumber('');
+    }
+    if (isOtpSent) {
+      setIsOtpSent(false);
+      setOtpCode('');
+    }
+    setOtpError('');
+    setOtpMessage('');
+    setPaymentError('');
+  };
+
+  // Reset verification to allow changing number
+  const handleResetMobileVerification = () => {
+    setIsMobileVerified(false);
+    setVerifiedMobileNumber('');
+    setIsOtpSent(false);
+    setOtpCode('');
+    setOtpError('');
+    setOtpMessage('');
+    setPaymentError('');
+  };
+
   // OTP: Send Code Handler
   const handleSendOtp = async () => {
     setOtpError('');
     setOtpMessage('');
+    setPaymentError('');
 
     const cleaned = mobileNumber.trim();
     if (!cleaned) {
       setOtpError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    if (!isValidIndianPhoneNumber(cleaned)) {
+      setOtpError('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).');
       return;
     }
 
@@ -321,7 +392,8 @@ function CheckoutContent() {
       }
 
       setIsOtpSent(true);
-      setMobileNumber(data.normalizedPhone || cleaned);
+      const normalized = data.normalizedPhone || cleaned;
+      setMobileNumber(normalized);
       setOtpMessage(data.message || 'Verification code sent to your mobile number.');
       setResendCooldown(data.resendCooldownSeconds || 30);
     } catch (err) {
@@ -335,9 +407,11 @@ function CheckoutContent() {
   const handleVerifyOtp = async () => {
     setOtpError('');
     setOtpMessage('');
+    setPaymentError('');
 
-    if (!otpCode || otpCode.trim().length !== 6) {
-      setOtpError('Please enter the 6-digit code received on your mobile.');
+    const cleanOtp = (otpCode || '').trim();
+    if (!cleanOtp || cleanOtp.length !== 6 || !/^\d{6}$/.test(cleanOtp)) {
+      setOtpError('Please enter the 6-digit verification code received on your mobile.');
       return;
     }
 
@@ -348,7 +422,7 @@ function CheckoutContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phoneNumber: mobileNumber,
-          otp: otpCode.trim(),
+          otp: cleanOtp,
           fullName: fullName.trim() || 'Law Student',
           universityId: selectedUniversityId,
           collegeId: selectedCollegeId,
@@ -362,9 +436,20 @@ function CheckoutContent() {
         throw new Error(data.error || 'Invalid or expired verification code.');
       }
 
+      const verifiedPhone = data.user?.phoneNumber || data.normalizedPhone || mobileNumber;
       setIsMobileVerified(true);
+      setVerifiedMobileNumber(verifiedPhone);
+      setMobileNumber(verifiedPhone);
+      setIsOtpSent(false);
+      setOtpCode('');
       setOtpMessage('Mobile number verified successfully.');
+      if (data.user?.fullName && !fullName.trim()) {
+        setFullName(data.user.fullName);
+      }
       trackStudentSignup('phone_otp');
+      if (setUser && data.user) {
+        setUser(data.user);
+      }
       if (refreshUser) refreshUser();
     } catch (err) {
       setOtpError(err.message || 'Verification failed. Please try again.');
@@ -444,8 +529,18 @@ function CheckoutContent() {
 
   // Step 3: Handle Razorpay Payment Initiation
   const handleInitiatePayment = async () => {
-    if (!isMobileVerified) {
+    // Prevent duplicate submission / repeated clicks
+    if (isPaymentProcessing) return;
+
+    const normPhone = normalizePhoneNumber(mobileNumber);
+    const normVerified = normalizePhoneNumber(verifiedMobileNumber);
+    if (!isMobileVerified || !normVerified || normPhone !== normVerified) {
       setPaymentError('Please verify your mobile number with OTP in Step 1 before proceeding to payment.');
+      return;
+    }
+
+    if (!fullName.trim()) {
+      setPaymentError('Please enter your full name in Step 1 before proceeding to payment.');
       return;
     }
 
@@ -679,17 +774,27 @@ function CheckoutContent() {
 
               {isMobileVerified ? (
                 /* Verified Badge State */
-                <div className="p-3.5 rounded-2xl bg-emerald-950/20 border border-emerald-800/40 space-y-2 text-xs">
+                <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-800/40 space-y-2.5 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400">Student Name:</span>
                     <span className="font-bold text-white">{fullName || currentUser?.fullName || 'Law Student'}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400">Verified Mobile:</span>
-                    <span className="font-mono text-emerald-400 font-bold">{mobileNumber}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-emerald-400 font-bold">{mobileNumber}</span>
+                      <button
+                        type="button"
+                        onClick={handleResetMobileVerification}
+                        className="text-[11px] text-amber-400 hover:text-amber-300 underline font-medium cursor-pointer"
+                      >
+                        Change Number
+                      </button>
+                    </div>
                   </div>
-                  <div className="pt-1 text-[11px] text-slate-400 italic">
-                    Identity verified with OTP. Your Exam Prep Pass will be bound to this verified mobile number.
+                  <div className="pt-1 text-[11px] text-emerald-400/90 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>Identity verified with OTP. Your Exam Prep Pass will be bound to this verified number.</span>
                   </div>
                 </div>
               ) : (
@@ -703,7 +808,10 @@ function CheckoutContent() {
                       <input
                         type="text"
                         value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
+                        onChange={(e) => {
+                          setFullName(e.target.value);
+                          setPaymentError('');
+                        }}
                         placeholder="Enter your full name"
                         className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-white text-xs placeholder:text-slate-600 focus:outline-none"
                       />
@@ -712,27 +820,51 @@ function CheckoutContent() {
 
                   {/* Mobile Number */}
                   <div className="space-y-1">
-                    <label className="text-slate-300 font-semibold block">Mobile Number (Indian 10-Digit)</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-slate-300 font-semibold block">Mobile Number (Indian 10-Digit)</label>
+                      {mobileNumber && !isOtpSent && !isIndianPhoneValid && (
+                        <span className="text-[10px] text-amber-400 font-normal">Must be 10 digits starting with 6-9</span>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                         <input
                           type="tel"
                           value={mobileNumber}
-                          onChange={(e) => setMobileNumber(e.target.value)}
+                          onChange={(e) => handleMobileChange(e.target.value)}
                           disabled={isOtpSent}
                           placeholder="e.g. 9876543210"
                           className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-white text-xs placeholder:text-slate-600 focus:outline-none disabled:opacity-60"
                         />
                       </div>
-                      {!isOtpSent && (
+                      {isOtpSent ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsOtpSent(false);
+                            setOtpCode('');
+                            setOtpError('');
+                          }}
+                          className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs shrink-0 transition-colors cursor-pointer"
+                        >
+                          Edit Number
+                        </button>
+                      ) : (
                         <button
                           type="button"
                           onClick={handleSendOtp}
-                          disabled={isSendingOtp}
-                          className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 transition-colors cursor-pointer disabled:opacity-50"
+                          disabled={isSendingOtp || !mobileNumber.trim()}
+                          className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                         >
-                          {isSendingOtp ? 'Sending...' : 'Send OTP'}
+                          {isSendingOtp ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Sending...</span>
+                            </>
+                          ) : (
+                            <span>Send OTP</span>
+                          )}
                         </button>
                       )}
                     </div>
@@ -752,7 +884,8 @@ function CheckoutContent() {
                             <button
                               type="button"
                               onClick={handleSendOtp}
-                              className="text-[11px] text-amber-400 hover:underline font-normal cursor-pointer"
+                              disabled={isSendingOtp}
+                              className="text-[11px] text-amber-400 hover:underline font-normal cursor-pointer disabled:opacity-50"
                             >
                               Resend OTP
                             </button>
@@ -764,7 +897,7 @@ function CheckoutContent() {
                             type="text"
                             maxLength={6}
                             value={otpCode}
-                            onChange={(e) => setOtpCode(e.target.value)}
+                            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                             placeholder="6-digit OTP"
                             className="w-full bg-slate-900 border border-slate-700 focus:border-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-white text-xs tracking-widest font-mono placeholder:text-slate-600 focus:outline-none"
                           />
@@ -774,10 +907,17 @@ function CheckoutContent() {
                       <button
                         type="button"
                         onClick={handleVerifyOtp}
-                        disabled={isVerifyingOtp}
+                        disabled={isVerifyingOtp || otpCode.trim().length !== 6}
                         className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer disabled:opacity-50"
                       >
-                        {isVerifyingOtp ? 'Verifying...' : 'Verify Mobile Number'}
+                        {isVerifyingOtp ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Verifying...</span>
+                          </>
+                        ) : (
+                          <span>Verify Mobile Number</span>
+                        )}
                       </button>
                     </div>
                   )}
@@ -1057,22 +1197,82 @@ function CheckoutContent() {
                 </span>
               </label>
 
+              {/* Payment Error Banner */}
+              {paymentError && (
+                <div className="p-3 rounded-2xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <span>{paymentError}</span>
+                </div>
+              )}
+
+              {/* Live Requirements Status Card */}
+              {!isFormFullyValid && !isPaymentProcessing && (
+                <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs text-slate-400 space-y-2">
+                  <div className="font-semibold text-slate-300 flex items-center gap-1.5 text-xs">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>Requirements to Enable ₹299 Payment:</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] pt-0.5">
+                    <div className={`flex items-center gap-1.5 ${fullName.trim() ? 'text-emerald-400' : 'text-slate-400'}`}>
+                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${fullName.trim() ? 'text-emerald-400' : 'text-slate-600'}`} />
+                      <span>Full Name {fullName.trim() ? '✓' : '(Required)'}</span>
+                    </div>
+                    <div className={`flex items-center gap-1.5 ${isIndianPhoneValid ? 'text-emerald-400' : 'text-slate-400'}`}>
+                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isIndianPhoneValid ? 'text-emerald-400' : 'text-slate-600'}`} />
+                      <span>10-Digit Mobile {isIndianPhoneValid ? '✓' : '(Required)'}</span>
+                    </div>
+                    <div className={`flex items-center gap-1.5 ${isMobileVerified ? 'text-emerald-400' : 'text-amber-400 font-medium'}`}>
+                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isMobileVerified ? 'text-emerald-400' : 'text-amber-500/70'}`} />
+                      <span>Mobile OTP {isMobileVerified ? '✓' : (isOtpSent ? '(Enter Code)' : '(Step 1 Required)')}</span>
+                    </div>
+                    <div className={`flex items-center gap-1.5 ${isAcademicProfileComplete ? 'text-emerald-400' : 'text-slate-400'}`}>
+                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isAcademicProfileComplete ? 'text-emerald-400' : 'text-slate-600'}`} />
+                      <span>Academic Profile {isAcademicProfileComplete ? '✓' : '(Step 2 Required)'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Pay Button */}
               <button
                 type="button"
                 onClick={handleInitiatePayment}
-                disabled={isPaymentProcessing || !isMobileVerified || !agreedToTerms}
-                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer"
+                disabled={!isFormFullyValid}
+                className={`w-full py-4 px-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all ${
+                  isFormFullyValid
+                    ? "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-xl shadow-amber-500/25 active:scale-[0.98] cursor-pointer"
+                    : "bg-slate-800 text-slate-400 border border-slate-700/60 cursor-not-allowed opacity-60"
+                }`}
               >
                 {isPaymentProcessing ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Connecting to Razorpay...</span>
                   </>
+                ) : !isIndianPhoneValid ? (
+                  <>
+                    <Phone className="w-4 h-4" />
+                    <span>Enter 10-Digit Mobile to Pay</span>
+                  </>
                 ) : !isMobileVerified ? (
                   <>
                     <Lock className="w-4 h-4" />
-                    <span>Verify Mobile (Step 1) to Pay</span>
+                    <span>{isOtpSent ? "Verify OTP (Step 1) to Pay" : "Verify Mobile (Step 1) to Pay"}</span>
+                  </>
+                ) : !fullName.trim() ? (
+                  <>
+                    <User className="w-4 h-4" />
+                    <span>Enter Full Name (Step 1) to Pay</span>
+                  </>
+                ) : !isAcademicProfileComplete ? (
+                  <>
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Select Academic Profile (Step 2) to Pay</span>
+                  </>
+                ) : !agreedToTerms ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Accept Terms to Pay</span>
                   </>
                 ) : (
                   <>

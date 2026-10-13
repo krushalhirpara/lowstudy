@@ -40,6 +40,17 @@ export async function POST(request) {
 
     const { universityId, collegeId, courseId, semesterId, phoneNumber, fullName } = body;
 
+    const finalPhone = phoneNumber || dbUser.phoneNumber;
+    if (!finalPhone) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'A verified mobile number is required before creating a payment order. Please complete Step 1 first.',
+        },
+        { status: 400 }
+      );
+    }
+
     // Strict Academic Data Validation
     const validationResult = await validateAcademicOrderInput({
       universityId,

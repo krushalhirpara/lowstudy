@@ -1,12 +1,14 @@
 import crypto from 'crypto';
+import prisma from '../prisma.js';
 import { normalizePhoneNumber, isValidIndianPhoneNumber } from '../phoneUtils.js';
 
 export { normalizePhoneNumber, isValidIndianPhoneNumber };
 
-// In-memory OTP cache with automatic expiry cleanup
-// Key: normalized 10-digit phone number
-// Value: { hash, expiresAt, attempts, resendAfter, createdAt }
-const otpStore = new Map();
+// Persistent in-memory OTP cache bound to globalThis across separate Next.js route compilation chunks
+if (!globalThis.lowstudyOtpStore) {
+  globalThis.lowstudyOtpStore = new Map();
+}
+const otpStore = globalThis.lowstudyOtpStore;
 
 const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 const OTP_RESEND_COOLDOWN_MS = 30 * 1000; // 30 seconds
@@ -48,8 +50,27 @@ export async function sendMobileOtp(phone) {
     throw new Error('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).');
   }
 
-  const existing = otpStore.get(normalizedPhone);
   const now = Date.now();
+  let existing = otpStore.get(normalizedPhone);
+
+  // Check persistent DB record if memory store has no record
+  if (!existing && prisma?.otpVerification) {
+    try {
+      const dbRec = await prisma.otpVerification.findUnique({
+        where: { phoneNumber: normalizedPhone },
+      });
+      if (dbRec) {
+        existing = {
+          hash: dbRec.otpHash,
+          expiresAt: new Date(dbRec.expiresAt).getTime(),
+          attempts: dbRec.attempts,
+          resendAfter: new Date(dbRec.resendAfter).getTime(),
+          createdAt: new Date(dbRec.createdAt).getTime(),
+        };
+        otpStore.set(normalizedPhone, existing);
+      }
+    } catch {}
+  }
 
   // Enforce resend cooldown
   if (existing && existing.resendAfter > now) {
@@ -67,14 +88,43 @@ export async function sendMobileOtp(phone) {
   const otpCode = isTestOtpAllowed ? '123456' : crypto.randomInt(100000, 999999).toString();
 
   const hash = hashOtp(normalizedPhone, otpCode);
+  const expiresAt = now + OTP_EXPIRY_MS;
+  const resendAfter = now + OTP_RESEND_COOLDOWN_MS;
 
-  otpStore.set(normalizedPhone, {
+  const record = {
     hash,
-    expiresAt: now + OTP_EXPIRY_MS,
+    expiresAt,
     attempts: 0,
-    resendAfter: now + OTP_RESEND_COOLDOWN_MS,
+    resendAfter,
     createdAt: now,
-  });
+  };
+
+  otpStore.set(normalizedPhone, record);
+
+  // Persist to DB for cross-process/worker synchronization
+  if (prisma?.otpVerification) {
+    try {
+      await prisma.otpVerification.upsert({
+        where: { phoneNumber: normalizedPhone },
+        create: {
+          phoneNumber: normalizedPhone,
+          otpHash: hash,
+          expiresAt: new Date(expiresAt),
+          attempts: 0,
+          resendAfter: new Date(resendAfter),
+        },
+        update: {
+          otpHash: hash,
+          expiresAt: new Date(expiresAt),
+          attempts: 0,
+          resendAfter: new Date(resendAfter),
+          updatedAt: new Date(),
+        },
+      });
+    } catch (dbErr) {
+      console.warn('[OTP Service] DB persistence notice:', dbErr?.message || dbErr);
+    }
+  }
 
   // SMS Gateway Dispatch:
   // If an external SMS gateway (Twilio, MSG91, Fast2SMS) is configured in environment, dispatch here.
@@ -125,8 +175,26 @@ export async function verifyMobileOtp(phone, inputOtp) {
     throw new Error('Verification code must be exactly 6 digits.');
   }
 
-  const record = otpStore.get(normalizedPhone);
   const now = Date.now();
+  let record = otpStore.get(normalizedPhone);
+
+  if (!record && prisma?.otpVerification) {
+    try {
+      const dbRec = await prisma.otpVerification.findUnique({
+        where: { phoneNumber: normalizedPhone },
+      });
+      if (dbRec) {
+        record = {
+          hash: dbRec.otpHash,
+          expiresAt: new Date(dbRec.expiresAt).getTime(),
+          attempts: dbRec.attempts,
+          resendAfter: new Date(dbRec.resendAfter).getTime(),
+          createdAt: new Date(dbRec.createdAt).getTime(),
+        };
+        otpStore.set(normalizedPhone, record);
+      }
+    } catch {}
+  }
 
   if (!record) {
     throw new Error('No active verification code found for this number. Please request a new code.');
@@ -134,15 +202,29 @@ export async function verifyMobileOtp(phone, inputOtp) {
 
   if (record.expiresAt < now) {
     otpStore.delete(normalizedPhone);
+    if (prisma?.otpVerification) {
+      try { await prisma.otpVerification.delete({ where: { phoneNumber: normalizedPhone } }); } catch {}
+    }
     throw new Error('Verification code has expired. Please request a new code.');
   }
 
   if (record.attempts >= MAX_VERIFY_ATTEMPTS) {
     otpStore.delete(normalizedPhone);
+    if (prisma?.otpVerification) {
+      try { await prisma.otpVerification.delete({ where: { phoneNumber: normalizedPhone } }); } catch {}
+    }
     throw new Error('Too many incorrect attempts. Please request a new verification code.');
   }
 
   record.attempts += 1;
+  if (prisma?.otpVerification) {
+    try {
+      await prisma.otpVerification.update({
+        where: { phoneNumber: normalizedPhone },
+        data: { attempts: record.attempts },
+      });
+    } catch {}
+  }
 
   const expectedHash = hashOtp(normalizedPhone, cleanOtp);
   const sigBuf = Buffer.from(record.hash, 'utf8');
@@ -160,6 +242,9 @@ export async function verifyMobileOtp(phone, inputOtp) {
 
   // Clear OTP on successful verification to prevent reuse
   otpStore.delete(normalizedPhone);
+  if (prisma?.otpVerification) {
+    try { await prisma.otpVerification.delete({ where: { phoneNumber: normalizedPhone } }); } catch {}
+  }
 
   return {
     success: true,

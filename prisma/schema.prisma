@@ -1279,5 +1279,16 @@ model WebhookEvent {
   @@index([createdAt])
 }
 
+// 40. Persistent OTP Verifications (Cross-Worker / Cross-Route OTP Store)
+model OtpVerification {
+  id          String   @id @default(cuid())
+  phoneNumber String   @unique
+  otpHash     String
+  expiresAt   DateTime
+  attempts    Int      @default(0)
+  resendAfter DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-
+  @@index([phoneNumber])
+}

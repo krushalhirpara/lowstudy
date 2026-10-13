@@ -242,7 +242,23 @@ async function ensureDatabaseSchemaIntegrity(client) {
       );
     `);
 
+    // Ensure OtpVerification table exists
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "OtpVerification" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "phoneNumber" TEXT NOT NULL UNIQUE,
+        "otpHash" TEXT NOT NULL,
+        "expiresAt" DATETIME NOT NULL,
+        "attempts" INTEGER NOT NULL DEFAULT 0,
+        "resendAfter" DATETIME NOT NULL,
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Ensure indexes exist
+    await client.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "OtpVerification_phoneNumber_key" ON "OtpVerification"("phoneNumber");`);
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "OtpVerification_phoneNumber_idx" ON "OtpVerification"("phoneNumber");`);
     await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "User_phoneNumber_idx" ON "User"("phoneNumber");`);
     await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "User_email_idx" ON "User"("email");`);
     await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ActivityEvent_type_idx" ON "ActivityEvent"("type");`);
