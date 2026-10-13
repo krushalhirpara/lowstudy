@@ -1,0 +1,3159 @@
+[
+  {
+    "id": "gu",
+    "name": "Gujarat University",
+    "code": "GU",
+    "officialWebsite": "https://www.gujaratuniversity.ac.in",
+    "officialSyllabusSource": "https://www.gujaratuniversity.ac.in/syllabus",
+    "status": "VERIFIED",
+    "academicYear": "2026-27",
+    "colleges": [
+      {
+        "id": "col-la-shah",
+        "name": "Sir L.A. Shah Law College",
+        "city": "Ahmedabad",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "col-mn-law",
+        "name": "Motilal Nehru Law College",
+        "city": "Ahmedabad",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "col-im-nanavati",
+        "name": "I.M. Nanavati Law College",
+        "city": "Ahmedabad",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "col-siddharth",
+        "name": "Siddharth Law College",
+        "city": "Gandhinagar",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "col-anand-law",
+        "name": "Anand Law College",
+        "city": "Anand",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "col-gu-dept",
+        "name": "School of Law, Gujarat University",
+        "city": "Ahmedabad",
+        "status": "VERIFIED"
+      }
+    ],
+    "courses": [
+      {
+        "id": "gu-llb-5yr",
+        "name": "5-Year Integrated B.A. LL.B. (Hons.)",
+        "code": "BALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gu-llb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gu-llb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gu-llb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gu-llb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "gu-llb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "gu-llb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "gu-llb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "gu-llb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "gu-llb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "gu-llb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "gu-bballb-5yr",
+        "name": "5-Year Integrated B.B.A. LL.B. (Hons.)",
+        "code": "BBALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gu-bballb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gu-bballb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gu-bballb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gu-bballb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "gu-bballb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "gu-bballb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "gu-bballb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "gu-bballb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "gu-bballb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "gu-bballb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "gu-llb-3yr",
+        "name": "3-Year LL.B. (Bachelor of Laws)",
+        "code": "LLB-3Y",
+        "totalSemesters": 6,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gu-llb-3yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": [
+              {
+                "id": "gu-sem1-new-const-1",
+                "title": "Constitutional Law - I",
+                "shortCode": "CONST-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem1-new-bns",
+                "title": "Bharatiya Nyaya Sanhita (BNS, 2023)",
+                "shortCode": "BNS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem1-new-contract-1",
+                "title": "Law of Contract - I",
+                "shortCode": "CONTRACT-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem1-new-torts",
+                "title": "Law of Torts & Consumer Protection",
+                "shortCode": "TORTS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem1-old-const-1",
+                "title": "Constitutional Law - I",
+                "shortCode": "CONST-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem1-old-ipc",
+                "title": "Indian Penal Code (IPC, 1860)",
+                "shortCode": "IPC",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem1-old-contract-1",
+                "title": "Law of Contract - I",
+                "shortCode": "CONTRACT-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem1-old-torts",
+                "title": "Law of Torts & Consumer Protection",
+                "shortCode": "TORTS",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "gu-llb-3yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": [
+              {
+                "id": "gu-sem2-new-const-2",
+                "title": "Constitutional Law - II",
+                "shortCode": "CONST-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem2-new-bnss",
+                "title": "Bharatiya Nagarik Suraksha Sanhita (BNSS)",
+                "shortCode": "BNSS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem2-new-bsa",
+                "title": "Bharatiya Sakshya Adhiniyam (BSA, 2023)",
+                "shortCode": "BSA",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem2-new-contract-2",
+                "title": "Law of Contract - II (Special Contracts)",
+                "shortCode": "CONTRACT-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem2-old-const-2",
+                "title": "Constitutional Law - II",
+                "shortCode": "CONST-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem2-old-crpc",
+                "title": "Code of Criminal Procedure (CrPC, 1973)",
+                "shortCode": "CrPC",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem2-old-iea",
+                "title": "Indian Evidence Act, 1872",
+                "shortCode": "IEA",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem2-old-contract-2",
+                "title": "Law of Contract - II (Special Contracts)",
+                "shortCode": "CONTRACT-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "gu-llb-3yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": [
+              {
+                "id": "gu-sem3-new-tpa",
+                "title": "Property Law (TPA)",
+                "shortCode": "TPA",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem3-new-labour-1",
+                "title": "Labour & Industrial Law - I",
+                "shortCode": "LABOUR-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem3-new-family-1",
+                "title": "Family Law - I (Hindu Law)",
+                "shortCode": "FAMILY-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem3-new-env",
+                "title": "Environmental Law",
+                "shortCode": "ENV",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem3-old-tpa",
+                "title": "Property Law (TPA)",
+                "shortCode": "TPA",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem3-old-labour-1",
+                "title": "Labour & Industrial Law - I",
+                "shortCode": "LABOUR-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem3-old-family-1",
+                "title": "Family Law - I (Hindu Law)",
+                "shortCode": "FAMILY-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem3-old-env",
+                "title": "Environmental Law",
+                "shortCode": "ENV",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "gu-llb-3yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": [
+              {
+                "id": "gu-sem4-new-juris",
+                "title": "Jurisprudence (Legal Theory)",
+                "shortCode": "JURIS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem4-new-admin",
+                "title": "Administrative Law",
+                "shortCode": "ADMIN",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem4-new-labour-2",
+                "title": "Labour & Industrial Law - II",
+                "shortCode": "LABOUR-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem4-new-family-2",
+                "title": "Family Law - II (Muslim Law)",
+                "shortCode": "FAMILY-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem4-old-juris",
+                "title": "Jurisprudence (Legal Theory)",
+                "shortCode": "JURIS",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem4-old-admin",
+                "title": "Administrative Law",
+                "shortCode": "ADMIN",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem4-old-labour-2",
+                "title": "Labour & Industrial Law - II",
+                "shortCode": "LABOUR-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem4-old-family-2",
+                "title": "Family Law - II (Muslim Law)",
+                "shortCode": "FAMILY-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "gu-llb-3yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": [
+              {
+                "id": "gu-sem5-new-cpc",
+                "title": "Code of Civil Procedure (CPC)",
+                "shortCode": "CPC",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem5-new-company",
+                "title": "Companies Act, 2013",
+                "shortCode": "COMPANY",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem5-new-pil",
+                "title": "Public International Law",
+                "shortCode": "PIL",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem5-new-ipr",
+                "title": "Intellectual Property Law",
+                "shortCode": "IPR",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem5-old-cpc",
+                "title": "Code of Civil Procedure (CPC)",
+                "shortCode": "CPC",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem5-old-company",
+                "title": "Company Law",
+                "shortCode": "COMPANY",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem5-old-pil",
+                "title": "Public International Law",
+                "shortCode": "PIL",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem5-old-ipr",
+                "title": "Intellectual Property Law",
+                "shortCode": "IPR",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "gu-llb-3yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": [
+              {
+                "id": "gu-sem6-new-ios",
+                "title": "Interpretation of Statutes",
+                "shortCode": "IOS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem6-new-cyber",
+                "title": "Cyber Law & IT Act, 2000",
+                "shortCode": "CYBER",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem6-new-tax",
+                "title": "Taxation Laws (Direct & GST)",
+                "shortCode": "TAX",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem6-new-adr",
+                "title": "Arbitration & Conciliation Act",
+                "shortCode": "ADR",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "gu-sem6-old-ios",
+                "title": "Interpretation of Statutes",
+                "shortCode": "IOS",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem6-old-cyber",
+                "title": "Cyber Law & IT Act, 2000",
+                "shortCode": "CYBER",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem6-old-tax",
+                "title": "Taxation Laws (Direct & Indirect)",
+                "shortCode": "TAX",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "gu-sem6-old-adr",
+                "title": "Arbitration & Conciliation Act",
+                "shortCode": "ADR",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "gu-llm",
+        "name": "Master of Laws (LL.M.)",
+        "code": "LLM-2Y",
+        "totalSemesters": 4,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gu-llm-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gu-llm-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gu-llm-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gu-llm-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "su",
+    "name": "Saurashtra University",
+    "code": "SU",
+    "officialWebsite": "https://www.saurashtrauniversity.edu",
+    "officialSyllabusSource": "https://www.saurashtrauniversity.edu/syllabi",
+    "status": "VERIFIED",
+    "academicYear": "2026-27",
+    "colleges": [
+      {
+        "id": "col-kp-shah",
+        "name": "K.P. Shah Law College",
+        "city": "Jamnagar",
+        "status": "VERIFIED"
+      }
+    ],
+    "courses": [
+      {
+        "id": "su-llb-5yr",
+        "name": "5-Year Integrated B.A. LL.B. (Hons.)",
+        "code": "BALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "su-llb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "su-llb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "su-llb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "su-llb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "su-llb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "su-llb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "su-llb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "su-llb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "su-llb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "su-llb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "su-bballb-5yr",
+        "name": "5-Year Integrated B.B.A. LL.B. (Hons.)",
+        "code": "BBALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "su-bballb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "su-bballb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "su-bballb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "su-bballb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "su-bballb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "su-bballb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "su-bballb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "su-bballb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "su-bballb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "su-bballb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "su-llb-3yr",
+        "name": "3-Year LL.B. (Bachelor of Laws)",
+        "code": "LLB-3Y",
+        "totalSemesters": 6,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "su-llb-3yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": [
+              {
+                "id": "su-sem1-new-const-1",
+                "title": "Constitutional Law - I",
+                "shortCode": "CONST-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem1-new-bns",
+                "title": "Bharatiya Nyaya Sanhita (BNS, 2023)",
+                "shortCode": "BNS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem1-new-contract-1",
+                "title": "Law of Contract - I",
+                "shortCode": "CONTRACT-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem1-new-torts",
+                "title": "Law of Torts & CPA",
+                "shortCode": "TORTS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem1-old-const-1",
+                "title": "Constitutional Law - I",
+                "shortCode": "CONST-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem1-old-ipc",
+                "title": "Indian Penal Code (IPC, 1860)",
+                "shortCode": "IPC",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem1-old-contract-1",
+                "title": "Law of Contract - I",
+                "shortCode": "CONTRACT-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem1-old-torts",
+                "title": "Law of Torts & CPA",
+                "shortCode": "TORTS",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "su-llb-3yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": [
+              {
+                "id": "su-sem2-new-const-2",
+                "title": "Constitutional Law - II",
+                "shortCode": "CONST-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem2-new-bnss",
+                "title": "Bharatiya Nagarik Suraksha Sanhita (BNSS)",
+                "shortCode": "BNSS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem2-new-bsa",
+                "title": "Bharatiya Sakshya Adhiniyam (BSA)",
+                "shortCode": "BSA",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem2-new-contract-2",
+                "title": "Law of Contract - II (Special Contracts)",
+                "shortCode": "CONTRACT-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem2-old-const-2",
+                "title": "Constitutional Law - II",
+                "shortCode": "CONST-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem2-old-crpc",
+                "title": "Code of Criminal Procedure (CrPC)",
+                "shortCode": "CrPC",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem2-old-iea",
+                "title": "Indian Evidence Act, 1872",
+                "shortCode": "IEA",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem2-old-contract-2",
+                "title": "Law of Contract - II",
+                "shortCode": "CONTRACT-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "su-llb-3yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": [
+              {
+                "id": "su-sem3-220301",
+                "title": "Labour and Industrial Law - I",
+                "shortCode": "220301",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem3-220302",
+                "title": "Labour and Industrial Law - II",
+                "shortCode": "220302",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem3-220303",
+                "title": "Principles of Taxation Laws",
+                "shortCode": "220303",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem3-220304",
+                "title": "Principal of Banking Laws",
+                "shortCode": "220304",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem3-220305",
+                "title": "Information Technology Laws and Cyber Crimes",
+                "shortCode": "220305",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem3-old-220301",
+                "title": "Labour and Industrial Law - I",
+                "shortCode": "220301",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem3-old-220302",
+                "title": "Labour and Industrial Law - II",
+                "shortCode": "220302",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem3-old-220303",
+                "title": "Principles of Taxation Laws",
+                "shortCode": "220303",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem3-old-220304",
+                "title": "Principal of Banking Laws",
+                "shortCode": "220304",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem3-old-220305",
+                "title": "Information Technology Laws and Cyber Crimes",
+                "shortCode": "220305",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "su-llb-3yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": [
+              {
+                "id": "su-sem4-new-juris",
+                "title": "Jurisprudence",
+                "shortCode": "JURIS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem4-new-admin",
+                "title": "Administrative Law",
+                "shortCode": "ADMIN",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem4-new-labour-2",
+                "title": "Labour & Industrial Law - II",
+                "shortCode": "LABOUR-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem4-new-family-2",
+                "title": "Family Law - II (Muslim Law)",
+                "shortCode": "FAMILY-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem4-old-juris",
+                "title": "Jurisprudence",
+                "shortCode": "JURIS",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem4-old-admin",
+                "title": "Administrative Law",
+                "shortCode": "ADMIN",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem4-old-labour-2",
+                "title": "Labour & Industrial Law - II",
+                "shortCode": "LABOUR-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem4-old-family-2",
+                "title": "Family Law - II (Muslim Law)",
+                "shortCode": "FAMILY-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "su-llb-3yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": [
+              {
+                "id": "su-sem5-new-cpc",
+                "title": "Code of Civil Procedure",
+                "shortCode": "CPC",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem5-new-company",
+                "title": "Companies Act, 2013",
+                "shortCode": "COMPANY",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem5-new-pil",
+                "title": "Public International Law",
+                "shortCode": "PIL",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem5-new-ipr",
+                "title": "Intellectual Property Law",
+                "shortCode": "IPR",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem5-old-cpc",
+                "title": "Code of Civil Procedure",
+                "shortCode": "CPC",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem5-old-company",
+                "title": "Company Law",
+                "shortCode": "COMPANY",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem5-old-pil",
+                "title": "Public International Law",
+                "shortCode": "PIL",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem5-old-ipr",
+                "title": "Intellectual Property Law",
+                "shortCode": "IPR",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "su-llb-3yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": [
+              {
+                "id": "su-sem6-new-ios",
+                "title": "Interpretation of Statutes",
+                "shortCode": "IOS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem6-new-cyber",
+                "title": "Cyber Law & IT Act",
+                "shortCode": "CYBER",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem6-new-tax",
+                "title": "Taxation Laws",
+                "shortCode": "TAX",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem6-new-adr",
+                "title": "Arbitration & ADR",
+                "shortCode": "ADR",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "su-sem6-old-ios",
+                "title": "Interpretation of Statutes",
+                "shortCode": "IOS",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem6-old-cyber",
+                "title": "Cyber Law & IT Act",
+                "shortCode": "CYBER",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem6-old-tax",
+                "title": "Taxation Laws",
+                "shortCode": "TAX",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "su-sem6-old-adr",
+                "title": "Arbitration & ADR",
+                "shortCode": "ADR",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "su-llm",
+        "name": "Master of Laws (LL.M.)",
+        "code": "LLM-2Y",
+        "totalSemesters": 4,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "su-llm-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "su-llm-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "su-llm-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "su-llm-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vnsgu",
+    "name": "Veer Narmad South Gujarat University",
+    "code": "VNSGU",
+    "officialWebsite": "https://www.vnsgu.ac.in",
+    "officialSyllabusSource": "https://www.vnsgu.ac.in/syllabus.php",
+    "status": "VERIFIED",
+    "academicYear": "2026-27",
+    "colleges": [
+      {
+        "id": "col-vt-choksi",
+        "name": "V.T. Choksi Sarvajanik Law College",
+        "city": "Surat",
+        "status": "VERIFIED"
+      }
+    ],
+    "courses": [
+      {
+        "id": "vnsgu-llb-5yr",
+        "name": "5-Year Integrated B.A. LL.B. (Hons.)",
+        "code": "BALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "vnsgu-llb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "vnsgu-bballb-5yr",
+        "name": "5-Year Integrated B.B.A. LL.B. (Hons.)",
+        "code": "BBALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "vnsgu-bballb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-bballb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-bballb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-bballb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-bballb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-bballb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-bballb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-bballb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-bballb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-bballb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "vnsgu-llb-3yr",
+        "name": "3-Year LL.B. (Bachelor of Laws)",
+        "code": "LLB-3Y",
+        "totalSemesters": 6,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "vnsgu-llb-3yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": [
+              {
+                "id": "vnsgu-sem1-new-const-1",
+                "title": "Constitutional Law - I",
+                "shortCode": "CONST-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem1-new-bns",
+                "title": "Bharatiya Nyaya Sanhita (BNS)",
+                "shortCode": "BNS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem1-new-contract-1",
+                "title": "Law of Contract - I",
+                "shortCode": "CONTRACT-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem1-new-torts",
+                "title": "Law of Torts & Consumer Protection",
+                "shortCode": "TORTS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem1-old-const-1",
+                "title": "Constitutional Law - I",
+                "shortCode": "CONST-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem1-old-ipc",
+                "title": "Indian Penal Code (IPC)",
+                "shortCode": "IPC",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem1-old-contract-1",
+                "title": "Law of Contract - I",
+                "shortCode": "CONTRACT-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem1-old-torts",
+                "title": "Law of Torts & Consumer Protection",
+                "shortCode": "TORTS",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "vnsgu-llb-3yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": [
+              {
+                "id": "vnsgu-sem2-new-const-2",
+                "title": "Constitutional Law - II",
+                "shortCode": "CONST-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem2-new-bnss",
+                "title": "Bharatiya Nagarik Suraksha Sanhita (BNSS)",
+                "shortCode": "BNSS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem2-new-bsa",
+                "title": "Bharatiya Sakshya Adhiniyam (BSA)",
+                "shortCode": "BSA",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem2-new-contract-2",
+                "title": "Law of Contract - II (Special Contracts)",
+                "shortCode": "CONTRACT-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem2-old-const-2",
+                "title": "Constitutional Law - II",
+                "shortCode": "CONST-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem2-old-crpc",
+                "title": "Code of Criminal Procedure (CrPC)",
+                "shortCode": "CrPC",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem2-old-iea",
+                "title": "Indian Evidence Act, 1872",
+                "shortCode": "IEA",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem2-old-contract-2",
+                "title": "Law of Contract - II",
+                "shortCode": "CONTRACT-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "vnsgu-llb-3yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": [
+              {
+                "id": "vnsgu-sem3-new-tpa",
+                "title": "Property Law (TPA)",
+                "shortCode": "TPA",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem3-new-labour-1",
+                "title": "Labour & Industrial Law - I",
+                "shortCode": "LABOUR-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem3-new-family-1",
+                "title": "Family Law - I (Hindu Law)",
+                "shortCode": "FAMILY-1",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem3-new-env",
+                "title": "Environmental Law & NGT Act",
+                "shortCode": "ENV",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem3-old-tpa",
+                "title": "Property Law (TPA)",
+                "shortCode": "TPA",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem3-old-labour-1",
+                "title": "Labour & Industrial Law - I",
+                "shortCode": "LABOUR-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem3-old-family-1",
+                "title": "Family Law - I (Hindu Law)",
+                "shortCode": "FAMILY-1",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem3-old-env",
+                "title": "Environmental Law",
+                "shortCode": "ENV",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "vnsgu-llb-3yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": [
+              {
+                "id": "vnsgu-sem4-new-juris",
+                "title": "Jurisprudence (Legal Theory)",
+                "shortCode": "JURIS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem4-new-admin",
+                "title": "Administrative Law",
+                "shortCode": "ADMIN",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem4-new-labour-2",
+                "title": "Labour & Industrial Law - II",
+                "shortCode": "LABOUR-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem4-new-family-2",
+                "title": "Family Law - II (Muslim Law)",
+                "shortCode": "FAMILY-2",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem4-old-juris",
+                "title": "Jurisprudence",
+                "shortCode": "JURIS",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem4-old-admin",
+                "title": "Administrative Law",
+                "shortCode": "ADMIN",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem4-old-labour-2",
+                "title": "Labour & Industrial Law - II",
+                "shortCode": "LABOUR-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem4-old-family-2",
+                "title": "Family Law - II (Muslim Law)",
+                "shortCode": "FAMILY-2",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "vnsgu-llb-3yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": [
+              {
+                "id": "vnsgu-sem5-new-cpc",
+                "title": "Code of Civil Procedure",
+                "shortCode": "CPC",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem5-new-company",
+                "title": "Companies Act, 2013",
+                "shortCode": "COMPANY",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem5-new-pil",
+                "title": "Public International Law",
+                "shortCode": "PIL",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem5-new-ipr",
+                "title": "Intellectual Property Law",
+                "shortCode": "IPR",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem5-old-cpc",
+                "title": "Code of Civil Procedure",
+                "shortCode": "CPC",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem5-old-company",
+                "title": "Company Law",
+                "shortCode": "COMPANY",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem5-old-pil",
+                "title": "Public International Law",
+                "shortCode": "PIL",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem5-old-ipr",
+                "title": "Intellectual Property Law",
+                "shortCode": "IPR",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          },
+          {
+            "id": "vnsgu-llb-3yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": [
+              {
+                "id": "vnsgu-sem6-new-ios",
+                "title": "Interpretation of Statutes",
+                "shortCode": "IOS",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem6-new-cyber",
+                "title": "Cyber Law & IT Act",
+                "shortCode": "CYBER",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem6-new-tax",
+                "title": "Taxation Laws",
+                "shortCode": "TAX",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem6-new-adr",
+                "title": "Arbitration & ADR Mechanisms",
+                "shortCode": "ADR",
+                "isActive": true,
+                "syllabusVersion": "new"
+              },
+              {
+                "id": "vnsgu-sem6-old-ios",
+                "title": "Interpretation of Statutes",
+                "shortCode": "IOS",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem6-old-cyber",
+                "title": "Cyber Law & IT Act",
+                "shortCode": "CYBER",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem6-old-tax",
+                "title": "Taxation Laws",
+                "shortCode": "TAX",
+                "isActive": true,
+                "syllabusVersion": "old"
+              },
+              {
+                "id": "vnsgu-sem6-old-adr",
+                "title": "Arbitration & ADR Mechanisms",
+                "shortCode": "ADR",
+                "isActive": true,
+                "syllabusVersion": "old"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vnsgu-llm",
+        "name": "Master of Laws (LL.M.)",
+        "code": "LLM-2Y",
+        "totalSemesters": 4,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "vnsgu-llm-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llm-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llm-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "vnsgu-llm-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "msu",
+    "name": "Maharaja Sayajirao University of Baroda",
+    "code": "MSU",
+    "officialWebsite": "https://www.msubaroda.ac.in",
+    "officialSyllabusSource": "https://www.msubaroda.ac.in/Academics/Syllabus",
+    "status": "VERIFIED",
+    "academicYear": "2026-27",
+    "colleges": [
+      {
+        "id": "col-msu-fol",
+        "name": "Faculty of Law, M.S. University",
+        "city": "Vadodara",
+        "status": "VERIFIED"
+      }
+    ],
+    "courses": [
+      {
+        "id": "msu-llb-5yr",
+        "name": "5-Year Integrated B.A. LL.B. (Hons.)",
+        "code": "BALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "msu-llb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "msu-bballb-5yr",
+        "name": "5-Year Integrated B.B.A. LL.B. (Hons.)",
+        "code": "BBALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "msu-bballb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "msu-bballb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "msu-bballb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "msu-bballb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "msu-bballb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "msu-bballb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "msu-bballb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "msu-bballb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "msu-bballb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "msu-bballb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "msu-llb-3yr",
+        "name": "3-Year LL.B. (Bachelor of Laws)",
+        "code": "LLB-3Y",
+        "totalSemesters": 6,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "msu-llb-3yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-3yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-3yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-3yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-3yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "msu-llb-3yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "msu-llm",
+        "name": "Master of Laws (LL.M.)",
+        "code": "LLM-2Y",
+        "totalSemesters": 4,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "msu-llm-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "msu-llm-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "msu-llm-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "msu-llm-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hngu",
+    "name": "Hemchandracharya North Gujarat University",
+    "code": "HNGU",
+    "officialWebsite": "https://www.ngu.ac.in",
+    "officialSyllabusSource": "https://www.ngu.ac.in/syllabus",
+    "status": "VERIFIED",
+    "academicYear": "2026-27",
+    "colleges": [
+      {
+        "id": "col-sheth-mn",
+        "name": "Sheth M.N. Law College",
+        "city": "Patan",
+        "status": "VERIFIED"
+      }
+    ],
+    "courses": [
+      {
+        "id": "hngu-llb-5yr",
+        "name": "5-Year Integrated B.A. LL.B. (Hons.)",
+        "code": "BALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "hngu-llb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "hngu-bballb-5yr",
+        "name": "5-Year Integrated B.B.A. LL.B. (Hons.)",
+        "code": "BBALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "hngu-bballb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "hngu-bballb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "hngu-bballb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "hngu-bballb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "hngu-bballb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "hngu-bballb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "hngu-bballb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "hngu-bballb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "hngu-bballb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "hngu-bballb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "hngu-llb-3yr",
+        "name": "3-Year LL.B. (Bachelor of Laws)",
+        "code": "LLB-3Y",
+        "totalSemesters": 6,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "hngu-llb-3yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-3yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-3yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-3yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-3yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llb-3yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "hngu-llm",
+        "name": "Master of Laws (LL.M.)",
+        "code": "LLM-2Y",
+        "totalSemesters": 4,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "hngu-llm-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llm-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llm-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "hngu-llm-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mkbu",
+    "name": "Maharaja Krishnakumarsinhji Bhavnagar University",
+    "code": "MKBU",
+    "officialWebsite": "https://www.mkbhavuni.edu.in",
+    "officialSyllabusSource": "https://www.mkbhavuni.edu.in/syllabus",
+    "status": "VERIFIED",
+    "academicYear": "2026-27",
+    "colleges": [],
+    "courses": [
+      {
+        "id": "mkbu-llb-5yr",
+        "name": "5-Year Integrated B.A. LL.B. (Hons.)",
+        "code": "BALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "mkbu-llb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "mkbu-bballb-5yr",
+        "name": "5-Year Integrated B.B.A. LL.B. (Hons.)",
+        "code": "BBALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "mkbu-bballb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-bballb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-bballb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-bballb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-bballb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-bballb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-bballb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-bballb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-bballb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-bballb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "mkbu-llb-3yr",
+        "name": "3-Year LL.B. (Bachelor of Laws)",
+        "code": "LLB-3Y",
+        "totalSemesters": 6,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "mkbu-llb-3yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-3yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-3yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-3yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-3yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llb-3yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "mkbu-llm",
+        "name": "Master of Laws (LL.M.)",
+        "code": "LLM-2Y",
+        "totalSemesters": 4,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "mkbu-llm-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llm-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llm-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "mkbu-llm-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gnlu",
+    "name": "Gujarat National Law University",
+    "code": "GNLU",
+    "officialWebsite": "https://gnlu.ac.in",
+    "officialSyllabusSource": "https://gnlu.ac.in/academic-syllabus",
+    "status": "VERIFIED",
+    "academicYear": "2026-27",
+    "colleges": [],
+    "courses": [
+      {
+        "id": "gnlu-llb-5yr",
+        "name": "5-Year Integrated B.A. LL.B. (Hons.)",
+        "code": "BALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gnlu-llb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "gnlu-bballb-5yr",
+        "name": "5-Year Integrated B.B.A. LL.B. (Hons.)",
+        "code": "BBALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gnlu-bballb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-bballb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-bballb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-bballb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-bballb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-bballb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-bballb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-bballb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-bballb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-bballb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "gnlu-llb-3yr",
+        "name": "3-Year LL.B. (Bachelor of Laws)",
+        "code": "LLB-3Y",
+        "totalSemesters": 6,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gnlu-llb-3yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-3yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-3yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-3yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-3yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llb-3yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "gnlu-llm",
+        "name": "Master of Laws (LL.M.)",
+        "code": "LLM-2Y",
+        "totalSemesters": 4,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gnlu-llm-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llm-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llm-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gnlu-llm-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "parul",
+    "name": "Parul University (Faculty of Law)",
+    "code": "PU",
+    "officialWebsite": "https://paruluniversity.ac.in",
+    "officialSyllabusSource": "https://paruluniversity.ac.in/faculty-of-law",
+    "status": "VERIFIED",
+    "academicYear": "2026-27",
+    "colleges": [],
+    "courses": [
+      {
+        "id": "parul-llb-5yr",
+        "name": "5-Year Integrated B.A. LL.B. (Hons.)",
+        "code": "BALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "parul-llb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "parul-bballb-5yr",
+        "name": "5-Year Integrated B.B.A. LL.B. (Hons.)",
+        "code": "BBALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "parul-bballb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "parul-bballb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "parul-bballb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "parul-bballb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "parul-bballb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "parul-bballb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "parul-bballb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "parul-bballb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "parul-bballb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "parul-bballb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "parul-llb-3yr",
+        "name": "3-Year LL.B. (Bachelor of Laws)",
+        "code": "LLB-3Y",
+        "totalSemesters": 6,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "parul-llb-3yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-3yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-3yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-3yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-3yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "parul-llb-3yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "parul-llm",
+        "name": "Master of Laws (LL.M.)",
+        "code": "LLM-2Y",
+        "totalSemesters": 4,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "parul-llm-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "parul-llm-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "parul-llm-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "parul-llm-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gls",
+    "name": "GLS University (Faculty of Law)",
+    "code": "GLS",
+    "officialWebsite": "https://www.glsuniversity.ac.in",
+    "officialSyllabusSource": "https://www.glsuniversity.ac.in/law",
+    "status": "VERIFIED",
+    "academicYear": "2026-27",
+    "colleges": [],
+    "courses": [
+      {
+        "id": "gls-llb-5yr",
+        "name": "5-Year Integrated B.A. LL.B. (Hons.)",
+        "code": "BALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gls-llb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "gls-bballb-5yr",
+        "name": "5-Year Integrated B.B.A. LL.B. (Hons.)",
+        "code": "BBALLB-5Y",
+        "totalSemesters": 10,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gls-bballb-5yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gls-bballb-5yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gls-bballb-5yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gls-bballb-5yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "gls-bballb-5yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "gls-bballb-5yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          },
+          {
+            "id": "gls-bballb-5yr-sem7",
+            "semesterNumber": 7,
+            "title": "Semester 7",
+            "subjects": []
+          },
+          {
+            "id": "gls-bballb-5yr-sem8",
+            "semesterNumber": 8,
+            "title": "Semester 8",
+            "subjects": []
+          },
+          {
+            "id": "gls-bballb-5yr-sem9",
+            "semesterNumber": 9,
+            "title": "Semester 9",
+            "subjects": []
+          },
+          {
+            "id": "gls-bballb-5yr-sem10",
+            "semesterNumber": 10,
+            "title": "Semester 10",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "gls-llb-3yr",
+        "name": "3-Year LL.B. (Bachelor of Laws)",
+        "code": "LLB-3Y",
+        "totalSemesters": 6,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gls-llb-3yr-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-3yr-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-3yr-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-3yr-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-3yr-sem5",
+            "semesterNumber": 5,
+            "title": "Semester 5",
+            "subjects": []
+          },
+          {
+            "id": "gls-llb-3yr-sem6",
+            "semesterNumber": 6,
+            "title": "Semester 6",
+            "subjects": []
+          }
+        ]
+      },
+      {
+        "id": "gls-llm",
+        "name": "Master of Laws (LL.M.)",
+        "code": "LLM-2Y",
+        "totalSemesters": 4,
+        "isActive": true,
+        "semesters": [
+          {
+            "id": "gls-llm-sem1",
+            "semesterNumber": 1,
+            "title": "Semester 1",
+            "subjects": []
+          },
+          {
+            "id": "gls-llm-sem2",
+            "semesterNumber": 2,
+            "title": "Semester 2",
+            "subjects": []
+          },
+          {
+            "id": "gls-llm-sem3",
+            "semesterNumber": 3,
+            "title": "Semester 3",
+            "subjects": []
+          },
+          {
+            "id": "gls-llm-sem4",
+            "semesterNumber": 4,
+            "title": "Semester 4",
+            "subjects": []
+          }
+        ]
+      }
+    ]
+  }
+]
