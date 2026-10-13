@@ -6,7 +6,6 @@ import Link from 'next/link';
 import {
   ShieldCheck,
   Sparkles,
-  Lock,
   CheckCircle2,
   AlertCircle,
   ArrowRight,
@@ -21,7 +20,6 @@ import {
   ExternalLink,
   MapPin,
   Loader2,
-  KeyRound,
   GraduationCap,
   BookOpen,
 } from 'lucide-react';
@@ -38,18 +36,9 @@ function CheckoutContent() {
   const [accessData, setAccessData] = useState(null);
   const [isCheckingAccess, setIsCheckingAccess] = useState(true);
 
-  // Step 1: Student Identity & Mobile OTP State
+  // Step 1: Student Identity
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
-  const [verifiedMobileNumber, setVerifiedMobileNumber] = useState('');
-  const [otpCode, setOtpCode] = useState('');
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-  const [isMobileVerified, setIsMobileVerified] = useState(false);
-  const [otpMessage, setOtpMessage] = useState('');
-  const [otpError, setOtpError] = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Step 2: Academic Profile State
   const [universities, setUniversities] = useState([]);
@@ -89,29 +78,13 @@ function CheckoutContent() {
     checkAccess();
   }, [currentUser]);
 
-  // 2. Prefill details if user is already logged in
+  // 2. Prefill academic selections if user is already logged in (do not prefill personal name or mobile number)
   useEffect(() => {
     if (currentUser) {
-      if (currentUser.fullName && !fullName) {
-        setFullName(currentUser.fullName);
-      }
-      if (currentUser.phoneNumber) {
-        setMobileNumber(currentUser.phoneNumber);
-        setVerifiedMobileNumber(currentUser.phoneNumber);
-        setIsMobileVerified(true);
-      }
-      if (currentUser.universityId && !selectedUniversityId) {
-        setSelectedUniversityId(currentUser.universityId);
-      }
-      if (currentUser.collegeId && !selectedCollegeId) {
-        setSelectedCollegeId(currentUser.collegeId);
-      }
-      if (currentUser.courseId && !selectedCourseId) {
-        setSelectedCourseId(currentUser.courseId);
-      }
-      if (currentUser.semesterId && !selectedSemesterId) {
-        setSelectedSemesterId(currentUser.semesterId);
-      }
+      if (currentUser.universityId) setSelectedUniversityId((prev) => prev || currentUser.universityId);
+      if (currentUser.collegeId) setSelectedCollegeId((prev) => prev || currentUser.collegeId);
+      if (currentUser.courseId) setSelectedCourseId((prev) => prev || currentUser.courseId);
+      if (currentUser.semesterId) setSelectedSemesterId((prev) => prev || currentUser.semesterId);
     }
   }, [currentUser]);
 
@@ -220,14 +193,6 @@ function CheckoutContent() {
     fetchUniversityDetails();
   }, [selectedUniversityId]);
 
-  // Resend OTP countdown timer
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setResendCooldown((prev) => Math.max(0, prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
 
   // Dependent Selectors: Available Colleges, Courses & Semesters
   const availableColleges = useMemo(() => {
@@ -299,7 +264,7 @@ function CheckoutContent() {
     setSelectedSemesterId(course?.semesters?.[0]?.id || '');
   };
 
-  // Comprehensive validation states
+  // Comprehensive validation states (OTP removed)
   const isIndianPhoneValid = useMemo(() => {
     return isValidIndianPhoneNumber(mobileNumber);
   }, [mobileNumber]);
@@ -310,17 +275,10 @@ function CheckoutContent() {
     selectedSemesterId
   );
 
-  const isStudentDetailsComplete = useMemo(() => {
-    const normInput = normalizePhoneNumber(mobileNumber);
-    const normVerified = normalizePhoneNumber(verifiedMobileNumber);
-    return Boolean(
-      fullName.trim().length > 0 &&
-      isIndianPhoneValid &&
-      isMobileVerified &&
-      normVerified &&
-      normInput === normVerified
-    );
-  }, [fullName, isIndianPhoneValid, isMobileVerified, verifiedMobileNumber, mobileNumber]);
+  const isStudentDetailsComplete = Boolean(
+    fullName.trim().length > 0 &&
+    isIndianPhoneValid
+  );
 
   const isFormFullyValid = Boolean(
     isStudentDetailsComplete &&
@@ -329,133 +287,16 @@ function CheckoutContent() {
     !isPaymentProcessing
   );
 
-  // Mobile number input handler - invalidates verification on any edit
+  // Mobile number input handler
   const handleMobileChange = (val) => {
-    const cleaned = val.replace(/[^\d+ ]/g, '');
-    setMobileNumber(cleaned);
-
-    // Invalidate previous verification if number changed
-    const normCleaned = normalizePhoneNumber(cleaned);
-    const normVerified = normalizePhoneNumber(verifiedMobileNumber);
-    if (isMobileVerified || (normVerified && normCleaned !== normVerified)) {
-      setIsMobileVerified(false);
-      setVerifiedMobileNumber('');
+    let digits = val.replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('91')) {
+      digits = digits.slice(2);
+    } else if (digits.length === 11 && digits.startsWith('0')) {
+      digits = digits.slice(1);
     }
-    if (isOtpSent) {
-      setIsOtpSent(false);
-      setOtpCode('');
-    }
-    setOtpError('');
-    setOtpMessage('');
+    setMobileNumber(digits.slice(0, 10));
     setPaymentError('');
-  };
-
-  // Reset verification to allow changing number
-  const handleResetMobileVerification = () => {
-    setIsMobileVerified(false);
-    setVerifiedMobileNumber('');
-    setIsOtpSent(false);
-    setOtpCode('');
-    setOtpError('');
-    setOtpMessage('');
-    setPaymentError('');
-  };
-
-  // OTP: Send Code Handler
-  const handleSendOtp = async () => {
-    setOtpError('');
-    setOtpMessage('');
-    setPaymentError('');
-
-    const cleaned = mobileNumber.trim();
-    if (!cleaned) {
-      setOtpError('Please enter a valid 10-digit mobile number.');
-      return;
-    }
-
-    if (!isValidIndianPhoneNumber(cleaned)) {
-      setOtpError('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).');
-      return;
-    }
-
-    setIsSendingOtp(true);
-    try {
-      const res = await fetch('/api/exam-prep/auth/otp/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: cleaned }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to dispatch verification code.');
-      }
-
-      setIsOtpSent(true);
-      const normalized = data.normalizedPhone || cleaned;
-      setMobileNumber(normalized);
-      setOtpMessage(data.message || 'Verification code sent to your mobile number.');
-      setResendCooldown(data.resendCooldownSeconds || 30);
-    } catch (err) {
-      setOtpError(err.message || 'Could not send verification SMS.');
-    } finally {
-      setIsSendingOtp(false);
-    }
-  };
-
-  // OTP: Verify Code Handler
-  const handleVerifyOtp = async () => {
-    setOtpError('');
-    setOtpMessage('');
-    setPaymentError('');
-
-    const cleanOtp = (otpCode || '').trim();
-    if (!cleanOtp || cleanOtp.length !== 6 || !/^\d{6}$/.test(cleanOtp)) {
-      setOtpError('Please enter the 6-digit verification code received on your mobile.');
-      return;
-    }
-
-    setIsVerifyingOtp(true);
-    try {
-      const res = await fetch('/api/exam-prep/auth/otp/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phoneNumber: mobileNumber,
-          otp: cleanOtp,
-          fullName: fullName.trim() || 'Law Student',
-          universityId: selectedUniversityId,
-          collegeId: selectedCollegeId,
-          courseId: selectedCourseId,
-          semesterId: selectedSemesterId,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Invalid or expired verification code.');
-      }
-
-      const verifiedPhone = data.user?.phoneNumber || data.normalizedPhone || mobileNumber;
-      setIsMobileVerified(true);
-      setVerifiedMobileNumber(verifiedPhone);
-      setMobileNumber(verifiedPhone);
-      setIsOtpSent(false);
-      setOtpCode('');
-      setOtpMessage('Mobile number verified successfully.');
-      if (data.user?.fullName && !fullName.trim()) {
-        setFullName(data.user.fullName);
-      }
-      trackStudentSignup('phone_otp');
-      if (setUser && data.user) {
-        setUser(data.user);
-      }
-      if (refreshUser) refreshUser();
-    } catch (err) {
-      setOtpError(err.message || 'Verification failed. Please try again.');
-    } finally {
-      setIsVerifyingOtp(false);
-    }
   };
 
   // Transparent Geolocation Recommendation Helper (Consent-based)
@@ -532,15 +373,14 @@ function CheckoutContent() {
     // Prevent duplicate submission / repeated clicks
     if (isPaymentProcessing) return;
 
-    const normPhone = normalizePhoneNumber(mobileNumber);
-    const normVerified = normalizePhoneNumber(verifiedMobileNumber);
-    if (!isMobileVerified || !normVerified || normPhone !== normVerified) {
-      setPaymentError('Please verify your mobile number with OTP in Step 1 before proceeding to payment.');
+    if (!fullName.trim()) {
+      setPaymentError('Please enter your full name in Step 1 before proceeding to payment.');
       return;
     }
 
-    if (!fullName.trim()) {
-      setPaymentError('Please enter your full name in Step 1 before proceeding to payment.');
+    const normPhone = normalizePhoneNumber(mobileNumber);
+    if (!normPhone || !isValidIndianPhoneNumber(normPhone)) {
+      setPaymentError('Please enter a valid 10-digit Indian mobile number in Step 1.');
       return;
     }
 
@@ -568,15 +408,15 @@ function CheckoutContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullName: fullName.trim() || 'Law Student',
-          phoneNumber: mobileNumber,
+          fullName: fullName.trim(),
+          phoneNumber: normPhone,
           universityId: selectedUniversityId,
           collegeId: selectedCollegeId,
           courseId: selectedCourseId,
           semesterId: selectedSemesterId,
           notes: {
             fullName: fullName.trim(),
-            phoneNumber: mobileNumber,
+            phoneNumber: normPhone,
             universityId: selectedUniversityId,
             collegeId: selectedCollegeId,
             courseId: selectedCourseId,
@@ -607,9 +447,9 @@ function CheckoutContent() {
         image: 'https://lowstudy.com/favicon.ico',
         order_id: orderData.razorpayOrderId,
         prefill: {
-          name: fullName || currentUser?.fullName || '',
-          email: currentUser?.email || `${mobileNumber}@student.lowstudy.com`,
-          contact: mobileNumber,
+          name: fullName.trim(),
+          email: currentUser?.email || `${normPhone}@student.lowstudy.com`,
+          contact: normPhone,
         },
         theme: {
           color: '#f59e0b', // Amber 500
@@ -732,7 +572,7 @@ function CheckoutContent() {
             Exam Prep Pass Registration
           </h1>
           <p className="text-xs sm:text-sm text-slate-400">
-            Verify your student mobile number, select your law program, and unlock complete question banks and structured model answers.
+            Enter your student details, select your law program, and unlock complete question banks and structured model answers.
           </p>
         </div>
 
@@ -753,7 +593,7 @@ function CheckoutContent() {
           {/* Left Column: Guided 2-Step Registration & Academic Profile (7 cols) */}
           <div className="lg:col-span-7 space-y-6">
 
-            {/* STEP 1: Student Identity & Mobile OTP Verification */}
+            {/* STEP 1: Student Details */}
             <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
@@ -761,180 +601,61 @@ function CheckoutContent() {
                     1
                   </span>
                   <h2 className="text-sm sm:text-base font-bold text-white">
-                    Student Details & Mobile Verification
+                    Student Details
                   </h2>
                 </div>
-                {isMobileVerified && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Verified
-                  </span>
-                )}
+                <span className="text-[11px] text-slate-400">
+                  Required for Pass Access
+                </span>
               </div>
 
-              {isMobileVerified ? (
-                /* Verified Badge State */
-                <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-800/40 space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Student Name:</span>
-                    <span className="font-bold text-white">{fullName || currentUser?.fullName || 'Law Student'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Verified Mobile:</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-emerald-400 font-bold">{mobileNumber}</span>
-                      <button
-                        type="button"
-                        onClick={handleResetMobileVerification}
-                        className="text-[11px] text-amber-400 hover:text-amber-300 underline font-medium cursor-pointer"
-                      >
-                        Change Number
-                      </button>
-                    </div>
-                  </div>
-                  <div className="pt-1 text-[11px] text-emerald-400/90 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Identity verified with OTP. Your Exam Prep Pass will be bound to this verified number.</span>
+              <div className="space-y-3.5 text-xs">
+                {/* Full Name */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold block">Full Name</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        setPaymentError('');
+                      }}
+                      placeholder="Enter your full name"
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-white text-xs placeholder:text-slate-600 focus:outline-none"
+                    />
                   </div>
                 </div>
-              ) : (
-                /* Unverified Form State */
-                <div className="space-y-3.5 text-xs">
-                  {/* Full Name */}
-                  <div className="space-y-1">
-                    <label className="text-slate-300 font-semibold block">Full Name</label>
-                    <div className="relative">
-                      <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                      <input
-                        type="text"
-                        value={fullName}
-                        onChange={(e) => {
-                          setFullName(e.target.value);
-                          setPaymentError('');
-                        }}
-                        placeholder="Enter your full name"
-                        className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-white text-xs placeholder:text-slate-600 focus:outline-none"
-                      />
-                    </div>
+
+                {/* Mobile Number */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-300 font-semibold block">Mobile Number (Indian 10-Digit)</label>
+                    {mobileNumber && !isIndianPhoneValid && (
+                      <span className="text-[10px] text-amber-400 font-normal">Must be 10 digits starting with 6-9</span>
+                    )}
                   </div>
-
-                  {/* Mobile Number */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-slate-300 font-semibold block">Mobile Number (Indian 10-Digit)</label>
-                      {mobileNumber && !isOtpSent && !isIndianPhoneValid && (
-                        <span className="text-[10px] text-amber-400 font-normal">Must be 10 digits starting with 6-9</span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                        <input
-                          type="tel"
-                          value={mobileNumber}
-                          onChange={(e) => handleMobileChange(e.target.value)}
-                          disabled={isOtpSent}
-                          placeholder="e.g. 9876543210"
-                          className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-white text-xs placeholder:text-slate-600 focus:outline-none disabled:opacity-60"
-                        />
-                      </div>
-                      {isOtpSent ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsOtpSent(false);
-                            setOtpCode('');
-                            setOtpError('');
-                          }}
-                          className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs shrink-0 transition-colors cursor-pointer"
-                        >
-                          Edit Number
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleSendOtp}
-                          disabled={isSendingOtp || !mobileNumber.trim()}
-                          className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                        >
-                          {isSendingOtp ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span>Sending...</span>
-                            </>
-                          ) : (
-                            <span>Send OTP</span>
-                          )}
-                        </button>
-                      )}
-                    </div>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                    <input
+                      type="tel"
+                      value={mobileNumber}
+                      onChange={(e) => handleMobileChange(e.target.value)}
+                      placeholder="e.g. 9876543210"
+                      maxLength={10}
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-white text-xs placeholder:text-slate-600 focus:outline-none"
+                    />
                   </div>
-
-                  {/* OTP Input Field */}
-                  {isOtpSent && (
-                    <div className="p-3.5 rounded-2xl bg-slate-950 border border-amber-500/30 space-y-3 animate-in fade-in">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-slate-300 font-semibold">
-                          <span>Enter 6-Digit Verification Code</span>
-                          {resendCooldown > 0 ? (
-                            <span className="text-[11px] text-slate-500 font-normal">
-                              Resend in {resendCooldown}s
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={handleSendOtp}
-                              disabled={isSendingOtp}
-                              className="text-[11px] text-amber-400 hover:underline font-normal cursor-pointer disabled:opacity-50"
-                            >
-                              Resend OTP
-                            </button>
-                          )}
-                        </div>
-                        <div className="relative">
-                          <KeyRound className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                          <input
-                            type="text"
-                            maxLength={6}
-                            value={otpCode}
-                            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                            placeholder="6-digit OTP"
-                            className="w-full bg-slate-900 border border-slate-700 focus:border-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-white text-xs tracking-widest font-mono placeholder:text-slate-600 focus:outline-none"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleVerifyOtp}
-                        disabled={isVerifyingOtp || otpCode.trim().length !== 6}
-                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        {isVerifyingOtp ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Verifying...</span>
-                          </>
-                        ) : (
-                          <span>Verify Mobile Number</span>
-                        )}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* OTP Feedback Messages */}
-                  {otpMessage && (
-                    <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-800/40 text-emerald-300 text-[11px]">
-                      {otpMessage}
-                    </div>
-                  )}
-                  {otpError && (
-                    <div className="p-2.5 rounded-xl bg-red-950/30 border border-red-800/40 text-red-300 text-[11px]">
-                      {otpError}
-                    </div>
-                  )}
                 </div>
-              )}
+
+                <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 text-[11px] text-slate-400 flex items-start gap-2">
+                  <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <span>
+                    Your contact number is used to link your educational pass. Standard SMS verification is not required.
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* STEP 2: University, Course and Semester Selectors */}
@@ -1221,13 +942,13 @@ function CheckoutContent() {
                       <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isIndianPhoneValid ? 'text-emerald-400' : 'text-slate-600'}`} />
                       <span>10-Digit Mobile {isIndianPhoneValid ? '✓' : '(Required)'}</span>
                     </div>
-                    <div className={`flex items-center gap-1.5 ${isMobileVerified ? 'text-emerald-400' : 'text-amber-400 font-medium'}`}>
-                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isMobileVerified ? 'text-emerald-400' : 'text-amber-500/70'}`} />
-                      <span>Mobile OTP {isMobileVerified ? '✓' : (isOtpSent ? '(Enter Code)' : '(Step 1 Required)')}</span>
-                    </div>
                     <div className={`flex items-center gap-1.5 ${isAcademicProfileComplete ? 'text-emerald-400' : 'text-slate-400'}`}>
                       <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isAcademicProfileComplete ? 'text-emerald-400' : 'text-slate-600'}`} />
                       <span>Academic Profile {isAcademicProfileComplete ? '✓' : '(Step 2 Required)'}</span>
+                    </div>
+                    <div className={`flex items-center gap-1.5 ${agreedToTerms ? 'text-emerald-400' : 'text-slate-400'}`}>
+                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${agreedToTerms ? 'text-emerald-400' : 'text-slate-600'}`} />
+                      <span>Terms Accepted {agreedToTerms ? '✓' : '(Required)'}</span>
                     </div>
                   </div>
                 </div>
@@ -1247,22 +968,17 @@ function CheckoutContent() {
                 {isPaymentProcessing ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Connecting to Razorpay...</span>
-                  </>
-                ) : !isIndianPhoneValid ? (
-                  <>
-                    <Phone className="w-4 h-4" />
-                    <span>Enter 10-Digit Mobile to Pay</span>
-                  </>
-                ) : !isMobileVerified ? (
-                  <>
-                    <Lock className="w-4 h-4" />
-                    <span>{isOtpSent ? "Verify OTP (Step 1) to Pay" : "Verify Mobile (Step 1) to Pay"}</span>
+                    <span>Processing Payment...</span>
                   </>
                 ) : !fullName.trim() ? (
                   <>
                     <User className="w-4 h-4" />
                     <span>Enter Full Name (Step 1) to Pay</span>
+                  </>
+                ) : !isIndianPhoneValid ? (
+                  <>
+                    <Phone className="w-4 h-4" />
+                    <span>Enter 10-Digit Mobile (Step 1) to Pay</span>
                   </>
                 ) : !isAcademicProfileComplete ? (
                   <>
@@ -1277,7 +993,7 @@ function CheckoutContent() {
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4" />
-                    <span>Pay ₹299 with Razorpay</span>
+                    <span>Pay ₹299 & Unlock Exam Prep Pass</span>
                   </>
                 )}
               </button>
@@ -1291,7 +1007,7 @@ function CheckoutContent() {
             <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 space-y-2 text-[11px] text-slate-400 leading-relaxed">
               <div className="font-bold text-slate-300">Privacy & Access Policy:</div>
               <p>
-                • Your verified mobile number is strictly used to bind your educational pass to your account.
+                • Your contact number is used to link your educational pass to your account.
               </p>
               <p>
                 • Location access is optional and solely used for local university recommendations. No precise coordinates are retained.
