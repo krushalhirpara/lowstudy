@@ -17,11 +17,17 @@ export const EXAM_PREP_CONFIG = {
  * Get Razorpay Credentials from environment
  */
 export function getRazorpayCredentials() {
-  const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
-  const keySecret = process.env.RAZORPAY_KEY_SECRET || '';
-  const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
+  const rawKeyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
+  const rawKeySecret = process.env.RAZORPAY_KEY_SECRET || '';
+  const rawWebhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
+
+  const keyId = rawKeyId.trim().replace(/^["']|["']$/g, '');
+  const keySecret = rawKeySecret.trim().replace(/^["']|["']$/g, '');
+  const webhookSecret = rawWebhookSecret.trim().replace(/^["']|["']$/g, '');
+
   const isConfigured = Boolean(keyId && keySecret);
   const isTestMode = keyId.startsWith('rzp_test_');
+  const isLiveMode = keyId.startsWith('rzp_live_');
 
   return {
     keyId,
@@ -29,6 +35,28 @@ export function getRazorpayCredentials() {
     webhookSecret,
     isConfigured,
     isTestMode,
+    isLiveMode,
+  };
+}
+
+/**
+ * Get safe, non-sensitive Razorpay configuration status for diagnostics
+ */
+export function getRazorpayConfigStatus() {
+  const { keyId, keySecret, webhookSecret, isConfigured, isTestMode, isLiveMode } = getRazorpayCredentials();
+  let mode = 'none';
+  if (isLiveMode) mode = 'live';
+  else if (isTestMode) mode = 'test';
+  else if (keyId) mode = 'unknown';
+
+  return {
+    isConfigured,
+    hasKeyId: Boolean(keyId),
+    hasKeySecret: Boolean(keySecret),
+    hasWebhookSecret: Boolean(webhookSecret),
+    mode,
+    isTestMode,
+    isLiveMode,
   };
 }
 
@@ -135,10 +163,12 @@ export async function createExamPrepOrder({ userId, userEmail, userName, userPho
     };
   }
 
-  const { keyId, keySecret, isConfigured } = getRazorpayCredentials();
+  const { keyId, keySecret, isConfigured, isTestMode } = getRazorpayCredentials();
 
   if (!isConfigured && process.env.NODE_ENV === 'production') {
-    throw new Error('Razorpay payment gateway credentials are not configured on the production server.');
+    const configErr = new Error('Razorpay payment gateway credentials are not configured on the production server.');
+    configErr.code = 'GATEWAY_CONFIG_MISSING';
+    throw configErr;
   }
 
   const receipt = `rcpt_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
@@ -196,12 +226,16 @@ export async function createExamPrepOrder({ userId, userEmail, userName, userPho
         const errMsg = errData?.error?.description || `Razorpay order creation failed (status ${res.status})`;
         console.error('[ExamPrepService] Razorpay API error:', errMsg);
         if (!isTestMode) {
-          throw new Error(`Failed to initialize payment with Razorpay: ${errMsg}`);
+          const apiErr = new Error(`Failed to initialize payment with Razorpay: ${errMsg}`);
+          apiErr.code = 'RAZORPAY_API_ERROR';
+          apiErr.status = res.status;
+          throw apiErr;
         }
       }
     } catch (apiErr) {
       console.error('[ExamPrepService] Razorpay network/API error:', apiErr?.message || apiErr);
       if (!isTestMode) {
+        if (!apiErr.code) apiErr.code = 'RAZORPAY_API_ERROR';
         throw apiErr;
       }
     }

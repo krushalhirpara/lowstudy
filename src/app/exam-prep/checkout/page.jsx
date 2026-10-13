@@ -426,7 +426,21 @@ function CheckoutContent() {
       });
 
       if (!orderRes.ok) {
-        const errData = await orderRes.json();
+        const errData = await orderRes.json().catch(() => ({}));
+        if (
+          orderRes.status === 503 ||
+          errData.code === 'GATEWAY_CONFIG_MISSING' ||
+          errData.error?.includes('credentials are not configured')
+        ) {
+          throw new Error(
+            'Payment gateway is temporarily unavailable: payment credentials have not been configured on the production server. If you are an administrator, please configure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in your Vercel project settings.'
+          );
+        }
+        if (orderRes.status === 502 || errData.code === 'RAZORPAY_API_ERROR') {
+          throw new Error(
+            'Payment gateway authentication error: please ensure your Razorpay Key ID and Secret are active and match the same mode (live or test).'
+          );
+        }
         throw new Error(errData.error || 'Failed to initialize payment order.');
       }
 

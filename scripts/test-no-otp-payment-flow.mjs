@@ -1,7 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import { isValidIndianPhoneNumber, normalizePhoneNumber } from '../src/lib/phoneUtils.js';
-import { createExamPrepOrder, verifyAndCapturePayment, hasActiveExamPrepEntitlement } from '../src/lib/services/examPrepService.js';
-import { validateAcademicOrderInput } from '../src/lib/services/examPrepService.js';
+import {
+  createExamPrepOrder,
+  verifyAndCapturePayment,
+  hasActiveExamPrepEntitlement,
+  validateAcademicOrderInput,
+  getRazorpayConfigStatus,
+  getRazorpayCredentials,
+} from '../src/lib/services/examPrepService.js';
 
 const prisma = new PrismaClient();
 
@@ -188,6 +194,49 @@ async function runTests() {
     await prisma.examPrepEntitlement.deleteMany({ where: { userId: student.id } });
     await prisma.examPrepOrder.deleteMany({ where: { userId: student.id } });
     await prisma.user.delete({ where: { id: student.id } });
+
+    // -------------------------------------------------------------
+    // Test Scenario 7: Razorpay Credentials Diagnostics & Mode Detection
+    // -------------------------------------------------------------
+    console.log('\n🔑 Scenario 7: Razorpay Credentials Sanitization & Error Tagging');
+    const configStatus = getRazorpayConfigStatus();
+    assert(typeof configStatus.hasKeyId === 'boolean', 'getRazorpayConfigStatus reports hasKeyId as boolean');
+    assert(typeof configStatus.hasKeySecret === 'boolean', 'getRazorpayConfigStatus reports hasKeySecret as boolean');
+    assert(['live', 'test', 'none', 'unknown'].includes(configStatus.mode), 'Razorpay mode correctly detected');
+
+    // Test production error tagging when unconfigured
+    const origEnv = process.env.NODE_ENV;
+    const origKey = process.env.RAZORPAY_KEY_ID;
+    const origSecret = process.env.RAZORPAY_KEY_SECRET;
+
+    try {
+      process.env.NODE_ENV = 'production';
+      delete process.env.RAZORPAY_KEY_ID;
+      delete process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      delete process.env.RAZORPAY_KEY_SECRET;
+
+      let caughtMissing = false;
+      try {
+        await createExamPrepOrder({
+          userId: 'mock-user-id',
+          userEmail: 'test@example.com',
+          userName: 'Test User',
+          userPhone: '9876543210',
+        });
+      } catch (err) {
+        caughtMissing = true;
+        assert(err.code === 'GATEWAY_CONFIG_MISSING', 'Tagged with code GATEWAY_CONFIG_MISSING');
+        assert(
+          err.message.includes('credentials are not configured on the production server'),
+          'Clean, informative error message thrown'
+        );
+      }
+      assert(caughtMissing, 'createExamPrepOrder blocks order creation in production when keys are missing');
+    } finally {
+      process.env.NODE_ENV = origEnv;
+      if (origKey) process.env.RAZORPAY_KEY_ID = origKey;
+      if (origSecret) process.env.RAZORPAY_KEY_SECRET = origSecret;
+    }
 
     console.log(`\n🎉 Summary: ${passed} passed, ${failed} failed.\n`);
     if (failed > 0) process.exit(1);

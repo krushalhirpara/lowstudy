@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSessionFromRequest, createSessionToken, sanitizeInput } from '@/lib/security.js';
-import { createExamPrepOrder, validateAcademicOrderInput } from '@/lib/services/examPrepService.js';
+import { createExamPrepOrder, validateAcademicOrderInput, getRazorpayConfigStatus } from '@/lib/services/examPrepService.js';
 import { isValidIndianPhoneNumber, normalizePhoneNumber } from '@/lib/phoneUtils.js';
 import prisma from '@/lib/prisma.js';
 
@@ -146,6 +146,35 @@ export async function POST(request) {
 
     return response;
   } catch (err) {
+    if (err?.code === 'GATEWAY_CONFIG_MISSING' || err?.message?.includes('credentials are not configured')) {
+      const configStatus = getRazorpayConfigStatus();
+      console.error(
+        `[API /api/exam-prep/payment/order] Gateway configuration missing in production: hasKeyId=${configStatus.hasKeyId}, hasKeySecret=${configStatus.hasKeySecret}, mode=${configStatus.mode}`
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          code: 'GATEWAY_CONFIG_MISSING',
+          error:
+            'Razorpay payment gateway credentials are not configured on the production server. Please configure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in Vercel environment variables.',
+        },
+        { status: 503 }
+      );
+    }
+
+    if (err?.code === 'RAZORPAY_API_ERROR') {
+      console.error('[API /api/exam-prep/payment/order] Razorpay gateway rejection:', err.message);
+      return NextResponse.json(
+        {
+          success: false,
+          code: 'RAZORPAY_API_ERROR',
+          error:
+            err.message || 'Payment gateway was unable to initialize order. Please verify that Razorpay credentials are valid and matched.',
+        },
+        { status: err.status || 502 }
+      );
+    }
+
     console.error('[API /api/exam-prep/payment/order] Error:', err);
     return NextResponse.json(
       {
