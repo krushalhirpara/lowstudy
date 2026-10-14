@@ -975,7 +975,7 @@ function CheckoutContent() {
                 disabled={!isFormFullyValid}
                 className={`w-full py-4 px-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all ${
                   isFormFullyValid
-                    ? "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-xl shadow-amber-500/25 active:scale-[0.98] cursor-pointer"
+                    ? "bg-[#059669] hover:bg-[#047857] focus:bg-[#047857] active:bg-[#047857] text-[#FFFFFF] shadow-xl shadow-[#059669]/25 active:scale-[0.98] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#059669]/50"
                     : "bg-slate-800 text-slate-400 border border-slate-700/60 cursor-not-allowed opacity-60"
                 }`}
               >
@@ -1006,7 +1006,7 @@ function CheckoutContent() {
                   </>
                 ) : (
                   <>
-                    <CreditCard className="w-4 h-4" />
+                    <CreditCard className="w-4 h-4 text-[#FFFFFF]" />
                     <span>Pay ₹299 & Unlock Exam Prep Pass</span>
                   </>
                 )}
